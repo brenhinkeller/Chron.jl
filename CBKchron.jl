@@ -21,6 +21,8 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 ## --- Load external resources
 
+    # Basic statistics and UI resources
+    using StatsBase, ProgressMeter;
     # Weighted mean, etc
     include("Utilities.jl");
     # Functions for estimating extrema of a finite-range distribution
@@ -37,6 +39,7 @@
     Name   =        ("KJ08-157", "KJ04-75", "KJ09-66", "KJ04-72", "KJ04-70");
     Height =        [     -52.0,      44.0,      54.0,      82.0,      93.0];
     Height_Sigma =  [       3.0,       1.0,       3.0,       3.0,       3.0];
+    InputAgeSigmaLevel = 2;
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     # Count the names to see how many samples we have
@@ -48,6 +51,9 @@
         Height_Sigma,  # Height_sigma
         fill(NaN,nSamples),  # Sample ages
         fill(NaN,nSamples),  # Sample age uncertainty
+        fill(NaN,nSamples),  # Sample age 2.5% CI
+        fill(NaN,nSamples),  # Sample age 97.5% CI
+        zeros(nSamples), # Sidedness (zeros by default, geochron constraints are two-sided)
         fill(NaN,nSamples,nSamples), # Sample age distribution parameters
         );
 
@@ -71,9 +77,10 @@
 
 ## --- Estimate the eruption age distributions for each sample
 
-    # Number of steps in MCMC
+    # Number of steps in distribution MCMC
     distSteps = 10^6;
     distBurnin = floor(Int,distSteps/2);
+
     # Choose a distribution to use.
     # A variety of potentially useful distributions are provided in
     # DistMetropolis.jl and include UniformDisribution, TriangularDistribution,
@@ -82,18 +89,21 @@
     dist = BootstrappedDistribution;
 
     # Estimate the distribution for each sample
-    using StatsBase, LsqFit
-
+    print("Estimating eruption/deposition age distributions...\n");
+    using LsqFit
     for i=1:nSamples
       # Load data for each sample
         data = readcsv(string("examples/DenverUPbExample/", smpl.Name[i], ".csv"))
+        print(i, ": ", smpl.Name[i], "\n"); # Display progress
 
       # Run MCMC to estimate saturation and eruption/deposition age distributions
-        (tminDist, tmaxDist, llDist, acceptanceDist) = crystMinMaxMetropolis(distSteps,dist,data[:,1],data[:,2]/2);
+        (tminDist, tmaxDist, llDist, acceptanceDist) = crystMinMaxMetropolis(distSteps,dist,data[:,1],data[:,2]/InputAgeSigmaLevel);
 
         # Fill in the strat sample object with our new results
         smpl.Age[i] = mean(tminDist[distBurnin:end]);
         smpl.Age_Sigma[i] = std(tminDist[distBurnin:end]);
+        smpl.Age_025CI[i] = percentile(tminDist[distBurnin:end],2.5);
+        smpl.Age_975CI[i] = percentile(tminDist[distBurnin:end],97.5);
 
         # Rank-order plot of analyses and eruption/deposition age range
         nAnalyses = length(data[:,1]);
@@ -131,52 +141,47 @@
         smpl.p[:,i] = fobj.param;
     end
 
-## --- Construct a stratigraphic age-depth model
-    # nsteps = 1000000;
-    # burnin = 200000;
-    # npoints = 1000;
-    # height_uncert = 0; % Height uncertainty in meters (1-sigma)
-    # Age = sample.DepositionAge;
-    # Age_Sigma = sample.DepositionAge_Sigma;
-    # Height = sample.Height;
-    # Height_Sigma = sample.Height_Sigma+1E-12;
+    using JLD
+    @save "smpl.jld" smpl
 
-(ageDist) = StratMetropolis(nSteps)
+## --- Run stratigraphic model
 
+# # # # # # # # # # # Configure stratigraphic model here! # # # # # # # # # # #
+  resolution = 2.0; # Same units as sample height. Smaller is slower!
+  (bottom, top) = extrema(smpl.Height);
+  bounding = 0.1;
+  npoints_approx = round(Int,length(bottom:resolution:top) * (1+2*bounding))
+  burnin = 20000*npoints_approx;
+  nsteps = 25000;
+  sieve = round(Int,npoints_approx);
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-## --- End of File
-
-
-struct StratAgeModelConfiguration
-    resolution::Float64
-    height::Array{Float64}
-    npoints::Int
-    burnin::Int
-    nsteps::Int
-    sieve::Int
-    hashiatus::Bool
-end
-
-# # # # # # # # # # # Configure stratigraphic model here!  # # # # # # # # # # #
-resolution = 1.0; # same units as smpl.height
-model_heights = minimum(smpl.Height):resolution:maximum(smpl.Height)
-npoints = length(model_heights)
-burnin = 2000*npoints;
-nsteps = 500000;
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-model = StratAgeModelConfiguration(
-        resolution, # Resolution (same units as smpl.height)
-        model_heights, # Model heights
-        npoints, # Number of levels at which to resolve the age model
+    # Pass configuration to a struct
+    config = StratAgeModelConfiguration(
+        resolution, # Resolution
         burnin, # Lenght of burnin
         nsteps, # Number of regular MC steps
-        npoints, # Seive strength
-        false # No hiatus
-        )
+        sieve, # Seive strength
+    );
 
-function StratMetropolis(sample,model,hiatus)
-    # Start wth linear fit for an initial proposal
+    # Run the model
+    (mdl, agedist, lldist) = StratMetropolis(smpl, config);
 
-end
+    # Plot results
+    hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
+    plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="")
+    plot!(hdl, smpl.Age, smpl.Height, xerror=smpl.Age_Sigma*2,label="data",seriestype=:scatter,color=:black)
+    plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)")
+    savefig(hdl,"AgeDepthModel.pdf");
+
+## ---
+
+# A type of object to hold data about hiatuses
+hiatus = HiatusData(
+    [20.0,], # Height
+    [0.0,], # Height_Sigma
+    [0.5,], # Duration
+    [0.1,], # Duration_Sigma
+);
+
+(mdl, agedist, hiatusdist, lldist) = StratMetropolisHiatus(smpl, hiatus, config);
