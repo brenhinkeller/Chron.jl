@@ -273,28 +273,28 @@ function StratMetropolisHiatus(smpl,hiatus,config)
     ll = sum(agell[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll);
 
     # Ensure there is only one effective hiatus at most for each height node
-    closest_h = findclosestabove(hiatus.Height,heights);
+    closest_h = findclosestabove(hiatus.Height,model_heights);
     closest_h_unique = unique(closest_h);
     hiatus_Height = Array{Float64}(size(closest_h_unique));
     hiatus_Duration = Array{Float64}(size(closest_h_unique));
     hiatus_Duration_Sigma = Array{Float64}(size(closest_h_unique));
     for i=1:length(closest_h_unique)
-        hiatus_Height[i] = mean(hiatus.Height[closest_h==closest_h_unique[i]]);
-        hiatus_Duration[i] = sum(hiatus.Duration[closest_h==closest_h_unique[i]]);
-        hiatus_Duration_Sigma[i] = sqrt(sum(hiatus.Duration_Sigma[closest_h==closest_h_unique[i]].^2));
+        hiatus_Height[i] = mean(hiatus.Height[closest_h.==closest_h_unique[i]]);
+        hiatus_Duration[i] = sum(hiatus.Duration[closest_h.==closest_h_unique[i]]);
+        hiatus_Duration_Sigma[i] = sqrt(sum(hiatus.Duration_Sigma[closest_h.==closest_h_unique[i]].^2));
     end
 
     # Add log likelihood for hiatuses
-    closest_h = findclosestabove(h.Height,heights);
-    duration = abs(mages[closest_h-1]-mages[closest_h]);
+    duration_prop = abs.(mages[closest_h_unique-1]-mages[closest_h_unique]);
     ll += sum(-max.(hiatus_Duration-duration_prop,0).^2./(2.*hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
-    duration = duration_prop
+    duration = copy(duration_prop)
 
     # Introduce variables so they will be accessible outside loop
     mages_prop = copy(mages);
     closest_prop = copy(closest);
     sample_height_prop = copy(sample_height);
     ll_prop = copy(ll);
+    chosen_point = 0;
 
     acceptancedist = fill(false,burnin);
     # Run burnin
@@ -322,25 +322,25 @@ function StratMetropolisHiatus(smpl,hiatus,config)
                 older_points_above = (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point);
                 mages_prop[older_points_above] = mages_prop[chosen_point];
             end
-        end
 
-
-        # If chosen_point is a hiatus point, let there be a 20 percent chance of
-        # adjusting the point below the hiatus as well
-        if rand() < 0.2
-            # if hiatus_height_uncert>0
-            #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights);
-            # end
-            if any(closest_h==chosen_point)
-                mages_prop[chosen_point-1] = mages[chosen_point-1]+r;
-                #Resolve conflicts
-                if r>0
-                    mages_prop[(mages_prop .< mages_prop[chosen_point-1]) .& (index .< [chosen_point-1])] = mages_prop[chosen_point-1];
-                else
-                    mages_prop[(mages_prop .> mages_prop[chosen_point-1]) .& (index .> [chosen_point-1])] = mages_prop[chosen_point-1];
+            # If chosen_point is a hiatus point, let there be a 20 percent chance of
+            # adjusting the point below the hiatus as well
+            if rand() < 0.2
+                # if hiatus_height_uncert>0
+                #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights);
+                # end
+                if any(closest_h_unique.==chosen_point)
+                    mages_prop[chosen_point-1] = mages[chosen_point-1]+r;
+                    #Resolve conflicts
+                    if r>0
+                        mages_prop[(mages_prop .< mages_prop[chosen_point-1]) .& (index .< [chosen_point-1])] = mages_prop[chosen_point-1];
+                    else
+                        mages_prop[(mages_prop .> mages_prop[chosen_point-1]) .& (index .> [chosen_point-1])] = mages_prop[chosen_point-1];
+                    end
                 end
             end
         end
+
 
         # Calculate log likelihood of proposal
         # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age);
@@ -353,8 +353,8 @@ function StratMetropolisHiatus(smpl,hiatus,config)
         # if hiatus_height_uncert>0
         #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights);
         # end
-        duration_prop = abs(mages_prop(closest_h-1)-mages_prop(closest_h));
-        ll_prop += sum(-max(hiatus_Duration-duration_prop,0).^2./(2.*hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
+        duration_prop = abs.(mages_prop[closest_h_unique-1]-mages_prop[closest_h_unique]);
+        ll_prop += sum(-max.(hiatus_Duration-duration_prop,0).^2./(2.*hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
 
         # Accept or reject proposal based on likelihood
         if rand() < exp(ll_prop - ll)
@@ -397,24 +397,23 @@ function StratMetropolisHiatus(smpl,hiatus,config)
                 older_points_above = (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point);
                 mages_prop[older_points_above] = mages_prop[chosen_point];
             end
-        end
 
-
-        # If chosen_point is a hiatus point, let there be a 20 percent chance of
-        # adjusting the point below the hiatus as well
-        if rand() < 0.2
-            # if hiatus_height_uncert>0
-            #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights);
-            # end
-            if any(closest_h==chosen_point)
-                mages_prop[chosen_point-1] = mages[chosen_point-1]+r;
-                #Resolve conflicts
-                if r>0
-                    younger_points_below = (mages_prop .< mages_prop[chosen_point-1]) .& (index .< (chosen_point-1));
-                    mages_prop[younger_points_below] = mages_prop[chosen_point-1];
-                else
-                    older_points_above = (mages_prop .> mages_prop[chosen_point-1]) .& (index .> (chosen_point-1));
-                    mages_prop[older_points_above] = mages_prop[chosen_point-1];
+            # If chosen_point is a hiatus point, let there be a 20 percent chance of
+            # adjusting the point below the hiatus as well
+            if rand() < 0.2
+                # if hiatus_height_uncert>0
+                #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights);
+                # end
+                if any(closest_h_unique.==chosen_point)
+                    mages_prop[chosen_point-1] = mages[chosen_point-1]+r;
+                    #Resolve conflicts
+                    if r>0
+                        younger_points_below = (mages_prop .< mages_prop[chosen_point-1]) .& (index .< (chosen_point-1));
+                        mages_prop[younger_points_below] = mages_prop[chosen_point-1];
+                    else
+                        older_points_above = (mages_prop .> mages_prop[chosen_point-1]) .& (index .> (chosen_point-1));
+                        mages_prop[older_points_above] = mages_prop[chosen_point-1];
+                    end
                 end
             end
         end
@@ -432,8 +431,8 @@ function StratMetropolisHiatus(smpl,hiatus,config)
         # if hiatus_height_uncert>0
         #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights);
         # end
-        duration_prop = abs(mages_prop[closest_h-1]-mages_prop[closest_h]);
-        ll_prop += sum(-max(hiatus_Duration-duration_prop,0).^2./(2.*hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
+        duration_prop = abs.(mages_prop[closest_h_unique-1]-mages_prop[closest_h_unique]);
+        ll_prop += sum(-max.(hiatus_Duration-duration_prop,0).^2./(2.*hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
 
 
         # Accept or reject proposal based on likelihood

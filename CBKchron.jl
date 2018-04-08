@@ -35,12 +35,13 @@
 
 ## --- Define sample properties
 
-    # # # # # # # # # # # Enter sample information here!  # # # # # # # # # # #
-    Name   =        ("KJ08-157", "KJ04-75", "KJ09-66", "KJ04-72", "KJ04-70");
-    Height =        [     -52.0,      44.0,      54.0,      82.0,      93.0];
-    Height_Sigma =  [       3.0,       1.0,       3.0,       3.0,       3.0];
-    InputAgeSigmaLevel = 2;
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # Enter sample information here! # # # # # # # # # # # # #
+  Name   =        ("KJ08-157", "KJ04-75", "KJ09-66", "KJ04-72", "KJ04-70");
+  Height =        [     -52.0,      44.0,      54.0,      82.0,      93.0];
+  Height_Sigma =  [       3.0,       1.0,       3.0,       3.0,       3.0];
+  InputAgeSigmaLevel = 2; # i.e., are the data files 1-sigma or 2-sigma
+  datafolder = "examples/DenverUPbExample/" # Where are the data files?
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     # Count the names to see how many samples we have
     nSamples = length(Name);
@@ -62,7 +63,7 @@
     # Load all data points and scale from 0 to 1
     allscaled = Array{Float64}([]);
     for i=1:length(smpl.Name)
-        data = readcsv(string("examples/DenverUPbExample/", smpl.Name[i], ".csv"))
+        data = readcsv(string(datafolder, smpl.Name[i], ".csv"))
         scaled = data[:,1]-minimum(data[:,1]);
         scaled = scaled./maximum(scaled);
         allscaled = [allscaled; scaled]
@@ -77,23 +78,25 @@
 
 ## --- Estimate the eruption age distributions for each sample
 
-    # Number of steps in distribution MCMC
-    distSteps = 10^6;
-    distBurnin = floor(Int,distSteps/2);
+# # # # # # # # # # # # Configure distribution model here! # # # # # # # # # # #
+  # Number of steps to run in distribution MCMC
+  distSteps = 10^6;
+  distBurnin = floor(Int,distSteps/2);
 
-    # Choose a distribution to use.
-    # A variety of potentially useful distributions are provided in
-    # DistMetropolis.jl and include UniformDisribution, TriangularDistribution,
-    # BootstrappedDistribution, and MeltsVolcanicZirconDistribution, etc.
-    # or you can define your own.
-    dist = BootstrappedDistribution;
+  # Choose the form of the prior distribution to use
+  # A variety of potentially useful distributions are provided in DistMetropolis.jl
+  # Options include UniformDisribution, TriangularDistribution,
+  # BootstrappedDistribution, and MeltsVolcanicZirconDistribution
+  # or you can define your own.
+  dist = BootstrappedDistribution;
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     # Estimate the distribution for each sample
     print("Estimating eruption/deposition age distributions...\n");
     using LsqFit
     for i=1:nSamples
       # Load data for each sample
-        data = readcsv(string("examples/DenverUPbExample/", smpl.Name[i], ".csv"))
+        data = readcsv(string(datafolder, smpl.Name[i], ".csv"))
         print(i, ": ", smpl.Name[i], "\n"); # Display progress
 
       # Run MCMC to estimate saturation and eruption/deposition age distributions
@@ -147,9 +150,10 @@
 ## --- Run stratigraphic model
 
 # # # # # # # # # # # Configure stratigraphic model here! # # # # # # # # # # #
+# If you don't know what these do, you can probably leave them as-is
   resolution = 2.0; # Same units as sample height. Smaller is slower!
   (bottom, top) = extrema(smpl.Height);
-  bounding = 0.1;
+  bounding = 0.1; # How far outside the data range should we place the runaway bounds?
   npoints_approx = round(Int,length(bottom:resolution:top) * (1+2*bounding))
   burnin = 20000*npoints_approx;
   nsteps = 25000;
@@ -174,7 +178,7 @@
     plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)")
     savefig(hdl,"AgeDepthModel.pdf");
 
-## ---
+## --- Same but with hiata
 
 # A type of object to hold data about hiatuses
 hiatus = HiatusData(
