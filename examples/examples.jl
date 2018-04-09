@@ -14,9 +14,7 @@
 #  distributions along with the constraint of stratigraphic superposition to    #
 #  produce an age-depth model                                                   #
 #                                                                               #
-#       This file contains ..., while ... contains the ...                      #
-#                                                                               #
-#   Last modified by C. Brenhin Keller 2018-03-19                               #
+#   Last modified by C. Brenhin Keller 2018-04-09                               #
 #                                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 ## --- Load external resources
