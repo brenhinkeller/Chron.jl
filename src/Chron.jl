@@ -45,8 +45,8 @@ module Chron
 
     # Functions
     export tMinDistMetropolis, BootstrapDistributionKDE, plotRankOrderErrorbar,
-        StratMetropolis, StratMetropolisHiatus, checkDistLogLikelihood,
-        checkCrystLogLikelihood, crystMinMaxMetropolis,
+        StratMetropolis, StratMetropolisHiatus, StratMetropolisDist,
+        checkDistLogLikelihood, checkCrystLogLikelihood, crystMinMaxMetropolis,
         gwmean, awmean, drawFromDistribution, fillFromDistribution,
         doubleLinearExponential, doubleLinearExponentialLL, cntr, pctile,
         findclosest, findclosestbelow, findclosestabove
