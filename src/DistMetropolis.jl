@@ -1,48 +1,5 @@
 ## -- Functions used for MCMC estimation of mineral eruption / deposition ages from observed crystallization age spectra
 
-    # # Two lines joined by an atan sigmoid.
-    # function doubleLinearJoined(x,p)
-    #     # If fit in log-space to a normal-esque PDF, parameters p roughly correspond to:
-    #     # p[1] = pre-exponential (normaliation constant)
-    #     # p[2] = mean (central moment)
-    #     # p[3] = standard deviation
-    #     # p[4] = sharpness
-    #     # p[5] = skew
-    #     xs = (x-p[2])./p[3]; # X scaled by mean and variance
-    #     v = 1/2-atan.(xs)/pi; # Sigmoid (positive on LHS)
-    #     f = p[1] + (p[4].^2).*(p[5].^2).*xs.*v - (p[4].^2)./(p[5].^2).*xs.*(1-v);
-    #     return f
-    # end
-
-    # Two-sided linear exponential distribution joined by an atan sigmoid.
-    function doubleLinearExponential(x,p)
-        # If to a normal-esque PDF, parameters p roughly correspond to:
-        # p[1] = pre-exponential (normaliation constant)
-        # p[2] = mean (central moment)
-        # p[3] = standard deviation
-        # p[4] = sharpness
-        # p[5] = skew
-        xs = (x-p[2])./p[3]; # X scaled by mean and variance
-        v = 1/2-atan.(xs)/pi; # Sigmoid (positive on LHS)
-        f = p[1] .* exp.((p[4].^2).*(p[5].^2).*xs.*v - (p[4].^2)./(p[5].^2).*xs.*(1-v));
-        return f
-    end
-
-
-    # Log of two-sided linear exponential distribution joined by an atan sigmoid.
-    function doubleLinearExponentialLL(x,p)
-        # If to a normal-esque PDF, parameters p roughly correspond to:
-        # p[1] = pre-exponential (normaliation constant)
-        # p[2] = mean (central moment)
-        # p[3] = standard deviation
-        # p[4] = sharpness
-        # p[5] = skew
-        xs = (x-p[2,:])./p[3,:]; # X scaled by mean and variance
-        v = 1/2-atan.(xs)/pi; # Sigmoid (positive on LHS)
-        f = log.(p[1,:]) + (p[4,:].^2).*(p[5,:].^2).*xs.*v - (p[4,:].^2)./(p[5,:].^2).*xs.*(1-v);
-        return f
-    end
-
 
     # Return the log-likelihood of drawing the dataset 'data' from the distribution 'dist'
     function checkDistLogLikelihood(dist::Array{Float64}, data::Array{Float64}, uncert::Array{Float64}, tmin::Float64, tmax::Float64)

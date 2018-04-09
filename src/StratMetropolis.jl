@@ -1,49 +1,7 @@
-## --- Custom objects
-
-    # Define a type of struct object to hold data about geochron samples from
-    # a stratigraphic section of interest
-    struct StratAgeData
-        Name::Tuple
-        Height::Array{Float64}
-        Height_Sigma::Array{Float64}
-        Age::Array{Float64}
-        Age_Sigma::Array{Float64}
-        Age_025CI::Array{Float64}
-        Age_975CI::Array{Float64}
-        Age_Sidedness::Array{Float64}
-        p::Array{Float64}
-    end
-
-    # A type of object to hold data about hiatuses
-    struct HiatusData
-        Height::Array{Float64}
-        Height_Sigma::Array{Float64}
-        Duration::Array{Float64}
-        Duration_Sigma::Array{Float64}
-    end
-
-    # A type of object to specify the configuration of the stratigraphic model
-    struct StratAgeModelConfiguration
-        resolution::Float64
-        burnin::Int
-        nsteps::Int
-        sieve::Int
-    end
-
-    struct StratAgeModel
-        Height::Array{Float64}
-        Age::Array{Float64}
-        Age_Sigma::Array{Float64}
-        Age_Median::Array{Float64}
-        Age_025CI::Array{Float64}
-        Age_975CI::Array{Float64}
-    end
-
-
 
 ## --- Stratigraphic MCMC model without hiatus # # # # # # # # # # # # # # # # #
 
-    function StratMetropolis(smpl,config)
+    function StratMetropolis(smpl::StratAgeData,config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model
 
         print("Generating stratigraphic age-depth model...\n");
@@ -219,7 +177,7 @@
 
 ## --- Stratigraphic MCMC model with hiata # # # # # # # # # # # # # # # # # # #
 
-function StratMetropolisHiatus(smpl,hiatus,config)
+function StratMetropolisHiatus(smpl::StratAgeData,hiatus::HiatusData,config::StratAgeModelConfiguration)
     # Run stratigraphic MCMC model, with hiata
 
     print("Generating stratigraphic age-depth model...\n");

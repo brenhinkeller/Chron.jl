@@ -1,5 +1,6 @@
 .DS_STORE
 *.pdf
+*.jld
 *.jl.cov
 *.jl.*.cov
 *.jl.mem
