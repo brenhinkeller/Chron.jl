@@ -44,12 +44,12 @@ module Chron
     export StratAgeData, HiatusData, StratAgeModelConfiguration, StratAgeModel
 
     # Functions
-    export tMinDistMetropolis, BootstrapDistributionKDE, plotRankOrderErrorbar,
-        StratMetropolis, StratMetropolisHiatus, StratMetropolisDist,
+    export tMinDistMetropolis, BootstrapDistributionKDE, StratMetropolis,
+        StratMetropolisHiatus, StratMetropolisDist, StratMetropolisDistHiatus,
         checkDistLogLikelihood, checkCrystLogLikelihood, crystMinMaxMetropolis,
         gwmean, awmean, drawFromDistribution, fillFromDistribution,
         doubleLinearExponential, doubleLinearExponentialLL, cntr, pctile,
-        findclosest, findclosestbelow, findclosestabove
+        findclosest, findclosestbelow, findclosestabove, plotRankOrderErrorbar
 
     # Distribution
     export UniformDistribution, TriangularDistribution, HalfNormalDistribution,
