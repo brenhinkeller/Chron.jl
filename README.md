@@ -9,8 +9,9 @@ The second (stratigraphic) model uses the estimated (posterior) eruption/deposit
 ## Installation
 
 In the Julia REPL
-$ Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
-
+```Julia
+julia> Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
+```
 
 ## Usage
 
