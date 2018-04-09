@@ -23,7 +23,7 @@ __precompile__()
 module Chron
 
     # Basic statistics and UI resources
-    using StatsBase: fit, Histogram
+    using StatsBase: fit, Histogram, percentile
     using ProgressMeter: @showprogress
     using LsqFit: curve_fit
     using KernelDensity: kde
