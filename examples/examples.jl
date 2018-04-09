@@ -18,6 +18,7 @@
 ## --- Load the Chron package
 
     using Chron
+    using Plots; gr();
 
 ## --- Define sample properties
 
@@ -55,8 +56,6 @@
     # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution
     # shape from individual sample datafiles using a KDE of stacked sample data
     BootstrappedDistribution = BootstrapDistributionKDE(smpl);
-    using Plots
-    gr()
     plot(BootstrappedDistribution,xlabel="Time (arbitrary units)",ylabel="Probability Density")
 
 ## --- Estimate the eruption age distributions for each sample
@@ -77,10 +76,12 @@
     # Run MCMC to estimate saturation and eruption/deposition age distributions
     smpl = tMinDistMetropolis(smpl,distSteps,distBurnin,dist);
 
-    # using JLD: @save
-    # @save "smpl.jld" smpl
+    using JLD: @save @load
+    @save "smpl.jld" smpl
 
 ## --- Run stratigraphic model
+
+    @load "smpl.jld" smpl
 
 # # # # # # # # # # # Configure stratigraphic model here! # # # # # # # # # # #
 # If you don't know what these do, you can probably leave them as-is
@@ -106,8 +107,6 @@
     (mdl, agedist, lldist) = StratMetropolisDist(smpl, config);
 
     # Plot results (mean and 95% confidence interval for both model and data)
-    using Plots
-    gr()
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="")
     plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)

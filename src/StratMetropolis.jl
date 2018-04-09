@@ -456,7 +456,7 @@
             model_heights = (bottom-offset):resolution:(top+offset)
             pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = mean(smpl.Age_Sigma)/10;
             pu = ones(5); pl[2] = youngest - offset*dt_dH; pl[3] = mean(smpl.Age_Sigma)/10;
-            p = horzcat(pl,p,pu);
+            p = hcat(pl,p,pu);
         else
             Age = smpl.Age;
             Age_Sigma = smpl.Age_Sigma;
