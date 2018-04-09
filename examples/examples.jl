@@ -53,7 +53,7 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     # Run MCMC to estimate saturation and eruption/deposition age distributions
-    smpl = tMinDistMetropolis(smpl,distSteps,dist);
+    smpl = tMinDistMetropolis(smpl,distSteps,distBurnin,dist);
 
     # using JLD: @save
     # @save "smpl.jld" smpl

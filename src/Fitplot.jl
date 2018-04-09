@@ -30,7 +30,7 @@
 ## --- Fit and plot results from stationary distribution of depostion/eruption age distribution model
 
     # Process and fit stationary distribution for eruption age
-    function tMinDistMetropolis(smpl::StratAgeData,nsteps::Int,dist::Array{Float64});
+    function tMinDistMetropolis(smpl::StratAgeData,nsteps::Int,burnin::Int,dist::Array{Float64});
 
         # Estimate the distribution for each sample
         print("Estimating eruption/deposition age distributions...\n");
@@ -43,24 +43,24 @@
             (tminDist, tmaxDist, llDist, acceptanceDist) = crystMinMaxMetropolis(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel);
 
             # Fill in the strat sample object with our new results
-            smpl.Age[i] = mean(tminDist[distBurnin:end]);
-            smpl.Age_Sigma[i] = std(tminDist[distBurnin:end]);
-            smpl.Age_025CI[i] = percentile(tminDist[distBurnin:end],2.5);
-            smpl.Age_975CI[i] = percentile(tminDist[distBurnin:end],97.5);
+            smpl.Age[i] = mean(tminDist[burnin:end]);
+            smpl.Age_Sigma[i] = std(tminDist[burnin:end]);
+            smpl.Age_025CI[i] = percentile(tminDist[burnin:end],2.5);
+            smpl.Age_975CI[i] = percentile(tminDist[burnin:end],97.5);
 
             # Fit custom many-parametric distribution function to histogram
-            edges = linspace(minimum(tminDist[distBurnin:end]),maximum(tminDist[distBurnin:end]),101); # Vector of bin edges
-            hobj = fit(Histogram,tminDist[distBurnin:end],edges,closed=:left) # Fit histogram object
+            edges = linspace(minimum(tminDist[burnin:end]),maximum(tminDist[burnin:end]),101); # Vector of bin edges
+            hobj = fit(Histogram,tminDist[burnin:end],edges,closed=:left) # Fit histogram object
 
             t = hobj.weights.>0; # Only look at bins with one or more results
-            N = hobj.weights[t] ./ length(tminDist[distBurnin:end]) .* length(t); # Normalized number of MCMC steps per bin
+            N = hobj.weights[t] ./ length(tminDist[burnin:end]) .* length(t); # Normalized number of MCMC steps per bin
             bincenters = cntr(hobj.edges[1])[t]; # Vector of bin centers
 
             # Initial guess for parameters
             p = ones(5);
             p[1] = maximum(N);
-            p[2] = mean(tminDist[distBurnin:end]);
-            p[3] = std(tminDist[distBurnin:end]);
+            p[2] = mean(tminDist[burnin:end]);
+            p[3] = std(tminDist[burnin:end]);
 
             # Fit nonlinear model
             fobj = curve_fit(doubleLinearExponential,bincenters,N,p);
