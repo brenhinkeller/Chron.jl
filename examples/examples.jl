@@ -105,7 +105,7 @@
         bounding, # Runaway bounds
     );
 
-    # Run the model
+    # Run the stratigraphic MCMC model
     (mdl, agedist, lldist) = StratMetropolisDist(smpl, config);
 
     # Plot results (mean and 95% confidence interval for both model and data)

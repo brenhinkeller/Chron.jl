@@ -36,6 +36,7 @@ module Chron
     include("StratMetropolis.jl");
 
     # Higher-level functions for fitting and plotting
+    using Plots
     include("Fitplot.jl");
 
     # Structs
