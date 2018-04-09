@@ -188,6 +188,7 @@
         burnin = config.burnin;
         nsteps = config.nsteps;
         sieve = config.sieve;
+        bounding = config.bounding
 
         # Stratigraphic age constraints
         (bottom, top) = extrema(smpl.Height);
@@ -616,6 +617,7 @@
         burnin = config.burnin;
         nsteps = config.nsteps;
         sieve = config.sieve;
+        bounding = config.bounding
 
         # Stratigraphic age constraints
         (bottom, top) = extrema(smpl.Height);

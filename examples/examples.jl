@@ -17,8 +17,8 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 ## --- Load the Chron package
 
-    using Chron
     using Plots; gr();
+    using Chron
 
 ## --- Define sample properties
 
@@ -76,11 +76,13 @@
     # Run MCMC to estimate saturation and eruption/deposition age distributions
     smpl = tMinDistMetropolis(smpl,distSteps,distBurnin,dist);
 
+    # Save the sample struct for later use
     using JLD: @save, @load
     @save "smpl.jld" smpl
 
 ## --- Run stratigraphic model
 
+    # Load the saved sample struct
     @load "smpl.jld" smpl
 
 # # # # # # # # # # # Configure stratigraphic model here! # # # # # # # # # # #
@@ -117,18 +119,20 @@
 
 ## --- If your section has hiata / exposure surfaces of known duration, try this:
 
-    # # A type of object to hold data about hiatuses
-    # hiatus = HiatusData(
-    #     [20.0,40.0], # Height
-    #     [0.0,0.0], # Height_Sigma
-    #     [0.5,0.9], # Duration -- this is a minimum duration only
-    #     [0.1,0.05], # Duration_Sigma (one-sided, minimum only)
-    # );
-    #
-    # (mdl, agedist, hiatusdist, lldist) = StratMetropolisDistHiatus(smpl, hiatus, config);
-    # 
+    # A type of object to hold data about hiatuses
+    hiatus = HiatusData(
+        [20.0,40.0], # Height
+        [0.0,0.0], # Height_Sigma
+        [0.5,0.9], # Duration -- this is a minimum duration only
+        [0.1,0.05], # Duration_Sigma (one-sided, minimum only)
+    );
+
+    # Run the model
+    (mdl, agedist, hiatusdist, lldist) = StratMetropolisDistHiatus(smpl, hiatus, config);
+
     # Plot results (mean and 95% confidence interval for both model and data)
-    # hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
-    # plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="")
-    # plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
-    # plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)")
+    Plot results (mean and 95% confidence interval for both model and data)
+    hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
+    plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="")
+    plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
+    plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)")
