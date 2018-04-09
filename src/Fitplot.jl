@@ -15,7 +15,7 @@
         # Load all data points and scale from 0 to 1
         allscaled = Array{Float64}([]);
         for i=1:length(smpl.Name)
-            data = readcsv(string(DataPath, smpl.Name[i], ".csv"))
+            data = readcsv(string(smpl.Path, smpl.Name[i], ".csv"))
             scaled = data[:,1]-minimum(data[:,1]);
             scaled = scaled./maximum(scaled);
             allscaled = [allscaled; scaled]
@@ -40,7 +40,7 @@
             print(i, ": ", smpl.Name[i], "\n"); # Display progress
 
             # Run MCMC to estimate saturation and eruption/deposition age distributions
-            (tminDist, tmaxDist, llDist, acceptanceDist) = crystMinMaxMetropolis(nsteps,dist,data[:,1],data[:,2]/smpl.SigmaLevel);
+            (tminDist, tmaxDist, llDist, acceptanceDist) = crystMinMaxMetropolis(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel);
 
             # Fill in the strat sample object with our new results
             smpl.Age[i] = mean(tminDist[distBurnin:end]);

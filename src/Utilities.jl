@@ -13,7 +13,7 @@
         Age_Sidedness::Array{Float64}
         Params::Array{Float64}
         Path::String
-        SigmaLevel::Int
+        inputSigmaLevel::Int
     end
 
     # A type of object to hold data about hiatuses

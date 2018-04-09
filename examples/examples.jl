@@ -9,8 +9,8 @@
     Name   =        ("KJ08-157", "KJ04-75", "KJ09-66", "KJ04-72", "KJ04-70");
     Height =        [     -52.0,      44.0,      54.0,      82.0,      93.0];
     Height_Sigma =  [       3.0,       1.0,       3.0,       3.0,       3.0];
-    InputAgeSigmaLevel = 2; # i.e., are the data files 1-sigma or 2-sigma
-    DataPath = "examples/DenverUPbExampleData/" # Where are the data files?
+    inputSigmaLevel = 2; # i.e., are the data files 1-sigma or 2-sigma
+    Path = "examples/DenverUPbExampleData/" # Where are the data files?
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     # Count the names to see how many samples we have
@@ -26,8 +26,8 @@
         fill(NaN,nSamples),  # Sample age 97.5% CI
         zeros(nSamples), # Sidedness (zeros by default, geochron constraints are two-sided)
         fill(NaN,nSamples,nSamples), # Sample age distribution parameters
-        DataPath, # Relative path where we can find .csv data files
-        InputAgeSigmaLevel,# i.e., are the data files 1-sigma or 2-sigma
+        Path, # Relative path where we can find .csv data files
+        inputSigmaLevel,# i.e., are the data files 1-sigma or 2-sigma
     );
 
 ## --- Calculate bootstrapped distribution
