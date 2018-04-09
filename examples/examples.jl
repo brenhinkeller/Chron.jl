@@ -117,6 +117,7 @@
         burnin, # Lenght of burnin
         nsteps, # Number of regular MC steps
         sieve, # Seive strength
+        bounding, # Runaway bounds
     );
 
     # Run the model
@@ -131,13 +132,13 @@
 
 ## --- Same but with hiata
 
-    # A type of object to hold data about hiatuses
-    hiatus = HiatusData(
-        [20.0,], # Height
-        [0.0,], # Height_Sigma
-        [0.5,], # Duration
-        [0.1,], # Duration_Sigma
-    );
-
-    (mdl, agedist, hiatusdist, lldist) = StratMetropolisHiatus(smpl, hiatus, config);
-    smpl
+    # # A type of object to hold data about hiatuses
+    # hiatus = HiatusData(
+    #     [20.0,], # Height
+    #     [0.0,], # Height_Sigma
+    #     [0.5,], # Duration
+    #     [0.1,], # Duration_Sigma
+    # );
+    #
+    # (mdl, agedist, hiatusdist, lldist) = StratMetropolisHiatus(smpl, hiatus, config);
+    # smpl

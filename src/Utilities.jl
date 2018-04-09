@@ -30,6 +30,7 @@
         burnin::Int
         nsteps::Int
         sieve::Int
+        bounding::Float64
     end
 
     struct StratAgeModel
