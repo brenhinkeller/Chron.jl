@@ -27,9 +27,9 @@
     # U–Pb geochronology of the end-Cretaceous extinction and calibration of
     # Paleocene astronomical timescales" EPSL 452, 272–280.
     # doi: 10.1016/j.epsl.2016.07.041
-    Name   =        ("KJ08-157", "KJ04-75", "KJ09-66", "KJ04-72", "KJ04-70");
-    Height =        [     -52.0,      44.0,      54.0,      82.0,      93.0];
-    Height_Sigma =  [       3.0,       1.0,       3.0,       3.0,       3.0];
+    Name   =        ("KJ08-157", "KJ04-75", "KJ09-66", "KJ04-72", "KJ04-70",);
+    Height =        [     -52.0,      44.0,      54.0,      82.0,      93.0,];
+    Height_Sigma =  [       3.0,       1.0,       3.0,       3.0,       3.0,];
     inputSigmaLevel = 2; # i.e., are the data files 1-sigma or 2-sigma. Integer.
     Path = "examples/DenverUPbExampleData/" # Where are the data files?
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -46,7 +46,7 @@
         fill(NaN,nSamples),  # Sample age 2.5% CI
         fill(NaN,nSamples),  # Sample age 97.5% CI
         zeros(nSamples), # Sidedness (zeros by default, geochron constraints are two-sided)
-        fill(NaN,nSamples,nSamples), # Sample age distribution parameters
+        fill(NaN,5,nSamples), # Sample age distribution parameters
         Path, # Relative path where we can find .csv data files
         inputSigmaLevel,# i.e., are the data files 1-sigma or 2-sigma
     );
