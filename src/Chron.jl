@@ -48,9 +48,10 @@ module Chron
         checkDistLogLikelihood, checkCrystLogLikelihood, crystMinMaxMetropolis,
         gwmean, awmean, drawFromDistribution, fillFromDistribution,
         doubleLinearExponential, doubleLinearExponentialLL, cntr, pctile,
-        findclosest, findclosestbelow, findclosestabove, plotRankOrderErrorbar
+        findclosest, findclosestbelow, findclosestabove, plotRankOrderErrorbar,
+        tMinDistMetropolisLA, crystMinMaxMetropolisLA
 
-    # Distribution
+    # Distributions
     export UniformDistribution, TriangularDistribution, HalfNormalDistribution,
         EllisDistribution, MeltsZirconDistribution, MeltsVolcanicZirconDistribution
 
