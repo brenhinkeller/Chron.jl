@@ -637,7 +637,7 @@
             Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
             pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = mean(smpl.Age_Sigma)/10;
-            pu = ones(5); pl[2] = youngest - offset*dt_dH; pl[3] = mean(smpl.Age_Sigma)/10;
+            pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = mean(smpl.Age_Sigma)/10;
             p = hcat(pl,p,pu); # Add parameters for upper and lower runaway bounds
         else
             Age = smpl.Age;
