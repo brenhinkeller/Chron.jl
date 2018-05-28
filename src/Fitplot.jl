@@ -11,12 +11,29 @@
 
     # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution
     # shape from individual sample datafiles using a KDE of stacked sample data
-    function BootstrapDistributionKDE(smpl::StratAgeData);
+    function BootstrapDistributionKDEfromStrat(smpl::StratAgeData);
         # Load all data points and scale from 0 to 1
         allscaled = Array{Float64}([]);
         for i=1:length(smpl.Name)
             data = readcsv(string(smpl.Path, smpl.Name[i], ".csv"))
             scaled = data[:,1]-minimum(data[:,1]);
+            scaled = scaled./maximum(scaled);
+            allscaled = [allscaled; scaled]
+        end
+
+        # Calculate kernel density estimate, truncated at 0
+        kd = kde(allscaled,npoints=2^7);
+        t = kd.x.>0;
+        return kd.density[t];
+    end
+
+    # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution
+    # shape from a 2-d array of sample ages using a KDE of stacked sample data
+    function BootstrapDistributionKDE(data::Array{Float64,2})
+        # Load all data points and scale from 0 to 1
+        allscaled = Array{Float64,1}();
+        for i=1:size(data,2)
+            scaled = data[:,i]-minimum(data[:,i]);
             scaled = scaled./maximum(scaled);
             allscaled = [allscaled; scaled]
         end

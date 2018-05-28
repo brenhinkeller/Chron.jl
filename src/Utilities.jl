@@ -148,6 +148,7 @@
         end
     end
 
+
 ## --- Fitting non-Gaussian distributions
 
     # Two-sided linear exponential distribution joined by an atan sigmoid.
@@ -181,63 +182,63 @@
 
 ## --- Various other utility functions
 
-        # Returns a vector of bin centers if given a vector of bin edges
-        function cntr(edges)
-            centers = (edges[1:end-1]+edges[2:end])/2;
-            return centers;
-        end
+    # Returns a vector of bin centers if given a vector of bin edges
+    function cntr(edges)
+        centers = (edges[1:end-1]+edges[2:end])/2;
+        return centers;
+    end
 
-        # Return percentile of an array along a specified dimension
-        function pctile(A,p;dim=0)
-            s = size(A);
-            if dim==2
-                out = Array{typeof(A[1])}(s[1])
-                for i=1:s[1]
-                    out[i] = percentile(A[i,:],p);
-                end
-            elseif dim==1
-                out = Array{typeof(A[1])}(s[2])
-                for i=1:s[2]
-                    out[i] = percentile(A[:,i],p);
-                end
-            else
-                out = percentile(A,p);
+    # Return percentile of an array along a specified dimension
+    function pctile(A,p;dim=0)
+        s = size(A);
+        if dim==2
+            out = Array{typeof(A[1])}(s[1])
+            for i=1:s[1]
+                out[i] = percentile(A[i,:],p);
             end
-            return out
+        elseif dim==1
+            out = Array{typeof(A[1])}(s[2])
+            for i=1:s[2]
+                out[i] = percentile(A[:,i],p);
+            end
+        else
+            out = percentile(A,p);
         end
+        return out
+    end
 
-        # Return the index of the closest value of Target for each value in Source
-        function findclosest(source, target)
-            index=Array{Int64}(size(source));
-            for i=1:length(source)
-                index[i]=indmin((target-source[i]).^2);
-            end
-            return index
+    # Return the index of the closest value of Target for each value in Source
+    function findclosest(source, target)
+        index=Array{Int64}(size(source));
+        for i=1:length(source)
+            index[i]=indmin((target-source[i]).^2);
         end
+        return index
+    end
 
-        # Return the index of the closest value of the vector 'target' below each
-        # value in 'source'
-        function findclosestbelow(source, target)
-            index=Array{Int64}(size(source));
-            for i=1:length(source)
-                t = find(target.<source[i]);
-                ti = indmin((target[t]-source[i]).^2);
-                index[i] = t[ti];
-            end
-            return index;
+    # Return the index of the closest value of the vector 'target' below each
+    # value in 'source'
+    function findclosestbelow(source, target)
+        index=Array{Int64}(size(source));
+        for i=1:length(source)
+            t = find(target.<source[i]);
+            ti = indmin((target[t]-source[i]).^2);
+            index[i] = t[ti];
         end
+        return index;
+    end
 
-        # Return the index of the closest value of the vector 'target' above each
-        # value in 'source'
-        function findclosestabove(source, target)
-            index=Array{Int64}(size(source));
-            for i=1:length(source)
-                t = find(target.>source[i]);
-                ti = indmin((target[t]-source[i]).^2);
-                index[i] = t[ti];
-            end
-            return index;
+    # Return the index of the closest value of the vector 'target' above each
+    # value in 'source'
+    function findclosestabove(source, target)
+        index=Array{Int64}(size(source));
+        for i=1:length(source)
+            t = find(target.>source[i]);
+            ti = indmin((target[t]-source[i]).^2);
+            index[i] = t[ti];
         end
+        return index;
+    end
 
 
 ## --- End of File
