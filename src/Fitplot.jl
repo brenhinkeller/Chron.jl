@@ -29,7 +29,7 @@
 
     # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution
     # shape from a 2-d array of sample ages using a KDE of stacked sample data
-    function BootstrapDistributionKDE(data::Array{Float64,2})
+    function BootstrapDistributionKDE(data::Array{Float64})
         # Load all data points and scale from 0 to 1
         allscaled = Array{Float64,1}();
         for i=1:size(data,2)
