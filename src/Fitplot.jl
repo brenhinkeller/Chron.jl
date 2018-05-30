@@ -85,12 +85,12 @@
 
             # Rank-order plot of analyses and eruption/deposition age range
             nAnalyses = length(data[:,1]);
-            h1 = plotRankOrderErrorbar(data[:,1],2*data[:,2],ylabel="Age (Ma)",label="Ages",legend=:topleft)
+            h1 = plotRankOrderErrorbar(data[:,1],2*data[:,2],ylabel="Age (Ma)",label="Ages")
             m = ones(nAnalyses).*smpl.Age[i];
             l = m - 2*smpl.Age_Sigma[i];
             u = m + 2*smpl.Age_Sigma[i];
             plot!(h1,1:nAnalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="Model interpretation");
-            plot!(h1,1:nAnalyses,m,linecolor=:black,linestyle=:dot,label="");
+            plot!(h1,1:nAnalyses,m,linecolor=:black,linestyle=:dot,label="",legend=:topleft);
             savefig(h1,string(smpl.Path,smpl.Name[i],"_rankorder.pdf"));
 
             # Plot model fit to histogram
