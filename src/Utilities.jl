@@ -95,6 +95,21 @@
         return wx, wsigma, mswd
     end
 
+## --- Interpolating
+
+    function linterp1s(x,y,xq)
+        sI = sortperm(x); # indices to construct sorted array
+        itp = interpolate((x[sI],),y[sI],Gridded(Linear()));
+        yq = itp[xq]; # Interpolate value of y at queried x values
+        return yq
+    end
+
+    function linterp1(x,y,xq)
+        itp = interpolate((x,),y,Gridded(Linear()));
+        yq = itp[xq]; # Interpolate value of y at queried x values
+        return yq
+    end
+
 
 ## --- Drawing from distributions
 
@@ -194,15 +209,101 @@
         if dim==2
             out = Array{typeof(A[1])}(s[1])
             for i=1:s[1]
-                out[i] = percentile(A[i,:],p);
+                t = .~ isnan.(A[i,:])
+                out[i] = percentile(A[i,t],p);
             end
         elseif dim==1
             out = Array{typeof(A[1])}(s[2])
             for i=1:s[2]
-                out[i] = percentile(A[:,i],p);
+                t = .~ isnan.(A[:,i])
+                out[i] = percentile(A[t,i],p);
             end
         else
             out = percentile(A,p);
+        end
+        return out
+    end
+
+    function nanmin(A;dim=0)
+        s = size(A);
+        if dim==2
+            out = Array{typeof(A[1])}(s[1])
+            for i=1:s[1]
+                t = .~ isnan.(A[i,:])
+                out[i] = percentile(A[i,t]);
+            end
+        elseif dim==1
+            out = Array{typeof(A[1])}(s[2])
+            for i=1:s[2]
+                t = .~ isnan.(A[:,i])
+                out[i] = minimum(A[t,i]);
+            end
+        else
+            t = .~ isnan.(A)
+            out = minimum(A[t]);
+        end
+        return out
+    end
+
+    function nanmax(A;dim=0)
+        s = size(A);
+        if dim==2
+            out = Array{typeof(A[1])}(s[1])
+            for i=1:s[1]
+                t = .~ isnan.(A[i,:])
+                out[i] = maximum(A[i,t]);
+            end
+        elseif dim==1
+            out = Array{typeof(A[1])}(s[2])
+            for i=1:s[2]
+                t = .~ isnan.(A[:,i])
+                out[i] = maximum(A[t,i]);
+            end
+        else
+            t = .~ isnan.(A)
+            out = maximum(A[t]);
+        end
+        return out
+    end
+
+    function nanmean(A;dim=0)
+        s = size(A);
+        if dim==2
+            out = Array{typeof(A[1])}(s[1])
+            for i=1:s[1]
+                t = .~ isnan.(A[i,:])
+                out[i] = mean(A[i,t]);
+            end
+        elseif dim==1
+            out = Array{typeof(A[1])}(s[2])
+            for i=1:s[2]
+                t = .~ isnan.(A[:,i])
+                out[i] = mean(A[t,i]);
+            end
+        else
+            t = .~ isnan.(A)
+            out = mean(A[t]);
+        end
+        return out
+    end
+
+    function nanmedian(A;dim=0)
+        s = size(A);
+        if dim==2
+            out = Array{typeof(A[1])}(s[1])
+            for i=1:s[1]
+                t = .~ isnan.(A[i,:])
+                out[i] = median(A[i,t]);
+            end
+        elseif dim==1
+            out = Array{typeof(A[1])}(s[2])
+            for i=1:s[2]
+                t = .~ isnan.(A[:,i])
+                out[i] = median(A[t,i]);
+            end
+        else
+            t = .~ isnan.(A)
+            out = median(A[t]);
         end
         return out
     end

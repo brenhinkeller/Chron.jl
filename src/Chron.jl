@@ -27,6 +27,7 @@ module Chron
     using ProgressMeter: @showprogress
     using LsqFit: curve_fit
     using KernelDensity: kde
+    using Interpolations: interpolate, Gridded, Linear
 
     # Weighted mean, etc
     include("Utilities.jl");
@@ -46,10 +47,13 @@ module Chron
     export tMinDistMetropolis, BootstrapDistributionKDEfromStrat, StratMetropolis,
         StratMetropolisHiatus, StratMetropolisDist, StratMetropolisDistHiatus,
         checkDistLogLikelihood, checkCrystLogLikelihood, crystMinMaxMetropolis,
-        gwmean, awmean, drawFromDistribution, fillFromDistribution,
-        doubleLinearExponential, doubleLinearExponentialLL, cntr, pctile,
-        findclosest, findclosestbelow, findclosestabove, plotRankOrderErrorbar,
-        tMinDistMetropolisLA, crystMinMaxMetropolisLA, BootstrapDistributionKDE
+        drawFromDistribution, fillFromDistribution, doubleLinearExponential,
+        doubleLinearExponentialLL, plotRankOrderErrorbar, tMinDistMetropolisLA,
+        crystMinMaxMetropolisLA, BootstrapDistributionKDE
+
+    # Utility functions
+    export pctile, nanmin, nanmax, nanmean, nanmedian, linterp1s, cntr, gwmean,
+        awmean, findclosest, findclosestbelow, findclosestabove
 
     # Distributions
     export UniformDistribution, TriangularDistribution, HalfNormalDistribution,
