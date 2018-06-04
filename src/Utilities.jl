@@ -224,13 +224,13 @@
         return out
     end
 
-    function nanmin(A;dim=0)
+    function nanminimum(A;dim=0)
         s = size(A);
         if dim==2
             out = Array{typeof(A[1])}(s[1])
             for i=1:s[1]
                 t = .~ isnan.(A[i,:])
-                out[i] = percentile(A[i,t]);
+                out[i] = minimum(A[i,t]);
             end
         elseif dim==1
             out = Array{typeof(A[1])}(s[2])
@@ -245,7 +245,7 @@
         return out
     end
 
-    function nanmax(A;dim=0)
+    function nanmaximum(A;dim=0)
         s = size(A);
         if dim==2
             out = Array{typeof(A[1])}(s[1])
@@ -262,6 +262,30 @@
         else
             t = .~ isnan.(A)
             out = maximum(A[t]);
+        end
+        return out
+    end
+
+    function nanrange(A;dim=0)
+        s = size(A);
+        if dim==2
+            out = Array{typeof(A[1])}(s[1])
+            for i=1:s[1]
+                t = .~ isnan.(A[i,:])
+                extr = extrema(A[i,t]);
+                out[i] = extr[2] - extr[1]
+            end
+        elseif dim==1
+            out = Array{typeof(A[1])}(s[2])
+            for i=1:s[2]
+                t = .~ isnan.(A[:,i])
+                extr = extrema(A[t,i]);
+                out[i] = extr[2] - extr[1]
+            end
+        else
+            t = .~ isnan.(A)
+            extr = extrema(A[t])
+            out = extr[2] - extr[2];
         end
         return out
     end
