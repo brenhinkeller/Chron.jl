@@ -51,12 +51,12 @@
         inputSigmaLevel,# i.e., are the data files 1-sigma or 2-sigma
     );
 
-## --- Calculate bootstrapped distribution
+## --- (Optional) Calculate bootstrapped distribution
 
-    # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution
-    # shape from individual sample datafiles using a KDE of stacked sample data
-    BootstrappedDistribution = BootstrapDistributionKDEfromStrat(smpl);
-    plot(BootstrappedDistribution,xlabel="Time (arbitrary units)",ylabel="Probability Density")
+    # # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution
+    # # shape from individual sample datafiles using a KDE of stacked sample data
+    # BootstrappedDistribution = BootstrapDistributionKDEfromStrat(smpl);
+    # plot(BootstrappedDistribution,xlabel="Time (arbitrary units)",ylabel="Probability Density")
 
 ## --- Estimate the eruption age distributions for each sample
 
@@ -70,20 +70,20 @@
   # Options include UniformDisribution, TriangularDistribution,
   # BootstrappedDistribution, and MeltsVolcanicZirconDistribution
   # or you can define your own.
-  dist = BootstrappedDistribution;
+  dist = TriangularDistribution;
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     # Run MCMC to estimate saturation and eruption/deposition age distributions
     smpl = tMinDistMetropolis(smpl,distSteps,distBurnin,dist);
 
-    # Save the sample struct for later use
-    using JLD: @save, @load
-    @save "smpl.jld" smpl
+    # # (Optional) Save the sample struct for later use
+    # using JLD: @save, @load
+    # @save "smpl.jld" smpl
 
 ## --- Run stratigraphic model
 
-    # Load the saved sample struct
-    @load "smpl.jld" smpl
+    # # (Optional) Load the saved sample struct
+    # @load "smpl.jld" smpl
 
 # # # # # # # # # # # Configure stratigraphic model here! # # # # # # # # # # #
 # If you don't know what these do, you can probably leave them as-is
@@ -116,8 +116,43 @@
     savefig(hdl,"AgeDepthModel.pdf");
     display(hdl)
 
+    # Interpolate results at KTB (height = 0)
+    KTB = linterp1s(mdl.Height,mdl.Age,0)
+    KTB_min = linterp1s(mdl.Height,mdl.Age_025CI,0)
+    KTB_max = linterp1s(mdl.Height,mdl.Age_975CI,0)
+    @printf("Interpolated age: %0.3f +%0.3f/-%0.3f Ma", KTB, KTB_max-KTB, KTB-KTB_min)
 
-## --- If your section has hiata / exposure surfaces of known duration, try this:
+
+## --- Calculate deposition rate binned by age
+
+    # Set bin width and spacing
+    binwidth = 0.01; # Myr
+    binoverlap = 20;
+    ages = minimum(mdl.Age):binwidth/binoverlap:maximum(mdl.Age);
+    spacing = binoverlap;
+
+    # Calculate rates for the stratigraphy of each markov chain step
+    dhdt_dist = Array{Float64}(length(ages)-spacing,nsteps);
+    for i=1:nsteps
+        heights = linterp1(reverse(agedist[:,i]),reverse(mdl.Height),ages);
+        dhdt_dist[:,i] = (heights[spacing+1:end]-heights[1:end-spacing])./(ages[1:end-spacing]-ages[spacing+1:end]);
+    end
+
+    # Find mean and 1-sigma (68%) CI
+    dhdt = nanmean(dhdt_dist,dim=2);
+    dhdt_16p = pctile(dhdt_dist,15.865,dim=2); # Minus 1-sigma (15.865th percentile)
+    dhdt_84p = pctile(dhdt_dist,84.135,dim=2); # Plus 1-sigma (84.135th percentile)
+    bincenters = ages[1+Int(binoverlap/2):end-Int(binoverlap/2)]
+
+    # Plot results
+    hdl = plot(bincenters,dhdt, label="Mean", color=:black, fg_color_legend=:white, linewidth=2)
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(minimum(mdl.Height),0.5,:blue), linecolor=:white, label="68% CI")
+    plot!(hdl, ylabel = "Depositional Rate (cm / Myr over $binwidth Myr bin)")
+    ylims!(hdl,0,2500)
+    savefig(hdl,"DepositionRateModel.pdf");
+    display(hdl)
+
+## --- (Optional) If your section has hiata / exposure surfaces of known duration, try this:
 
     # # A type of object to hold data about hiatuses
     # hiatus = HiatusData(
