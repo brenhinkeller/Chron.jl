@@ -127,7 +127,7 @@
 
     # Set bin width and spacing
     binwidth = 0.01; # Myr
-    binoverlap = 20;
+    binoverlap = 10;
     ages = minimum(mdl.Age):binwidth/binoverlap:maximum(mdl.Age);
     spacing = binoverlap;
 
@@ -140,14 +140,16 @@
 
     # Find mean and 1-sigma (68%) CI
     dhdt = nanmean(dhdt_dist,dim=2);
+    dhdt_50p = nanmedian(dhdt_dist,dim=2);
     dhdt_16p = pctile(dhdt_dist,15.865,dim=2); # Minus 1-sigma (15.865th percentile)
     dhdt_84p = pctile(dhdt_dist,84.135,dim=2); # Plus 1-sigma (84.135th percentile)
     bincenters = ages[1+Int(binoverlap/2):end-Int(binoverlap/2)]
 
     # Plot results
-    hdl = plot(bincenters,dhdt, label="Mean", color=:black, fg_color_legend=:white, linewidth=2)
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(minimum(mdl.Height),0.5,:blue), linecolor=:white, label="68% CI")
-    plot!(hdl, ylabel = "Depositional Rate (cm / Myr over $(Int(binwidth*1000)) kyr)", xlabel="Age (Ma)")
+    hdl = plot(bincenters,dhdt, label="Mean", color=:black, linewidth=2)
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(minimum(mdl.Height),0.4,:blue), linecolor=:white, label="68% CI")
+    plot!(hdl,bincenters,dhdt_50p, label="Median", color=:white, linewidth=1)
+    plot!(hdl, ylabel = "Depositional Rate (cm / Myr over $(Int(binwidth*1000)) kyr)", xlabel="Age (Ma)", fg_color_legend=:white)
     savefig(hdl,"DepositionRateModel.pdf");
     display(hdl)
 
