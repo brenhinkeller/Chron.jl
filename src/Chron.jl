@@ -52,7 +52,7 @@ module Chron
         crystMinMaxMetropolisLA, BootstrapDistributionKDE
 
     # Utility functions
-    export nanmin, nanmax, nanrange, pctile, nanmedian, nanmean, nanstd
+    export nanmin, nanmax, nanrange, pctile, nanmedian, nanmean, nanstd,
         linterp1s, linterp1, cntr, gwmean, awmean,
         findclosest, findclosestbelow, findclosestabove
 
