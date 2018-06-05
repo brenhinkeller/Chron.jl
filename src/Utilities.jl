@@ -163,6 +163,11 @@
         end
     end
 
+    # How far away from the mean (in units of sigma) should we expect proportion
+    # F of the samples to fall
+    function NormQuantile(F)
+        return sqrt(2)*erfinv(2*F-1)
+    end
 
 ## --- Fitting non-Gaussian distributions
 
@@ -285,7 +290,7 @@
         else
             t = .~ isnan.(A)
             extr = extrema(A[t])
-            out = extr[2] - extr[2];
+            out = extr[2] - extr[1];
         end
         return out
     end
@@ -307,6 +312,27 @@
         else
             t = .~ isnan.(A)
             out = mean(A[t]);
+        end
+        return out
+    end
+
+    function nanstd(A;dim=0)
+        s = size(A);
+        if dim==2
+            out = Array{typeof(A[1])}(s[1])
+            for i=1:s[1]
+                t = .~ isnan.(A[i,:])
+                out[i] = std(A[i,t]);
+            end
+        elseif dim==1
+            out = Array{typeof(A[1])}(s[2])
+            for i=1:s[2]
+                t = .~ isnan.(A[:,i])
+                out[i] = std(A[t,i]);
+            end
+        else
+            t = .~ isnan.(A)
+            out = std(A[t]);
         end
         return out
     end
