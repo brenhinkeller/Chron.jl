@@ -148,7 +148,7 @@
     # Plot results
     hdl = plot(bincenters,dhdt, label="Mean", color=:black, linewidth=2)
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(minimum(mdl.Height),0.4,:blue), linecolor=:white, label="68% CI")
-    plot!(hdl,bincenters,dhdt_50p, label="Median", color=:white, linewidth=1)
+    plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
     plot!(hdl, ylabel = "Depositional Rate (cm / Myr over $(Int(binwidth*1000)) kyr)", xlabel="Age (Ma)", fg_color_legend=:white)
     savefig(hdl,"DepositionRateModel.pdf");
     display(hdl)
