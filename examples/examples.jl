@@ -32,6 +32,8 @@
     Height_Sigma =  [       3.0,       1.0,       3.0,       3.0,       3.0,];
     inputSigmaLevel = 2; # i.e., are the data files 1-sigma or 2-sigma. Integer.
     Path = "examples/DenverUPbExampleData/" # Where are the data files?
+    AgeUnit = "Ma" # Unit of measurement for ages and errors in the data files
+    HeightUnit = "cm" # Unit of measurement for Height and Height_Sigma
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     # Count the names to see how many samples we have
@@ -112,7 +114,7 @@
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="")
     plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
-    plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)")
+    plot!(hdl, xlabel="Age ($AgeUnit)", ylabel="Height ($HeightUnit)")
     savefig(hdl,"AgeDepthModel.pdf");
     display(hdl)
 
@@ -147,11 +149,58 @@
 
     # Plot results
     hdl = plot(bincenters,dhdt, label="Mean", color=:black, linewidth=2)
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(minimum(mdl.Height),0.4,:blue), linecolor=:white, label="68% CI")
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(minimum(mdl.Height),0.4,:darkred), linealpha=0, label="68% CI")
     plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
-    plot!(hdl, ylabel = "Depositional Rate (cm / Myr over $(Int(binwidth*1000)) kyr)", xlabel="Age (Ma)", fg_color_legend=:white)
+    plot!(hdl, xlabel="Age ($AgeUnit)", ylabel="Depositional Rate ($HeightUnit / $AgeUnit over $binwidth $AgeUnit)", fg_color_legend=:white)
+    ylims!(hdl, 0, 2500)
     savefig(hdl,"DepositionRateModel.pdf");
     display(hdl)
+
+## --- Multiple confidence intervals
+
+    dhdt_20p = pctile(dhdt_dist,20,dim=2);
+    dhdt_80p = pctile(dhdt_dist,80,dim=2);
+    dhdt_25p = pctile(dhdt_dist,25,dim=2);
+    dhdt_75p = pctile(dhdt_dist,75,dim=2);
+    dhdt_30p = pctile(dhdt_dist,30,dim=2);
+    dhdt_70p = pctile(dhdt_dist,70,dim=2);
+    dhdt_35p = pctile(dhdt_dist,35,dim=2);
+    dhdt_65p = pctile(dhdt_dist,65,dim=2);
+    dhdt_40p = pctile(dhdt_dist,40,dim=2);
+    dhdt_60p = pctile(dhdt_dist,60,dim=2);
+    dhdt_45p = pctile(dhdt_dist,45,dim=2);
+    dhdt_55p = pctile(dhdt_dist,55,dim=2);
+
+    # Plot results
+    hdl = plot(bincenters,dhdt, label="Mean", color=:black, linewidth=2)
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(minimum(mdl.Height),0.2,:darkred), linealpha=0, label="68% CI")
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_20p; reverse(dhdt_80p)], fill=(minimum(mdl.Height),0.2,:darkred), linealpha=0, label="")
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_25p; reverse(dhdt_75p)], fill=(minimum(mdl.Height),0.2,:darkred), linealpha=0, label="")
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_30p; reverse(dhdt_70p)], fill=(minimum(mdl.Height),0.2,:darkred), linealpha=0, label="")
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_35p; reverse(dhdt_65p)], fill=(minimum(mdl.Height),0.2,:darkred), linealpha=0, label="")
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_40p; reverse(dhdt_60p)], fill=(minimum(mdl.Height),0.2,:darkred), linealpha=0, label="")
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_45p; reverse(dhdt_55p)], fill=(minimum(mdl.Height),0.2,:darkred), linealpha=0, label="")
+    plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
+    plot!(hdl, xlabel="Age ($AgeUnit)", ylabel="Depositional Rate ($HeightUnit / $AgeUnit over $binwidth $AgeUnit)", fg_color_legend=:white)
+    savefig(hdl,"DepositionRateModel.pdf");
+    display(hdl)
+
+
+## --- Make heatmap
+
+    rateplotmax = 2500;
+    using StatsBase: fit, Histogram
+    edges = linspace(0, rateplotmax, length(ages)-spacing+1)
+    dhdt_im = Array{Float64}(length(ages)-spacing,length(ages)-spacing);
+    for i=1:length(ages)-spacing
+        dhdt_im[:,i] = fit(Histogram, dhdt_dist[i, .~ isnan.(dhdt_dist[i,:])], edges, closed=:left).weights
+    end
+    # heatmap(bincenters,cntr(edges),dhdt_im, xlabel="Age ($AgeUnit)", ylabel=ylabel="Rate ($HeightUnit / $AgeUnit over $binwidth $AgeUnit)")
+
+    dhdt_im_log = copy(dhdt_im);
+    dhdt_im_log[dhdt_im .>0] = log10.(dhdt_im[dhdt_im .>0])
+    heatmap(bincenters,cntr(edges),dhdt_im_log, xlabel="Age ($AgeUnit)", ylabel=ylabel="Rate ($HeightUnit / $AgeUnit over $binwidth $AgeUnit)", colorbar_title="Log density" )
+
 
 ## --- (Optional) If your section has hiata / exposure surfaces of known duration, try this:
 

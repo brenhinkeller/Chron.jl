@@ -516,6 +516,16 @@
                     older_points_above = (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point);
                     mages_prop[older_points_above] = mages_prop[chosen_point];
                 end
+                # #Resolve conflicts with random linear slope
+                # slope = rand() * (oldest-youngest)/npoints
+                # offset = (index[chosen_point]-index) * slope
+                # if r > 0 # If proposing increased age
+                #     younger_points_below = (mages_prop .< mages_prop[chosen_point] + offset) .& (index .< chosen_point);
+                #     mages_prop[younger_points_below] = mages_prop[chosen_point] + offset[younger_points_below];
+                # else # if proposing decreased age
+                #     older_points_above = (mages_prop .> mages_prop[chosen_point] + offset) .& (index .> chosen_point);
+                #     mages_prop[older_points_above] = mages_prop[chosen_point] + offset[older_points_above];
+                # end
             end
 
 
@@ -567,6 +577,16 @@
                     older_points_above = (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point);
                     mages_prop[older_points_above] = mages_prop[chosen_point];
                 end
+                # #Resolve conflicts with random linear slope
+                # slope = rand() * (oldest-youngest)/npoints
+                # offset = (index[chosen_point]-index) * slope
+                # if r > 0 # If proposing increased age
+                #     younger_points_below = (mages_prop .< mages_prop[chosen_point] + offset) .& (index .< chosen_point);
+                #     mages_prop[younger_points_below] = mages_prop[chosen_point] + offset[younger_points_below];
+                # else # if proposing decreased age
+                #     older_points_above = (mages_prop .> mages_prop[chosen_point] + offset) .& (index .> chosen_point);
+                #     mages_prop[older_points_above] = mages_prop[chosen_point] + offset[older_points_above];
+                # end
             end
 
             # Calculate log likelihood of proposal
