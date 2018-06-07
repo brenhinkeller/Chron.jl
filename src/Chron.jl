@@ -32,7 +32,6 @@ module Chron
 
     # Weighted mean, etc
     include("Utilities.jl");
-    include("Colormaps.jl")
     # Functions for estimating extrema of a finite-range distribution
     include("DistMetropolis.jl");
     # Functions for stratigraphic modelling
@@ -40,6 +39,7 @@ module Chron
 
     # Higher-level functions for fitting and plotting
     using Plots
+    include("Colormaps.jl")
     include("Fitplot.jl");
 
     # Structs
