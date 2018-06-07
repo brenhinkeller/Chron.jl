@@ -28,9 +28,11 @@ module Chron
     using LsqFit: curve_fit
     using KernelDensity: kde
     using Interpolations: interpolate, Gridded, Linear
+    using IndirectArrays: IndirectArray
 
     # Weighted mean, etc
     include("Utilities.jl");
+    include("Colormaps.jl")
     # Functions for estimating extrema of a finite-range distribution
     include("DistMetropolis.jl");
     # Functions for stratigraphic modelling
@@ -55,6 +57,9 @@ module Chron
     export nanmin, nanmax, nanrange, pctile, nanmedian, nanmean, nanstd,
         linterp1s, linterp1, cntr, gwmean, awmean,
         findclosest, findclosestbelow, findclosestabove
+
+    # Colormaps
+    export viridis, inferno, plasma, magma, fire
 
     # Distributions
     export UniformDistribution, TriangularDistribution, HalfNormalDistribution,

@@ -88,13 +88,13 @@
     # @load "smpl.jld" smpl
 
 # # # # # # # # # # # Configure stratigraphic model here! # # # # # # # # # # #
-# If you don't know what these do, you can probably leave them as-is
-    resolution = 2.0; # Same units as sample height. Smaller is slower!
+# If you in doubt, you can probably leave these parameters as-is
+    resolution = 1.0; # Same units as sample height. Smaller is slower!
     (bottom, top) = extrema(smpl.Height);
     bounding = 0.1; # how far away do we place runaway bounds, as a fraction of total section height
     npoints_approx = round(Int,length(bottom:resolution:top) * (1+2*bounding))
-    burnin = 20000*npoints_approx;
-    nsteps = 25000;
+    burnin = 10000*npoints_approx;
+    nsteps = 15000;
     sieve = round(Int,npoints_approx);
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -131,21 +131,29 @@
     binwidth = 0.01; # Myr
     binoverlap = 10;
     ages = minimum(mdl.Age):binwidth/binoverlap:maximum(mdl.Age);
+    bincenters = ages[1+Int(binoverlap/2):end-Int(binoverlap/2)]
     spacing = binoverlap;
 
     # Calculate rates for the stratigraphy of each markov chain step
-    dhdt_dist = Array{Float64}(length(ages)-spacing,nsteps);
-    for i=1:nsteps
+    dhdt_dist = Array{Float64}(length(ages)-binoverlap,nsteps);
+    @time for i=1:nsteps
         heights = linterp1(reverse(agedist[:,i]),reverse(mdl.Height),ages);
-        dhdt_dist[:,i] = (heights[spacing+1:end]-heights[1:end-spacing])./(ages[1:end-spacing]-ages[spacing+1:end]);
+        dhdt_dist[:,i] = abs.(heights[1:end-spacing] - heights[spacing+1:end]) ./ binwidth;
     end
+
+    # # Exact (added precision is below sampling resolution, so not useful) and very slow
+    # @showprogress "Calculating dh/dt..." for i=1:nsteps
+    #     for j=1:length(bincenters)
+    #         t = (agedist[:,i] .> bincenters[j] - binwidth/2) .& (agedist[:,i] .< bincenters[j] + binwidth/2)
+    #         dhdt_dist[j,i] = sum(t) * resolution / binwidth;
+    #     end
+    # end
 
     # Find mean and 1-sigma (68%) CI
     dhdt = nanmean(dhdt_dist,dim=2);
     dhdt_50p = nanmedian(dhdt_dist,dim=2);
     dhdt_16p = pctile(dhdt_dist,15.865,dim=2); # Minus 1-sigma (15.865th percentile)
     dhdt_84p = pctile(dhdt_dist,84.135,dim=2); # Plus 1-sigma (84.135th percentile)
-    bincenters = ages[1+Int(binoverlap/2):end-Int(binoverlap/2)]
 
     # Plot results
     hdl = plot(bincenters,dhdt, label="Mean", color=:black, linewidth=2)
@@ -185,21 +193,32 @@
     savefig(hdl,"DepositionRateModel.pdf");
     display(hdl)
 
-
 ## --- Make heatmap
 
-    rateplotmax = 2500;
+    rateplotmax = 3*maximum(dhdt); # May want to adjust this -- this is just a guess
     using StatsBase: fit, Histogram
     edges = linspace(0, rateplotmax, length(ages)-spacing+1)
     dhdt_im = Array{Float64}(length(ages)-spacing,length(ages)-spacing);
     for i=1:length(ages)-spacing
         dhdt_im[:,i] = fit(Histogram, dhdt_dist[i, .~ isnan.(dhdt_dist[i,:])], edges, closed=:left).weights
     end
-    # heatmap(bincenters,cntr(edges),dhdt_im, xlabel="Age ($AgeUnit)", ylabel=ylabel="Rate ($HeightUnit / $AgeUnit over $binwidth $AgeUnit)")
 
-    dhdt_im_log = copy(dhdt_im);
-    dhdt_im_log[dhdt_im .>0] = log10.(dhdt_im[dhdt_im .>0])
-    heatmap(bincenters,cntr(edges),dhdt_im_log, xlabel="Age ($AgeUnit)", ylabel=ylabel="Rate ($HeightUnit / $AgeUnit over $binwidth $AgeUnit)", colorbar_title="Log density" )
+    # Rescale image to fit in UInt8 (0-255)
+    using IndirectArrays: IndirectArray
+    imSc = dhdt_im./pctile(dhdt_im[:],97.5)*256; # Rescale to include 97.5 CI (may need ot adjust)
+    imSc[imSc.>255] = 255; # Cut off to fit in Uint8
+
+    # Apply colormap. Available colormaps include viridis, inferno, plasma, fire
+    A = IndirectArray(floor.(UInt8,imSc)+1, inferno);
+
+    # Plot image
+    img = plot(bincenters,cntr(edges),A,yflip=false,xflip=false, colorbar=:right);
+    plot!(img, xlabel="Age ($AgeUnit)", ylabel="Rate ($HeightUnit / $AgeUnit, $binwidth $AgeUnit Bin)")
+    display(img)
+
+    # dhdt_im_log = copy(dhdt_im);
+    # dhdt_im_log[dhdt_im .>0] = log10.(dhdt_im[dhdt_im .>0])
+    # heatmap(bincenters,cntr(edges),dhdt_im_log, xlabel="Age ($AgeUnit)", ylabel="Rate ($HeightUnit / $AgeUnit, $binwidth $AgeUnit Bin)")
 
 
 ## --- (Optional) If your section has hiata / exposure surfaces of known duration, try this:
