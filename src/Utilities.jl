@@ -161,6 +161,33 @@
         return f
     end
 
+    # Two-sided linear exponential distribution joined by an atan sigmoid.
+    function doubleParabolicExponential(x,p)
+        # If to a normal-esque PDF, parameters p roughly correspond to:
+        # p[1] = pre-exponential (normaliation constant)
+        # p[2] = mean (central moment)
+        # p[3] = standard deviation
+        # p[4] = sharpness
+        # p[5] = skew
+        xs = (x-p[2])./p[3]; # X scaled by mean and variance
+        v = 1/2-atan.(xs)/pi; # Sigmoid (positive on LHS)
+        f = p[1] .* exp.(-(p[4].^2).*(p[5].^2).*(xs.^2).*v -(p[4].^2)./(p[5].^2).*(xs.^2).*(1-v));
+        return f
+    end
+
+    # Log of two-sided linear exponential distribution joined by an atan sigmoid.
+    function doubleParabolicExponentialLL(x,p)
+        # If to a normal-esque PDF, parameters p roughly correspond to:
+        # p[1] = pre-exponential (normaliation constant)
+        # p[2] = mean (central moment)
+        # p[3] = standard deviation
+        # p[4] = sharpness
+        # p[5] = skew
+        xs = (x-p[2,:])./p[3,:]; # X scaled by mean and variance
+        v = 1/2-atan.(xs)/pi; # Sigmoid (positive on LHS)
+        f = log.(p[1,:]) + (p[4,:].^2).*(p[5,:].^2).*(xs.^2).*v - (p[4,:].^2)./(p[5,:].^2).*(xs.^2).*(1-v);
+        return f
+    end
 
 ## --- Various other utility functions
 
