@@ -46,12 +46,13 @@ module Chron
     export StratAgeData, HiatusData, StratAgeModelConfiguration, StratAgeModel
 
     # Functions
-    export tMinDistMetropolis, BootstrapDistributionKDEfromStrat, StratMetropolis,
-        StratMetropolisHiatus, StratMetropolisDist, StratMetropolisDistHiatus,
+    export tMinDistMetropolis, StratMetropolis, StratMetropolisHiatus,
+        StratMetropolisDist, StratMetropolisDistHiatus,
         checkDistLogLikelihood, checkCrystLogLikelihood, crystMinMaxMetropolis,
         drawFromDistribution, fillFromDistribution, doubleLinearExponential,
         doubleLinearExponentialLL, plotRankOrderErrorbar, tMinDistMetropolisLA,
-        crystMinMaxMetropolisLA, BootstrapDistributionKDE
+        crystMinMaxMetropolisLA, BootstrapCrystDistributionKDE,
+        BootstrapCrystDistributionKDEfromStrat
 
     # Utility functions
     export nanmin, nanmax, nanrange, pctile, nanmedian, nanmean, nanstd,

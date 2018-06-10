@@ -9,27 +9,33 @@
 
 ## -- Bootstrap prior distribution shape
 
-    # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution
-    # shape from individual sample datafiles using a KDE of stacked sample data
-    function BootstrapDistributionKDEfromStrat(smpl::StratAgeData);
+    # Bootstrap a KDE of the pre-eruptive (or pre-deposition) mineral crystallization
+    # distribution shape from a 2-d array of sample ages using a KDE of stacked sample data
+    function BootstrapCrystDistributionKDEfromStrat(smpl::StratAgeData);
         # Load all data points and scale from 0 to 1
         allscaled = Array{Float64}([]);
         for i=1:length(smpl.Name)
             data = readcsv(string(smpl.Path, smpl.Name[i], ".csv"))
-            scaled = data[:,1]-minimum(data[:,1]);
+
+            # Maximum extent of expected analytical tail (beyond eruption/deposition)
+            maxTailLength = mean(data[:,2])/smpl.inputSigmaLevel * NormQuantile(1 - 1/(2*size(data,1)));
+            included = (data[:,1]-minimum(data[:,1])) .>= maxTailLength;
+
+            # Include and scale only those data not within the expected analytical tail
+            scaled = data[included,1]-minimum(data[included,1]);
             scaled = scaled./maximum(scaled);
             allscaled = [allscaled; scaled]
         end
 
-        # Calculate kernel density estimate, truncated at 0
+        # Calculate kernel density estimate, truncated at 0.15
         kd = kde(allscaled,npoints=2^7);
-        t = kd.x.>0;
+        t = kd.x .> 0.15; # Ensure sharp cutoff at eruption / deposition
         return kd.density[t];
     end
 
-    # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution
-    # shape from a 2-d array of sample ages using a KDE of stacked sample data
-    function BootstrapDistributionKDE(data::Array{Float64})
+    # Bootstrap a KDE of the pre-eruptive (or pre-deposition) mineral crystallization
+    # distribution shape from a 2-d array of sample ages using a KDE of stacked sample data
+    function BootstrapCrystDistributionKDE(data::Array{Float64})
         # Load all data points and scale from 0 to 1
         allscaled = Array{Float64,1}();
         for i=1:size(data,2)
@@ -38,9 +44,9 @@
             allscaled = [allscaled; scaled]
         end
 
-        # Calculate kernel density estimate, truncated at 0
+        # Calculate kernel density estimate, truncated at 0.15
         kd = kde(allscaled,npoints=2^7);
-        t = kd.x.>0;
+        t = kd.x .> 0.15;  # Ensure sharp cutoff at eruption / deposition
         return kd.density[t];
     end
 
