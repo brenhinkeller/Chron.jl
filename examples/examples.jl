@@ -89,7 +89,7 @@
 
 # # # # # # # # # # # Configure stratigraphic model here! # # # # # # # # # # #
 # If you in doubt, you can probably leave these parameters as-is
-    resolution = 1.0; # Same units as sample height. Smaller is slower!
+    resolution = 1. # Same units as sample height. Smaller is slower!
     (bottom, top) = extrema(smpl.Height);
     bounding = 0.1; # how far away do we place runaway bounds, as a fraction of total section height
     npoints_approx = round(Int,length(bottom:resolution:top) * (1+2*bounding))
@@ -164,7 +164,7 @@
     savefig(hdl,"DepositionRateModel.pdf");
     display(hdl)
 
-## --- Multiple confidence intervals
+## --- Multiple confidence intervals (every 10)
 
     dhdt_20p = pctile(dhdt_dist,20,dim=2);
     dhdt_80p = pctile(dhdt_dist,80,dim=2);
@@ -190,7 +190,7 @@
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_45p; reverse(dhdt_55p)], fill=(minimum(mdl.Height),0.2,:darkred), linealpha=0, label="")
     plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
     plot!(hdl, xlabel="Age ($AgeUnit)", ylabel="Depositional Rate ($HeightUnit / $AgeUnit over $binwidth $AgeUnit)", fg_color_legend=:white)
-    savefig(hdl,"DepositionRateModel.pdf");
+    savefig(hdl,"DepositionRateModelCI.pdf");
     display(hdl)
 
 ## --- Make heatmap
@@ -214,11 +214,38 @@
     # Plot image
     img = plot(bincenters,cntr(edges),A,yflip=false,xflip=false, colorbar=:right);
     plot!(img, xlabel="Age ($AgeUnit)", ylabel="Rate ($HeightUnit / $AgeUnit, $binwidth $AgeUnit Bin)")
+    savefig(img,"DepositionRateModelHeatmap.pdf");
     display(img)
 
     # dhdt_im_log = copy(dhdt_im);
     # dhdt_im_log[dhdt_im .>0] = log10.(dhdt_im[dhdt_im .>0])
     # heatmap(bincenters,cntr(edges),dhdt_im_log, xlabel="Age ($AgeUnit)", ylabel="Rate ($HeightUnit / $AgeUnit, $binwidth $AgeUnit Bin)")
+
+
+## --- Probability that a given interval of stratigraphy was deposited entirely before/after a given time
+
+    # Stratigraphic height and absoltue age/uncert to test
+    testHeight = -40.0
+    testAge = 66.0
+    testAge_sigma = 0.05
+
+    # Find index of nearest model height node
+    nearest = indmin((test_height-mdl.Height).^2);
+
+    # Cycle through each possible age within testAge +/- 5 sigma, with resolution of 1/50 sigma
+    test_ages = (testAge-5*testAge_sigma):testAge_sigma/50:(testAge+5*testAge_sigma)
+    test_prob_older = Array{Float64}(size(test_ages))
+    # Evaluate the probability that model age is older than each test_age at the given strat level
+    for i=1:length(test_ages)
+        test_prob_older[i] = sum(agedist[nearest,:] .> test_ages[i]) ./ size(agedist,2);
+    end
+
+    # Normalized probability for each distance away from testAge between +5sigma and -5sigma
+    prob_norm = normpdf(testAge, testAge_sigma, test_ages) ./ sum(normpdf(testAge, testAge_sigma, test_ages));  # SUM = 1
+
+    # Integrate the product
+    prob_older = sum(test_prob_older .* prob_norm)
+    print("$(prob_older*100) % chance that $(mdl.Height[nearest]) $HeightUnit was deposited before $testAge +/- $testAge_sigma $AgeUnit Gaussian")
 
 
 ## --- (Optional) If your section has hiata / exposure surfaces of known duration, try this:
