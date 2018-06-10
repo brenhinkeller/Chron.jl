@@ -1,48 +1,3 @@
-## --- Custom objects
-
-    # Define a type of struct object to hold data about geochron samples from
-    # a stratigraphic section of interest
-    struct StratAgeData
-        Name::Tuple
-        Height::Array{Float64}
-        Height_Sigma::Array{Float64}
-        Age::Array{Float64}
-        Age_Sigma::Array{Float64}
-        Age_025CI::Array{Float64}
-        Age_975CI::Array{Float64}
-        Age_Sidedness::Array{Float64}
-        Params::Array{Float64}
-        Path::String
-        inputSigmaLevel::Int
-    end
-
-    # A type of object to hold data about hiatuses
-    struct HiatusData
-        Height::Array{Float64}
-        Height_Sigma::Array{Float64}
-        Duration::Array{Float64}
-        Duration_Sigma::Array{Float64}
-    end
-
-    # A type of object to specify the configuration of the stratigraphic model
-    struct StratAgeModelConfiguration
-        resolution::Float64
-        burnin::Int
-        nsteps::Int
-        sieve::Int
-        bounding::Float64
-    end
-
-    struct StratAgeModel
-        Height::Array{Float64}
-        Age::Array{Float64}
-        Age_Sigma::Array{Float64}
-        Age_Median::Array{Float64}
-        Age_025CI::Array{Float64}
-        Age_975CI::Array{Float64}
-    end
-
-
 ## --- Weighted means
 
     # Calculate a weigted mean, including MSWD, with MSWD correction to uncertainty.
@@ -110,6 +65,18 @@
         return yq
     end
 
+## --- Working with Gaussian distributions
+
+    # Probability density function of the Normal (Gaussian) distribution
+    function normpdf(mu,sigma,x)
+        return exp.(-(x-mu).*(x-mu) ./ (2*sigma.*sigma)) ./ (sqrt(2*pi)*sigma)
+    end
+
+    # How far away from the mean (in units of sigma) should we expect proportion
+    # F of the samples to fall in a Normal (Gaussian) distribution
+    function NormQuantile(F)
+        return sqrt(2)*erfinv(2*F-1)
+    end
 
 ## --- Drawing from distributions
 
@@ -163,12 +130,6 @@
         end
     end
 
-
-    # How far away from the mean (in units of sigma) should we expect proportion
-    # F of the samples to fall in a Normal (Gaussian) distribution
-    function NormQuantile(F)
-        return sqrt(2)*erfinv(2*F-1)
-    end
 
 ## --- Fitting non-Gaussian distributions
 
