@@ -1,4 +1,4 @@
-## --- Utility functions for plotting
+Linear## --- Utility functions for plotting
 
     function plotRankOrderErrorbar(data,uncert; seriestype=:scatter,ylabel="",label="",xticks=[],xlabel="")
         sI = sortperm(data);
@@ -18,7 +18,7 @@
             data = readcsv(string(smpl.Path, smpl.Name[i], ".csv"))
 
             # Maximum extent of expected analytical tail (beyond eruption/deposition)
-            maxTailLength = mean(data[:,2])/smpl.inputSigmaLevel * NormQuantile(1 - 1/(2*size(data,1)));
+            maxTailLength = mean(data[:,2])/smpl.inputSigmaLevel * NormQuantile(1 - 1/(1+size(data,1)));
             included = (data[:,1]-minimum(data[:,1])) .>= maxTailLength;
 
             # Include and scale only those data not within the expected analytical tail
@@ -27,9 +27,9 @@
             allscaled = [allscaled; scaled]
         end
 
-        # Calculate kernel density estimate, truncated at 0.15
+        # Calculate kernel density estimate, truncated at 0
         kd = kde(allscaled,npoints=2^7);
-        t = kd.x .> 0.15; # Ensure sharp cutoff at eruption / deposition
+        t = kd.x .> -0.05; # Ensure sharp cutoff at eruption / deposition
         return kd.density[t];
     end
 
@@ -44,9 +44,9 @@
             allscaled = [allscaled; scaled]
         end
 
-        # Calculate kernel density estimate, truncated at 0.15
+        # Calculate kernel density estimate, truncated at 0
         kd = kde(allscaled,npoints=2^7);
-        t = kd.x .> 0.15;  # Ensure sharp cutoff at eruption / deposition
+        t = kd.x .> -0.05;  # Ensure sharp cutoff at eruption / deposition
         return kd.density[t];
     end
 

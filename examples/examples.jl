@@ -55,10 +55,10 @@
 
 ## --- (Optional) Calculate bootstrapped distribution
 
-    # # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution
-    # # shape from individual sample datafiles using a KDE of stacked sample data
-    # BootstrappedDistribution = BootstrapCrystDistributionKDEfromStrat(smpl);
-    # plot(BootstrappedDistribution,xlabel="Time (arbitrary units)",ylabel="Probability Density")
+    # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution
+    # shape from individual sample datafiles using a KDE of stacked sample data
+    BootstrappedDistribution = BootstrapCrystDistributionKDEfromStrat(smpl);
+    plot(BootstrappedDistribution,xlabel="Time (arbitrary units)",ylabel="Probability Density")
 
 ## --- Estimate the eruption age distributions for each sample
 
