@@ -72,6 +72,12 @@
         return exp.(-(x-mu).*(x-mu) ./ (2*sigma.*sigma)) ./ (sqrt(2*pi)*sigma)
     end
 
+    # Cumulative density function of the Normal (Gaussian) distribution
+    # Not precise enough for many uses, unfortunately
+    function normcdf(mu,sigma,x)
+        return 0.5 + erf.((x-mu) / (sigma*sqrt(2))) / 2
+    end
+
     # How far away from the mean (in units of sigma) should we expect proportion
     # F of the samples to fall in a Normal (Gaussian) distribution
     function NormQuantile(F)

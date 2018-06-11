@@ -18,13 +18,13 @@
                 ix = (data[j] - tmin) / dt * dist_xscale + 1;
                 # Interpolate corresponding distribution value
                 f = floor(Int,ix)
-                likelihood = (dist[f+1]*(ix-f) + dist[f]*(1-(ix-f))) / dt;
+                likelihood = (dist[f+1]*(ix-f) + dist[f]*(1-(ix-f))) / (dt * dist_yave);
                 # Otherwise, sum contributions from Gaussians at each point in distribution
             else
                 likelihood = 0;
                 for i=1:distrows
                     distx = tmin + dt*(i-1)/dist_xscale; # time-position of distribution point
-                    # Likelihood curve follows a Gaussian PDF
+                    # Likelihood curve follows a Gaussian PDF. Note: dt cancels
                     likelihood += dist[i] / (dist_yave * distrows * uncert[j] * sqrt(2*pi)) *
                     exp( - (distx-data[j])*(distx-data[j]) / (2*uncert[j]*uncert[j]) );
                 end
@@ -51,13 +51,13 @@
                 ix = (data[j] - tmin) / dt * dist_xscale + 1;
                 # Interpolate corresponding distribution value
                 f = floor(Int,ix)
-                likelihood = (dist[f+1]*(ix-f) + dist[f]*(1-(ix-f))) / dt;
+                likelihood = (dist[f+1]*(ix-f) + dist[f]*(1-(ix-f))) / (dt * dist_yave);
                 # Otherwise, sum contributions from Gaussians at each point in distribution
             else
                 likelihood = 0;
                 for i=1:distrows
                     distx = tmin + dt*(i-1)/dist_xscale; # time-position of distribution point
-                    # Likelihood curve follows a Gaussian PDF
+                    # Likelihood curve follows a Gaussian PDF. Note: dt cancels
                     likelihood += dist[i] / (dist_yave * distrows * uncert[j] * sqrt(2*pi)) *
                     exp( - (distx-data[j])*(distx-data[j]) / (2*uncert[j]*uncert[j]) );
                 end
