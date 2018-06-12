@@ -62,7 +62,7 @@ module Chron
     export nanmin, nanmax, nanrange, pctile, nanmedian, nanmean, nanstd,
         linterp1s, linterp1, cntr, gwmean, awmean,
         findclosest, findclosestbelow, findclosestabove,
-        drawFromDistribution, fillFromDistribution,
+        drawFromDistribution, fillFromDistribution
 
     # Colormaps
     export viridis, inferno, plasma, magma, fire

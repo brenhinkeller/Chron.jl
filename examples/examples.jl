@@ -65,7 +65,7 @@
 # # # # # # # # # # # # Configure distribution model here! # # # # # # # # # # #
   # Number of steps to run in distribution MCMC
   distSteps = 10^6;
-  distBurnin = floor(Int,distSteps/2);
+  distBurnin = floor(Int,distSteps/100);
 
   # Choose the form of the prior distribution to use
   # A variety of potentially useful distributions are provided in DistMetropolis.jl
