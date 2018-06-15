@@ -58,7 +58,7 @@
     # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution
     # shape from individual sample datafiles using a KDE of stacked sample data
     BootstrappedDistribution = BootstrapCrystDistributionKDEfromStrat(smpl);
-    plot(BootstrappedDistribution,xlabel="Time (arbitrary units)",ylabel="Probability Density")
+    plot(BootstrappedDistribution,xlabel="Time (arbitrary units)",ylabel="Probability Density",label="Bootstrapped distribution")
 
 ## --- Estimate the eruption age distributions for each sample
 
@@ -109,6 +109,36 @@
 
     # Run the stratigraphic MCMC model
     (mdl, agedist, lldist) = StratMetropolisDist(smpl, config);
+
+    # # Youngest Zircon
+    # for i=1:length(smpl.Name)
+    #     data = readcsv(string(smpl.Path, smpl.Name[i], ".csv"))
+    #     Iyz = indmin(data[:,1]);
+    #     smpl.Age[i] = minimum(data[Iyz,1]);
+    #     smpl.Age_Sigma[i] = minimum(data[Iyz,2]/smpl.inputSigmaLevel);
+    # end
+    # (mdl, agedist, lldist) = StratMetropolis(smpl, config);
+
+    # #LNWM
+    # for i=1:length(smpl.Name)
+    #     data = readcsv(string(smpl.Path, smpl.Name[i], ".csv"))
+    #     sI = sortperm(data[:,1])
+    #     # Weighted mean of youngst 3 zircons per sample (assuming there are at least 3 zircons in sample)
+    #     Ns = min(size(data,1),3)
+    #     (mu, sigma) = awmean(data[sI[1:Ns],1],data[sI[1:Ns],2]./smpl.inputSigmaLevel)
+    #     smpl.Age[i] = mu;
+    #     smpl.Age_Sigma[i] = sigma;
+    # end
+    # (mdl, agedist, lldist) = StratMetropolis(smpl, config);
+
+    # # Add systematic uncertainty to model
+    # SystematicRelativeUncertanty = 0.5/100; # 0.5% systematic uncertainty
+    # SysUncertVec = 1 + SystematicRelativeUncertanty*randn(size(agedist,2))
+    # for i=1:size(agedist,2)
+    #     agedist[:,i] *= SysUncertVec[i]
+    # end
+
+## --- Plot strat model
 
     # Plot results (mean and 95% confidence interval for both model and data)
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
