@@ -260,7 +260,7 @@
     testAge_sigma = 0.05
 
     # Find index of nearest model height node
-    nearest = indmin((test_height-mdl.Height).^2);
+    nearest = indmin((testHeight-mdl.Height).^2);
 
     # Cycle through each possible age within testAge +/- 5 sigma, with resolution of 1/50 sigma
     test_ages = (testAge-5*testAge_sigma):testAge_sigma/50:(testAge+5*testAge_sigma)
