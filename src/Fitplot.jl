@@ -91,7 +91,7 @@ Linear## --- Utility functions for plotting
 
             # Rank-order plot of analyses and eruption/deposition age range
             nAnalyses = length(data[:,1]);
-            h1 = plotRankOrderErrorbar(data[:,1],2*data[:,2],ylabel="Age (Ma)",label="Ages")
+            h1 = plotRankOrderErrorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age (Ma)",label="Ages")
             m = ones(nAnalyses).*smpl.Age[i];
             l = m - 2*smpl.Age_Sigma[i];
             u = m + 2*smpl.Age_Sigma[i];
@@ -151,7 +151,7 @@ Linear## --- Utility functions for plotting
 
             # Rank-order plot of analyses and eruption/deposition age range
             nAnalyses = length(data[:,1]);
-            h1 = plotRankOrderErrorbar(data[:,1],2*data[:,2],ylabel="Age (Ma)",label="Ages")
+            h1 = plotRankOrderErrorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age (Ma)",label="Ages")
             m = ones(nAnalyses).*smpl.Age[i];
             l = m - 2*smpl.Age_Sigma[i];
             u = m + 2*smpl.Age_Sigma[i];
