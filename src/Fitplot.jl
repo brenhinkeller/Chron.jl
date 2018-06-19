@@ -20,7 +20,8 @@ Linear## --- Utility functions for plotting
             # Maximum extent of expected analytical tail (beyond eruption/deposition)
             maxTailLength = mean(data[:,2])/smpl.inputSigmaLevel * NormQuantile(1 - 1/(1+size(data,1)));
             included = (data[:,1]-minimum(data[:,1])) .>= maxTailLength;
-            included = included .& .~isnan.(data[:,1]);
+            included .|= data[:,1] .> nanmedian(data[:,1]); # Don't exclude more than half (could only happen in underdispersed datasets)
+            included .&= .~isnan.(data[:,1]); # Exclude NaNs
 
             # Include and scale only those data not within the expected analytical tail
             if sum(included)>0
