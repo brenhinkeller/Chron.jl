@@ -20,11 +20,16 @@ Linear## --- Utility functions for plotting
             # Maximum extent of expected analytical tail (beyond eruption/deposition)
             maxTailLength = mean(data[:,2])/smpl.inputSigmaLevel * NormQuantile(1 - 1/(1+size(data,1)));
             included = (data[:,1]-minimum(data[:,1])) .>= maxTailLength;
+            included = included .& .~isnan.(data[:,1]);
 
             # Include and scale only those data not within the expected analytical tail
-            scaled = data[included,1]-minimum(data[included,1]);
-            scaled = scaled./maximum(scaled);
-            allscaled = [allscaled; scaled]
+            if sum(included)>0
+                scaled = data[included,1]-minimum(data[included,1]);
+                if sum(included)>1
+                    scaled = scaled./maximum(scaled);
+                end
+                allscaled = [allscaled; scaled]
+            end
         end
 
         # Calculate kernel density estimate, truncated at 0

@@ -39,7 +39,7 @@ module Chron
 
     # Higher-level functions for fitting and plotting
     using Plots
-    include("Colormaps.jl")
+    include("Colormaps.jl");
     include("Fitplot.jl");
 
     # Structs
@@ -59,7 +59,7 @@ module Chron
 
 
     # Utility functions
-    export nanmin, nanmax, nanrange, pctile, nanmedian, nanmean, nanstd,
+    export nanminimum, nanmaximum, nanrange, pctile, nanmedian, nanmean, nanstd,
         linterp1s, linterp1, cntr, gwmean, awmean,
         normpdf, normcdf, NormQuantile,
         findclosest, findclosestbelow, findclosestabove,
