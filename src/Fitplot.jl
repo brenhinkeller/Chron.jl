@@ -26,7 +26,7 @@ Linear## --- Utility functions for plotting
             # Include and scale only those data not within the expected analytical tail
             if sum(included)>0
                 scaled = data[included,1]-minimum(data[included,1]);
-                if sum(included)>1
+                if maximum(scaled) > 0
                     scaled = scaled./maximum(scaled);
                 end
                 allscaled = [allscaled; scaled]
@@ -46,15 +46,18 @@ Linear## --- Utility functions for plotting
         allscaled = Array{Float64,1}();
         for i=1:size(data,2)
             scaled = data[:,i]-minimum(data[:,i]);
-            scaled = scaled./maximum(scaled);
+            if maximum(scaled) > 0
+                scaled = scaled./maximum(scaled);
+            end
             allscaled = [allscaled; scaled]
         end
 
         # Calculate kernel density estimate, truncated at 0
         kd = kde(allscaled,npoints=2^7);
-        t = kd.x .> -0.05;  # Ensure sharp cutoff at eruption / deposition
+        t = kd.x .> -0.05;
         return kd.density[t];
     end
+
 
 ## --- Fit and plot results from stationary distribution of depostion/eruption age distribution model
 
