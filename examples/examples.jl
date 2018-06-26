@@ -131,12 +131,24 @@
     # end
     # (mdl, agedist, lldist) = StratMetropolis(smpl, config);
 
-    # # Add systematic uncertainty to model
-    # SystematicRelativeUncertanty = 0.5/100; # 0.5% systematic uncertainty
-    # SysUncertVec = 1 + SystematicRelativeUncertanty*randn(size(agedist,2))
+
+## --- Add systematic uncertainty (if any)
+
+    # # Add relative systematic uncertainty
+    # RelSysUncert = 0.05/100; # 0.05% systematic uncertainty. Note: 1-sigma!
     # for i=1:size(agedist,2)
-    #     agedist[:,i] *= SysUncertVec[i]
+    #     agedist[:,i] *= 1 + RelSysUncert*randn();
     # end
+    #
+    # # Recalculate mdl with systematic uncertainty added
+    # mdl = StratAgeModel(
+    #     mdl.Height, # Model heights
+    #     mean(agedist,2), # Mean age
+    #     std(agedist,2), # Standard deviation
+    #     median(agedist,2), # Median age
+    #     pctile(agedist,2.5,dim=2), # 2.5th percentile
+    #     pctile(agedist,97.5,dim=2) # 97.5th percentile
+    # )
 
 ## --- Plot strat model
 
