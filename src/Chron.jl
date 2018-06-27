@@ -69,7 +69,7 @@ module Chron
     export viridis, inferno, plasma, magma, fire
 
     # Distributions
-    export UniformDistribution, TriangularDistribution, HalfNormalDistribution,
+    export UniformDistribution, TriangularDistribution, HalfNormalDistribution, TruncatedNormalDistribution,
         EllisDistribution, MeltsZirconDistribution, MeltsVolcanicZirconDistribution
 
 end # module
