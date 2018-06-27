@@ -130,25 +130,7 @@
     #     smpl.Age_Sigma[i] = sigma;
     # end
     # (mdl, agedist, lldist) = StratMetropolis(smpl, config);
-
-
-## --- Add systematic uncertainty (if any)
-
-    # # Add relative systematic uncertainty
-    # RelSysUncert = 0.05/100; # 0.05% systematic uncertainty. Note: 1-sigma!
-    # for i=1:size(agedist,2)
-    #     agedist[:,i] *= 1 + RelSysUncert*randn();
-    # end
-    #
-    # # Recalculate mdl with systematic uncertainty added
-    # mdl = StratAgeModel(
-    #     mdl.Height, # Model heights
-    #     mean(agedist,2), # Mean age
-    #     std(agedist,2), # Standard deviation
-    #     median(agedist,2), # Median age
-    #     pctile(agedist,2.5,dim=2), # 2.5th percentile
-    #     pctile(agedist,97.5,dim=2) # 97.5th percentile
-    # )
+    
 
 ## --- Plot strat model
 
@@ -308,3 +290,63 @@
     # plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="")
     # plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
     # plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)")
+
+## --- (Optional) Add systematic uncertainties for U-Pb data
+
+    # # Tracer (ET2535) uncertainty converted from per cent to relative
+    # unc_tracer = 0.03/2/100;
+    #
+    # # U-238 Decay constant and uncertainty, Myr^-1
+    # lambda238 = 1.55125e-10 * 1e6;
+    # unc_lambda238 = 0.107/2/100; # converted from per cent to relative
+    #
+    # # Consider only the distribution of ages at model nodes where we have an ash bed
+    # age_dist_X = Array{Float64}(length(smpl.Height),size(agedist,2));
+    # for i = 1:length(smpl.Height)
+    #    closest_model_node = indmin(abs.(mdl.Height-smpl.Height[i]))
+    #    age_dist_X[i,:] = agedist[closest_model_node,:];
+    # end
+    #
+    # # Convert ages to 206Pb/238U ratios of the distribution
+    # ratio_dist = exp.(age_dist_X.*lambda238)-1;
+    #
+    # # Add tracer uncertainty
+    # ratio_dist_tracerunc = Array{Float64}(size(ratio_dist));
+    # for i=1:size(ratio_dist,2)
+    #     ratio_dist_tracerunc[:,i] = ratio_dist[:,i].*(1 + unc_tracer*randn());
+    # end
+    #
+    # # Convert 206/238 ratios back to ages, in Ma
+    # age_dist_XY = log.(ratio_dist_tracerunc+1)./lambda238;
+    #
+    # # Add decay constant uncertainty
+    # age_dist_XYZ = Array{Float64}(size(ratio_dist));
+    # for i=1:size(ratio_dist,2)
+    #     age_dist_XYZ[:,i] = log.(ratio_dist_tracerunc[:,i]+1)./(lambda238.*(1 + unc_lambda238.*randn()));
+    # end
+    #
+    # # Calculate the means and 95% confidence intervals for different levels of systematic uncertainties
+    #
+    # age_dist_X_mean = mean(age_dist_X,2); # Mean age
+    # age_dist_X_std =  std(age_dist_X,2); # Standard deviation
+    # age_dist_X_median = median(age_dist_X,2); # Median age
+    # age_dist_X_025p = pctile(age_dist_X,2.5,dim=2); # 2.5th percentile
+    # age_dist_X_975p = pctile(age_dist_X,97.5,dim=2); # 97.5th percentile
+    #
+    # age_dist_XY_mean = mean(age_dist_XY,2); # Mean age
+    # age_dist_XY_std =  std(age_dist_XY,2); # Standard deviation
+    # age_dist_XY_median = median(age_dist_XY,2); # Median age
+    # age_dist_XY_025p = pctile(age_dist_XY,2.5,dim=2); # 2.5th percentile
+    # age_dist_XY_975p = pctile(age_dist_XY,97.5,dim=2); # 97.5th percentile
+    #
+    # age_dist_XYZ_mean = mean(age_dist_XYZ,2); # Mean age
+    # age_dist_XYZ_std =  std(age_dist_XYZ,2); # Standard deviation
+    # age_dist_XYZ_median = median(age_dist_XYZ,2); # Median age
+    # age_dist_XYZ_025p = pctile(age_dist_XYZ,2.5,dim=2); # 2.5th percentile
+    # age_dist_XYZ_975p = pctile(age_dist_XYZ,97.5,dim=2); # 97.5th percentile
+    #
+    # age_X_95p = [age_dist_X_mean age_dist_X_975p-age_dist_X_mean age_dist_X_mean-age_dist_X_025p];
+    # age_XY_95p = [age_dist_XY_mean age_dist_XY_975p-age_dist_XY_mean age_dist_XY_mean-age_dist_XY_025p];
+    # age_XYZ_95p = [age_dist_XYZ_mean age_dist_XYZ_975p-age_dist_XYZ_mean age_dist_XYZ_mean-age_dist_XYZ_025p];
+
+## ---
