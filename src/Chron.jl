@@ -38,8 +38,10 @@ module Chron
     include("StratMetropolis.jl");
 
     # Higher-level functions for fitting and plotting
-    using Plots
+    using Images: RGB, N0f8
     include("Colormaps.jl");
+
+    using Plots
     include("Fitplot.jl");
 
     # Structs
