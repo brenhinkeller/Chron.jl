@@ -1,6 +1,6 @@
-Linear## --- Utility functions for plotting
+## --- Utility functions for plotting
 
-    function plotRankOrderErrorbar(data,uncert; seriestype=:scatter,ylabel="",label="",xticks=[],xlabel="")
+    function plot_rankorder_errorbar(data,uncert; seriestype=:scatter,ylabel="",label="",xticks=[],xlabel="")
         sI = sortperm(data);
         h = plot(1:length(sI),data[sI],yerror=uncert[sI],seriestype=seriestype,
                  label=label,ylabel=ylabel,xlabel=xlabel,xticks=xticks)
@@ -18,7 +18,7 @@ Linear## --- Utility functions for plotting
             data = readcsv(string(smpl.Path, smpl.Name[i], ".csv"))
 
             # Maximum extent of expected analytical tail (beyond eruption/deposition)
-            maxTailLength = mean(data[:,2])/smpl.inputSigmaLevel * NormQuantile(1 - 1/(1+size(data,1)));
+            maxTailLength = mean(data[:,2])/smpl.inputSigmaLevel * norm_quantile(1 - 1/(1+size(data,1)));
             included = (data[:,1]-minimum(data[:,1])) .>= maxTailLength;
             included .|= data[:,1] .> nanmedian(data[:,1]); # Don't exclude more than half (could only happen in underdispersed datasets)
             included .&= .~isnan.(data[:,1]); # Exclude NaNs
@@ -95,12 +95,12 @@ Linear## --- Utility functions for plotting
             p[3] = std(tminDist[burnin:end]);
 
             # Fit nonlinear model
-            fobj = curve_fit(doubleLinearExponential,bincenters,N,p);
+            fobj = curve_fit(bilinear_exponential,bincenters,N,p);
             smpl.Params[:,i] = fobj.param;
 
             # Rank-order plot of analyses and eruption/deposition age range
             nAnalyses = length(data[:,1]);
-            h1 = plotRankOrderErrorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age (Ma)",label="Ages")
+            h1 = plot_rankorder_errorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age (Ma)",label="Ages")
             m = ones(nAnalyses).*smpl.Age[i];
             l = ones(nAnalyses).*smpl.Age_025CI[i];
             u = ones(nAnalyses).*smpl.Age_975CI[i];
@@ -110,7 +110,7 @@ Linear## --- Utility functions for plotting
 
             # Plot model fit to histogram
             h2 = plot(bincenters,N,label="Histogram");
-            plot!(h2,bincenters,doubleLinearExponential(bincenters,smpl.Params[:,i]),label="Curve fit");
+            plot!(h2,bincenters,bilinear_exponential(bincenters,smpl.Params[:,i]),label="Curve fit");
             plot!(h2,legend=:topleft,xlabel="Age",ylabel="Likelihood");
             savefig(h2,string(smpl.Path,smpl.Name[i],"_distribution.pdf"));
 
@@ -155,12 +155,12 @@ Linear## --- Utility functions for plotting
             p[3] = std(tminDist[burnin:end]);
 
             # Fit nonlinear model
-            fobj = curve_fit(doubleLinearExponential,bincenters,N,p);
+            fobj = curve_fit(bilinear_exponential,bincenters,N,p);
             smpl.Params[:,i] = fobj.param;
 
             # Rank-order plot of analyses and eruption/deposition age range
             nAnalyses = length(data[:,1]);
-            h1 = plotRankOrderErrorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age (Ma)",label="Ages")
+            h1 = plot_rankorder_errorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age (Ma)",label="Ages")
             m = ones(nAnalyses).*smpl.Age[i];
             l = m - 2*smpl.Age_Sigma[i];
             u = m + 2*smpl.Age_Sigma[i];
@@ -170,7 +170,7 @@ Linear## --- Utility functions for plotting
 
             # Plot model fit to histogram
             h2 = plot(bincenters,N,label="Histogram");
-            plot!(h2,bincenters,doubleLinearExponential(bincenters,smpl.Params[:,i]),label="Curve fit");
+            plot!(h2,bincenters, bilinear_exponential(bincenters,smpl.Params[:,i]),label="Curve fit");
             plot!(h2,legend=:topleft,xlabel="Age",ylabel="Likelihood");
             savefig(h2,string(smpl.Path,smpl.Name[i],"_distribution.pdf"));
 

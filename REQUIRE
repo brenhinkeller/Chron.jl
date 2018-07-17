@@ -1,4 +1,5 @@
 StatsBase
+Interpolations
 LsqFit
 KernelDensity
 JLD

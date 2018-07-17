@@ -47,15 +47,14 @@ module Chron
     # Structs
     export StratAgeData, HiatusData, StratAgeModelConfiguration, StratAgeModel
 
-    # Functions
+    # High-level functions
     export  StratMetropolis, StratMetropolisHiatus,
         StratMetropolisDist, StratMetropolisDistHiatus,
         tMinDistMetropolis, crystMinMaxMetropolis,
         tMinDistMetropolisLA, crystMinMaxMetropolisLA,
         checkDistLogLikelihood, checkCrystLogLikelihood,
-        doubleLinearExponential, doubleLinearExponentialLL,
-        doubleParabolicExponential, doubleParabolicExponentialLL,
-        plotRankOrderErrorbar,
+        bilinear_exponential, bilinear_exponential_LL,
+        plot_rankorder_errorbar,
         BootstrapCrystDistributionKDE,
         BootstrapCrystDistributionKDEfromStrat
 
@@ -63,9 +62,9 @@ module Chron
     # Utility functions
     export nanminimum, nanmaximum, nanrange, pctile, nanmedian, nanmean, nanstd,
         linterp1s, linterp1, cntr, gwmean, awmean,
-        normpdf, normcdf, NormQuantile,
+        normpdf, normcdf, norm_quantile,
         findclosest, findclosestbelow, findclosestabove,
-        drawFromDistribution, fillFromDistribution
+        draw_from_distribution, fill_from_distribution
 
     # Colormaps
     export viridis, inferno, plasma, magma, fire

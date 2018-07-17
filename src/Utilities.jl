@@ -80,7 +80,7 @@
 
     # How far away from the mean (in units of sigma) should we expect proportion
     # F of the samples to fall in a Normal (Gaussian) distribution
-    function NormQuantile(F)
+    function norm_quantile(F)
         return sqrt(2)*erfinv(2*F-1)
     end
 
@@ -88,7 +88,7 @@
 
     # Draw random numbers from a distribution specified by a vector of points
     # defining the PDF curve
-    function drawFromDistribution(dist::Array{Float64}, n::Int)
+    function draw_from_distribution(dist::Array{Float64}, n::Int)
         # Draw n random numbers from the distribution 'dist'
         x = Array{Float64}(n);
         dist_ymax = maximum(dist);
@@ -114,7 +114,7 @@
 
     # Fill an existing variable with random numbers from a distribution specified
     # by a vector of points defining the PDF curve
-    function fillFromDistribution(dist::Array{Float64}, x::Array{Float64})
+    function fill_from_distribution(dist::Array{Float64}, x::Array{Float64})
         # Fill the array x with random numbers from the distribution 'dist'
         dist_ymax = maximum(dist);
         dist_xmax = length(dist)-1.0;
@@ -140,7 +140,7 @@
 ## --- Fitting non-Gaussian distributions
 
     # Two-sided linear exponential distribution joined by an atan sigmoid.
-    function doubleLinearExponential(x,p)
+    function bilinear_exponential(x,p)
         # If to a normal-esque PDF, parameters p roughly correspond to:
         # p[1] = pre-exponential (normaliation constant)
         # p[2] = mean (central moment)
@@ -154,7 +154,7 @@
     end
 
     # Log of two-sided linear exponential distribution joined by an atan sigmoid.
-    function doubleLinearExponentialLL(x,p)
+    function bilinear_exponential_LL(x,p)
         # If to a normal-esque PDF, parameters p roughly correspond to:
         # p[1] = pre-exponential (normaliation constant)
         # p[2] = mean (central moment)
@@ -167,33 +167,33 @@
         return f
     end
 
-    # Two-sided linear exponential distribution joined by an atan sigmoid.
-    function doubleParabolicExponential(x,p)
-        # If to a normal-esque PDF, parameters p roughly correspond to:
-        # p[1] = pre-exponential (normaliation constant)
-        # p[2] = mean (central moment)
-        # p[3] = standard deviation
-        # p[4] = sharpness
-        # p[5] = skew
-        xs = (x-p[2])./p[3]; # X scaled by mean and variance
-        v = 1/2-atan.(xs)/pi; # Sigmoid (positive on LHS)
-        f = p[1] .* exp.(-(p[4].^2).*(p[5].^2).*(xs.^2).*v -(p[4].^2)./(p[5].^2).*(xs.^2).*(1-v));
-        return f
-    end
-
-    # Log of two-sided linear exponential distribution joined by an atan sigmoid.
-    function doubleParabolicExponentialLL(x,p)
-        # If to a normal-esque PDF, parameters p roughly correspond to:
-        # p[1] = pre-exponential (normaliation constant)
-        # p[2] = mean (central moment)
-        # p[3] = standard deviation
-        # p[4] = sharpness
-        # p[5] = skew
-        xs = (x-p[2,:])./p[3,:]; # X scaled by mean and variance
-        v = 1/2-atan.(xs)/pi; # Sigmoid (positive on LHS)
-        f = log.(p[1,:]) + (p[4,:].^2).*(p[5,:].^2).*(xs.^2).*v - (p[4,:].^2)./(p[5,:].^2).*(xs.^2).*(1-v);
-        return f
-    end
+    # # Two-sided linear exponential distribution joined by an atan sigmoid.
+    # function biparabolic_exponential_LL(x,p)
+    #     # If to a normal-esque PDF, parameters p roughly correspond to:
+    #     # p[1] = pre-exponential (normaliation constant)
+    #     # p[2] = mean (central moment)
+    #     # p[3] = standard deviation
+    #     # p[4] = sharpness
+    #     # p[5] = skew
+    #     xs = (x-p[2])./p[3]; # X scaled by mean and variance
+    #     v = 1/2-atan.(xs)/pi; # Sigmoid (positive on LHS)
+    #     f = p[1] .* exp.(-(p[4].^2).*(p[5].^2).*(xs.^2).*v -(p[4].^2)./(p[5].^2).*(xs.^2).*(1-v));
+    #     return f
+    # end
+    #
+    # # Log of two-sided parabolic exponential distribution joined by an atan sigmoid.
+    # function biparabolic_exponential_LL(x,p)
+    #     # If to a normal-esque PDF, parameters p roughly correspond to:
+    #     # p[1] = pre-exponential (normaliation constant)
+    #     # p[2] = mean (central moment)
+    #     # p[3] = standard deviation
+    #     # p[4] = sharpness
+    #     # p[5] = skew
+    #     xs = (x-p[2,:])./p[3,:]; # X scaled by mean and variance
+    #     v = 1/2-atan.(xs)/pi; # Sigmoid (positive on LHS)
+    #     f = log.(p[1,:]) + (p[4,:].^2).*(p[5,:].^2).*(xs.^2).*v - (p[4,:].^2)./(p[5,:].^2).*(xs.^2).*(1-v);
+    #     return f
+    # end
 
 ## --- Various other utility functions
 
