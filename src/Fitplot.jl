@@ -72,7 +72,7 @@
             print(i, ": ", smpl.Name[i], "\n"); # Display progress
 
             # Run MCMC to estimate saturation and eruption/deposition age distributions
-            (tminDist, tmaxDist, llDist, acceptanceDist) = crystMinMaxMetropolis(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel);
+            (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax_cryst(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel);
 
             # Fill in the strat sample object with our new results
             smpl.Age[i] = mean(tminDist[burnin:end]);
@@ -132,7 +132,7 @@
             print(i, ": ", smpl.Name[i], "\n"); # Display progress
 
             # Run MCMC to estimate saturation and eruption/deposition age distributions
-            (tminDist, tmaxDist, llDist, acceptanceDist) = crystMinMaxMetropolisLA(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel);
+            (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax_cryst_LA(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel);
 
             # Fill in the strat sample object with our new results
             smpl.Age[i] = mean(tminDist[burnin:end]);

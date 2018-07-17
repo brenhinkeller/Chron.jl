@@ -2,7 +2,7 @@
 
 
     # Return the log-likelihood of drawing the dataset 'data' from the distribution 'dist'
-    function checkDistLogLikelihood(dist::Array{Float64}, data::Array{Float64}, uncert::Array{Float64}, tmin::Float64, tmax::Float64)
+    function check_dist_LL(dist::Array{Float64}, data::Array{Float64}, uncert::Array{Float64}, tmin::Float64, tmax::Float64)
         # Define some frequently used variables
         loglikelihood = 0.0;
         datarows = length(data);
@@ -35,7 +35,7 @@
     end
 
     # Return the log-likelihood of a proposed crystallization distribution, with adjustments to prevent runaway at low N
-    function checkCrystLogLikelihood(dist::Array{Float64}, data::Array{Float64}, uncert::Array{Float64}, tmin::Float64, tmax::Float64)
+    function check_cryst_LL(dist::Array{Float64}, data::Array{Float64}, uncert::Array{Float64}, tmin::Float64, tmax::Float64)
         # Define some frequently used variables
         loglikelihood = 0.0;
         datarows = length(data);
@@ -90,7 +90,7 @@
     # Run a Metropolis sampler to estimate the extrema of a finite-range distribution from samples drawn
     # from that distribution -- e.g., estimate zircon saturation and eruption ages from a distribution of
     # zircon crystallization ages.
-    function crystMinMaxMetropolis(nsteps::Int,dist::Array{Float64},data::Array{Float64},uncert::Array{Float64})
+    function metropolis_minmax_cryst(nsteps::Int,dist::Array{Float64},data::Array{Float64},uncert::Array{Float64})
         # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
         stepfactor = 2.9;
         # Sort the data array from youngest to oldest
@@ -111,7 +111,7 @@
         tmin_proposed = tmin;
         tmax_proposed = tmax;
         # Log likelihood of initial proposal
-        ll =  checkCrystLogLikelihood(dist, data, uncert, tmin, tmax);
+        ll =  check_cryst_LL(dist, data, uncert, tmin, tmax);
         ll_proposed = ll;
         # Allocate ouput arrays
         tminDist = Array{Float64}(nsteps);
@@ -135,7 +135,7 @@
                 tmax_proposed = r;
             end
             # Calculate log likelihood for new proposal
-            ll_proposed =  checkCrystLogLikelihood(dist, data, uncert, tmin_proposed, tmax_proposed);
+            ll_proposed =  check_cryst_LL(dist, data, uncert, tmin_proposed, tmax_proposed);
             # Decide to accept or reject the proposal
             if rand() < exp(ll_proposed-ll)
                 if tmin_proposed != tmin
@@ -158,7 +158,7 @@
     end
 
 
-    function crystMinMaxMetropolisLA(nsteps::Int,dist::Array{Float64},data::Array{Float64},uncert::Array{Float64})
+    function metropolis_minmax_cryst_LA(nsteps::Int,dist::Array{Float64},data::Array{Float64},uncert::Array{Float64})
         # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
         stepfactor = 2.9;
         # Sort the data array from youngest to oldest
@@ -179,7 +179,7 @@
         tmin_proposed = tmin;
         tmax_proposed = tmax;
         # Log likelihood of initial proposal
-        ll =  checkDistLogLikelihood(dist, data, uncert, tmin, tmax);
+        ll =  check_dist_LL(dist, data, uncert, tmin, tmax);
         ll_proposed = ll;
         # Allocate ouput arrays
         tminDist = Array{Float64}(nsteps);
@@ -203,7 +203,7 @@
                 tmax_proposed = r;
             end
             # Calculate log likelihood for new proposal
-            ll_proposed =  checkCrystLogLikelihood(dist, data, uncert, tmin_proposed, tmax_proposed);
+            ll_proposed =  check_cryst_LL(dist, data, uncert, tmin_proposed, tmax_proposed);
             # Decide to accept or reject the proposal
             if rand() < exp(ll_proposed-ll)
                 if tmin_proposed != tmin

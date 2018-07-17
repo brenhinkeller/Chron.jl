@@ -50,9 +50,9 @@ module Chron
     # High-level functions
     export  StratMetropolis, StratMetropolisHiatus,
         StratMetropolisDist, StratMetropolisDistHiatus,
-        tMinDistMetropolis, crystMinMaxMetropolis,
-        tMinDistMetropolisLA, crystMinMaxMetropolisLA,
-        checkDistLogLikelihood, checkCrystLogLikelihood,
+        tMinDistMetropolis, metropolis_minmax_cryst,
+        tMinDistMetropolisLA, metropolis_minmax_cryst_LA,
+        check_dist_LL, check_cryst_LL,
         bilinear_exponential, bilinear_exponential_LL,
         plot_rankorder_errorbar,
         BootstrapCrystDistributionKDE,
