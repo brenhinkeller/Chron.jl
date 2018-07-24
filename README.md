@@ -19,5 +19,5 @@ julia> Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
 
 Run [examples.jl](examples/examples.jl) to see how the code works.
 
-Or for a quick test, try the [interactive online Jupyter notebook](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2Fdemo.ipynb)
+Or for a quick test, try the [interactive online Jupyter notebook](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2Fdemo.ipynb) (note: it'll take a few minutes for the notebook to launch)
 
