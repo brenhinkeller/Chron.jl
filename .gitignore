@@ -6,5 +6,8 @@
 *.jl.mem
 deps/deps.jl
 
+
+.ipynb_check*
+
 # Don't include dev tests
 dev/
