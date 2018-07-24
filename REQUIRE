@@ -2,7 +2,6 @@ StatsBase
 Interpolations
 LsqFit
 KernelDensity
-JLD
 ProgressMeter
 Colors
 Plots
