@@ -16,3 +16,7 @@ julia> Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
 ## Usage
 
 Run [examples.jl](examples/examples.jl) to see how the code works.
+
+
+[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=demo.ipynb)
+
