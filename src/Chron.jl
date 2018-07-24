@@ -28,7 +28,6 @@ module Chron
     using LsqFit: curve_fit
     using KernelDensity: kde
     using Interpolations: interpolate, Gridded, Linear
-    using IndirectArrays: IndirectArray
 
     # Weighted mean, etc
     include("Utilities.jl");
