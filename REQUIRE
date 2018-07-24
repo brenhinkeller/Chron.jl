@@ -3,6 +3,6 @@ Interpolations
 LsqFit
 KernelDensity
 ProgressMeter
-Colors
+Images
 Plots
 GR
