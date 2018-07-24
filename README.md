@@ -1,3 +1,5 @@
+[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=demo.ipynb)
+
 # Chron.jl
 
 A two-part framework for (1) estimating eruption/deposition age distributions from complex mineral age spectra and (2) subsequently building a stratigraphic age model based on those distributions. Each step relies on a Markov-Chain Monte Carlo model.
@@ -17,6 +19,5 @@ julia> Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
 
 Run [examples.jl](examples/examples.jl) to see how the code works.
 
-
-[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=demo.ipynb)
+Or for a quick test, try the interactive onlyne Jupyter notebook: https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=demo.ipynb
 
