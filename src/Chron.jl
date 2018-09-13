@@ -40,7 +40,7 @@ module Chron
     using Colors: RGB, N0f8
     include("Colormaps.jl");
 
-    using Plots
+    using Plots; gr();
     include("Fitplot.jl");
 
     # Structs
