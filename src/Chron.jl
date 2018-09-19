@@ -28,10 +28,6 @@ module Chron
     if VERSION>=v"0.7"
         using Statistics
     end
-    if VERSION>=v"1.0"
-        linspace(a,b,c) = range(a,stop=b,length=c)
-        export linspace
-    end
 
     # Basic statistics and UI resources
     using StatsBase: fit, Histogram, percentile
@@ -71,7 +67,7 @@ module Chron
 
     # Utility functions
     export nanminimum, nanmaximum, nanrange, pctile, nanmedian, nanmean, nanstd,
-        linterp1s, linterp1, cntr, gwmean, awmean,
+        linsp, linterp1s, linterp1, cntr, gwmean, awmean,
         normpdf, normcdf, norm_quantile,
         findclosest, findclosestbelow, findclosestabove,
         draw_from_distribution, fill_from_distribution

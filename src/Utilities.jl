@@ -1,3 +1,12 @@
+## --- Constructing arrays
+
+    # Construct linearly spaced array with n points between l and u
+    # (linspace replacement )
+    function linsp(l::Number,u::Number,n::Number)
+        sp = (u-l)/(n-1)
+        return l:sp:n
+    end
+
 ## --- Weighted means
 
     # Calculate a weigted mean, including MSWD, with MSWD correction to uncertainty.
@@ -52,6 +61,7 @@
 
 ## --- Interpolating
 
+    # Linear interpolation, sorting inputs
     function linterp1s(x,y,xq)
         sI = sortperm(x); # indices to construct sorted array
         itp = interpolate((x[sI],),y[sI],Gridded(Linear()));
@@ -59,6 +69,7 @@
         return yq
     end
 
+    # linear interpolation
     function linterp1(x,y,xq)
         itp = interpolate((x,),y,Gridded(Linear()));
         yq = itp[xq]; # Interpolate value of y at queried x values

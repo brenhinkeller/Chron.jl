@@ -1,4 +1,4 @@
-## --- Utility functions for plotting
+linsp(## --- Utility functions for plotting
 
     function plot_rankorder_errorbar(data,uncert; seriestype=:scatter,ylabel="",label="",xticks=[],xlabel="")
         sI = sortperm(data);
@@ -81,7 +81,7 @@
             smpl.Age_975CI[i] = percentile(tminDist[burnin:end],97.5);
 
             # Fit custom many-parametric distribution function to histogram
-            edges = linspace(minimum(tminDist[burnin:end]),maximum(tminDist[burnin:end]),101); # Vector of bin edges
+            edges = linsp(minimum(tminDist[burnin:end]),maximum(tminDist[burnin:end]),101); # Vector of bin edges
             hobj = fit(Histogram,tminDist[burnin:end],edges,closed=:left) # Fit histogram object
 
             t = hobj.weights.>0; # Only look at bins with one or more results
@@ -141,7 +141,7 @@
             smpl.Age_975CI[i] = percentile(tminDist[burnin:end],97.5);
 
             # Fit custom many-parametric distribution function to histogram
-            edges = linspace(minimum(tminDist[burnin:end]),maximum(tminDist[burnin:end]),101); # Vector of bin edges
+            edges = linsp(minimum(tminDist[burnin:end]),maximum(tminDist[burnin:end]),101); # Vector of bin edges
             hobj = fit(Histogram,tminDist[burnin:end],edges,closed=:left) # Fit histogram object
 
             t = hobj.weights.>0; # Only look at bins with one or more results
