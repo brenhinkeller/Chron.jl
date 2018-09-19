@@ -13,7 +13,7 @@
     # distribution shape from a 2-d array of sample ages using a KDE of stacked sample data
     function BootstrapCrystDistributionKDEfromStrat(smpl::StratAgeData);
         # Load all data points and scale from 0 to 1
-        allscaled = Array{Float64}([]);
+        allscaled = Array{Float64}([])
         for i=1:length(smpl.Name)
             data = readcsv(string(smpl.Path, smpl.Name[i], ".csv"))
 
@@ -43,7 +43,7 @@
     # distribution shape from a 2-d array of sample ages using a KDE of stacked sample data
     function BootstrapCrystDistributionKDE(data::Array{Float64})
         # Load all data points and scale from 0 to 1
-        allscaled = Array{Float64,1}();
+        allscaled = Array{Float64,1}([])
         for i=1:size(data,2)
             scaled = data[:,i]-minimum(data[:,i]);
             if maximum(scaled) > 0

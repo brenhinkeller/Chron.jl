@@ -22,6 +22,8 @@ __precompile__()
 
 module Chron
 
+    # Backwards compatibility
+    using Compat
     # Forwards compatibility
     if VERSION>=v"0.7"
         using Statistics

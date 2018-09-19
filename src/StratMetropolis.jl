@@ -153,9 +153,9 @@
 
         # Run Markov Chain Monte Carlo
         print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n");
-        agedist = Array{Float64}(npoints,nsteps);
-        lldist = Array{Float64}(nsteps);
-        # acceptancedist = Array{Bool}(nsteps);
+        agedist = Array{Float64}(undef,npoints,nsteps);
+        lldist = Array{Float64}(undef,nsteps);
+        # acceptancedist = Array{Bool}(undef,nsteps);
 
 
         # Run the model
@@ -278,9 +278,9 @@
         # Ensure there is only one effective hiatus at most for each height node
         closest_h = findclosestabove(hiatus.Height,model_heights);
         closest_h_unique = unique(closest_h);
-        hiatus_Height = Array{Float64}(size(closest_h_unique));
-        hiatus_Duration = Array{Float64}(size(closest_h_unique));
-        hiatus_Duration_Sigma = Array{Float64}(size(closest_h_unique));
+        hiatus_Height = Array{Float64}(undef,size(closest_h_unique));
+        hiatus_Duration = Array{Float64}(undef,size(closest_h_unique));
+        hiatus_Duration_Sigma = Array{Float64}(undef,size(closest_h_unique));
         for i=1:length(closest_h_unique)
             hiatus_Height[i] = mean(hiatus.Height[closest_h.==closest_h_unique[i]]);
             hiatus_Duration[i] = sum(hiatus.Duration[closest_h.==closest_h_unique[i]]);
@@ -371,10 +371,10 @@
 
         # Run Markov Chain Monte Carlo
         print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n");
-        agedist = Array{Float64}(npoints,nsteps);
-        hiatusdist = Array{Float64}(length(duration),nsteps);
-        lldist = Array{Float64}(nsteps);
-        # acceptancedist = Array{Bool}(nsteps);
+        agedist = Array{Float64}(undef,npoints,nsteps);
+        hiatusdist = Array{Float64}(undef,length(duration),nsteps);
+        lldist = Array{Float64}(undef,nsteps);
+        # acceptancedist = Array{Bool}(undef,nsteps);
 
 
         # Run the model
@@ -592,9 +592,9 @@
 
         # Run Markov Chain Monte Carlo
         print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n");
-        agedist = Array{Float64}(npoints,nsteps);
-        lldist = Array{Float64}(nsteps);
-        # acceptancedist = Array{Bool}(nsteps);
+        agedist = Array{Float64}(undef,npoints,nsteps);
+        lldist = Array{Float64}(undef,nsteps);
+        # acceptancedist = Array{Bool}(undef,nsteps);
 
 
         # Run the model
@@ -731,9 +731,9 @@
         # Ensure there is only one effective hiatus at most for each height node
         closest_h = findclosestabove(hiatus.Height,model_heights);
         closest_h_unique = unique(closest_h);
-        hiatus_Height = Array{Float64}(size(closest_h_unique));
-        hiatus_Duration = Array{Float64}(size(closest_h_unique));
-        hiatus_Duration_Sigma = Array{Float64}(size(closest_h_unique));
+        hiatus_Height = Array{Float64}(undef,size(closest_h_unique));
+        hiatus_Duration = Array{Float64}(undef,size(closest_h_unique));
+        hiatus_Duration_Sigma = Array{Float64}(undef,size(closest_h_unique));
         for i=1:length(closest_h_unique)
             hiatus_Height[i] = mean(hiatus.Height[closest_h.==closest_h_unique[i]]);
             hiatus_Duration[i] = sum(hiatus.Duration[closest_h.==closest_h_unique[i]]);
@@ -824,10 +824,10 @@
 
         # Run Markov Chain Monte Carlo
         print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n");
-        agedist = Array{Float64}(npoints,nsteps);
-        hiatusdist = Array{Float64}(length(duration),nsteps);
-        lldist = Array{Float64}(nsteps);
-        # acceptancedist = Array{Bool}(nsteps);
+        agedist = Array{Float64}(undef,npoints,nsteps);
+        hiatusdist = Array{Float64}(undef,length(duration),nsteps);
+        lldist = Array{Float64}(undef,nsteps);
+        # acceptancedist = Array{Bool}(undef,nsteps);
 
 
         # Run the model

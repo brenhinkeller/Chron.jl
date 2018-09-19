@@ -130,7 +130,7 @@
     #     smpl.Age_Sigma[i] = sigma;
     # end
     # (mdl, agedist, lldist) = StratMetropolis(smpl, config);
-    
+
 
 ## --- Plot strat model
 
@@ -159,7 +159,7 @@
     spacing = binoverlap;
 
     # Calculate rates for the stratigraphy of each markov chain step
-    dhdt_dist = Array{Float64}(length(ages)-binoverlap,nsteps);
+    dhdt_dist = Array{Float64}(undef,length(ages)-binoverlap,nsteps);
     @time for i=1:nsteps
         heights = linterp1(reverse(agedist[:,i]),reverse(mdl.Height),ages);
         dhdt_dist[:,i] = abs.(heights[1:end-spacing] - heights[spacing+1:end]) ./ binwidth;
@@ -222,7 +222,7 @@
     rateplotmax = 3*maximum(dhdt); # May want to adjust this -- this is just a guess
     using StatsBase: fit, Histogram
     edges = linspace(0, rateplotmax, length(ages)-spacing+1)
-    dhdt_im = Array{Float64}(length(ages)-spacing,length(ages)-spacing);
+    dhdt_im = Array{Float64}(undef,length(ages)-spacing,length(ages)-spacing);
     for i=1:length(ages)-spacing
         dhdt_im[:,i] = fit(Histogram, dhdt_dist[i, .~ isnan.(dhdt_dist[i,:])], edges, closed=:left).weights
     end
@@ -258,7 +258,7 @@
 
     # Cycle through each possible age within testAge +/- 5 sigma, with resolution of 1/50 sigma
     test_ages = (testAge-5*testAge_sigma):testAge_sigma/50:(testAge+5*testAge_sigma)
-    test_prob_older = Array{Float64}(size(test_ages))
+    test_prob_older = Array{Float64}(undef,size(test_ages))
     # Evaluate the probability that model age is older than each test_age at the given strat level
     for i=1:length(test_ages)
         test_prob_older[i] = sum(agedist[nearest,:] .> test_ages[i]) ./ size(agedist,2);
@@ -301,7 +301,7 @@
     # unc_lambda238 = 0.107/2/100; # converted from per cent to relative
     #
     # # Consider only the distribution of ages at model nodes where we have an ash bed
-    # age_dist_X = Array{Float64}(length(smpl.Height),size(agedist,2));
+    # age_dist_X = Array{Float64}(undef,length(smpl.Height),size(agedist,2));
     # for i = 1:length(smpl.Height)
     #    closest_model_node = indmin(abs.(mdl.Height-smpl.Height[i]))
     #    age_dist_X[i,:] = agedist[closest_model_node,:];
@@ -311,7 +311,7 @@
     # ratio_dist = exp.(age_dist_X.*lambda238)-1;
     #
     # # Add tracer uncertainty
-    # ratio_dist_tracerunc = Array{Float64}(size(ratio_dist));
+    # ratio_dist_tracerunc = Array{Float64}(undef,size(ratio_dist));
     # for i=1:size(ratio_dist,2)
     #     ratio_dist_tracerunc[:,i] = ratio_dist[:,i].*(1 + unc_tracer*randn());
     # end
@@ -320,7 +320,7 @@
     # age_dist_XY = log.(ratio_dist_tracerunc+1)./lambda238;
     #
     # # Add decay constant uncertainty
-    # age_dist_XYZ = Array{Float64}(size(ratio_dist));
+    # age_dist_XYZ = Array{Float64}(undef,size(ratio_dist));
     # for i=1:size(ratio_dist,2)
     #     age_dist_XYZ[:,i] = log.(ratio_dist_tracerunc[:,i]+1)./(lambda238.*(1 + unc_lambda238.*randn()));
     # end

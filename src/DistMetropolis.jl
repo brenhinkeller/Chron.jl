@@ -114,9 +114,9 @@
         ll =  check_cryst_LL(dist, data, uncert, tmin, tmax);
         ll_proposed = ll;
         # Allocate ouput arrays
-        tminDist = Array{Float64}(nsteps);
-        tmaxDist = Array{Float64}(nsteps);
-        llDist = Array{Float64}(nsteps);
+        tminDist = Array{Float64}(undef,nsteps);
+        tmaxDist = Array{Float64}(undef,nsteps);
+        llDist = Array{Float64}(undef,nsteps);
         acceptanceDist = falses(nsteps);
         # Step through each of the N steps in the Markov chain
         for i=1:nsteps
@@ -182,9 +182,9 @@
         ll =  check_dist_LL(dist, data, uncert, tmin, tmax);
         ll_proposed = ll;
         # Allocate ouput arrays
-        tminDist = Array{Float64}(nsteps);
-        tmaxDist = Array{Float64}(nsteps);
-        llDist = Array{Float64}(nsteps);
+        tminDist = Array{Float64}(undef,nsteps);
+        tmaxDist = Array{Float64}(undef,nsteps);
+        llDist = Array{Float64}(undef,nsteps);
         acceptanceDist = falses(nsteps);
         # Step through each of the N steps in the Markov chain
         for i=1:nsteps
