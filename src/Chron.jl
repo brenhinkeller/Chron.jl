@@ -22,6 +22,15 @@ __precompile__()
 
 module Chron
 
+    # Forwards compatibility
+    if VERSION>=v"0.7"
+        using Statistics
+    end
+    if VERSION>=v"1.0"
+        linspace(a,b,c) = range(a,stop=b,length=c)
+        export linspace
+    end
+
     # Basic statistics and UI resources
     using StatsBase: fit, Histogram, percentile
     using ProgressMeter: @showprogress
