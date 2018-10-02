@@ -28,6 +28,7 @@ module Chron
     if VERSION>=v"0.7"
         using Statistics
         using DelimitedFiles
+        using SpecialFunctions
     end
 
     # Basic statistics and UI resources
