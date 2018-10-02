@@ -1,4 +1,4 @@
-linsp(## --- Utility functions for plotting
+## --- Utility functions for plotting
 
     function plot_rankorder_errorbar(data,uncert; seriestype=:scatter,ylabel="",label="",xticks=[],xlabel="")
         sI = sortperm(data);
