@@ -11,7 +11,7 @@ linsp(## --- Utility functions for plotting
 
     # Bootstrap a KDE of the pre-eruptive (or pre-deposition) mineral crystallization
     # distribution shape from a 2-d array of sample ages using a KDE of stacked sample data
-    function BootstrapCrystDistributionKDEfromStrat(smpl::StratAgeData);
+    function BootstrapCrystDistributionKDEfromStrat(smpl::StratAgeData)
         # Load all data points and scale from 0 to 1
         allscaled = Array{Float64}([])
         for i=1:length(smpl.Name)
