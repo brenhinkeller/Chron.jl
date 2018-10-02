@@ -1,5 +1,5 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#                                 examples.jl                                   #
+#                                   demo.jl                                     #
 #                                                                               #
 #     Illustrates the use of the Chron.jl package for eruption/deposition       #
 #  age estimation and production of a stratigraphic age model.                  #
@@ -17,14 +17,14 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 ## --- Load the Chron package
 
-    using Plots; gr();
     using Chron
+    using Plots; gr(); default(fmt = :svg);
 
     if VERSION>=v"0.7"
         using Statistics
         using DelimitedFiles
+        using SpecialFunctions
     end
-
 
 ## --- Define sample properties
 
@@ -118,7 +118,7 @@
 
     # # Youngest Zircon
     # for i=1:length(smpl.Name)
-    #     data = readcsv(string(smpl.Path, smpl.Name[i], ".csv"),',')
+    #     data = readdlm(string(smpl.Path, smpl.Name[i], ".csv"),',')
     #     Iyz = indmin(data[:,1]);
     #     smpl.Age[i] = minimum(data[Iyz,1]);
     #     smpl.Age_Sigma[i] = minimum(data[Iyz,2]/smpl.inputSigmaLevel);
