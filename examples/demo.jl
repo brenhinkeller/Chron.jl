@@ -20,6 +20,12 @@
     using Plots; gr();
     using Chron
 
+    if VERSION>=v"0.7"
+        using Statistics
+        using DelimitedFiles
+    end
+
+
 ## --- Define sample properties
 
 # # # # # # # # # # # # Enter sample information here! # # # # # # # # # # # # #
@@ -112,7 +118,7 @@
 
     # # Youngest Zircon
     # for i=1:length(smpl.Name)
-    #     data = readcsv(string(smpl.Path, smpl.Name[i], ".csv"))
+    #     data = readcsv(string(smpl.Path, smpl.Name[i], ".csv"),',')
     #     Iyz = indmin(data[:,1]);
     #     smpl.Age[i] = minimum(data[Iyz,1]);
     #     smpl.Age_Sigma[i] = minimum(data[Iyz,2]/smpl.inputSigmaLevel);
@@ -121,7 +127,7 @@
 
     # #LNWM
     # for i=1:length(smpl.Name)
-    #     data = readcsv(string(smpl.Path, smpl.Name[i], ".csv"))
+    #     data = readdlm(string(smpl.Path, smpl.Name[i], ".csv"),',')
     #     sI = sortperm(data[:,1])
     #     # Weighted mean of youngst 3 zircons per sample (assuming there are at least 3 zircons in sample)
     #     Ns = min(size(data,1),3)

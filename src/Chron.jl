@@ -27,6 +27,7 @@ module Chron
     # Forwards compatibility
     if VERSION>=v"0.7"
         using Statistics
+        using DelimitedFiles
     end
 
     # Basic statistics and UI resources
