@@ -10,7 +10,7 @@ The second (stratigraphic) MCMC  model uses the estimated (posterior) eruption/d
 
 ## Installation
 
-In the Julia package manager (type `]` in the REPL)
+In the [Julia](https://julialang.org/) package manager (type `]` in the REPL)
 ```Julia
 (v1.0) pkg> add "https://github.com/brenhinkeller/Chron.jl"
 ```
@@ -21,6 +21,16 @@ julia> Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
 
 ## Usage
 
-Run [examples.jl](examples/examples.jl) to see how the code works.
+Run [examples/examples.jl](examples/examples.jl) to see how the code works.
 
-Or for a quick test, try the [interactive online Jupyter notebook](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2Fdemo.ipynb) (note: it'll take a few minutes for the notebook to launch)
+
+## Online usage
+
+For a quick test (without having to install anything), try the [interactive online Jupyter notebook](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2Fdemo.ipynb) (note: it'll take a few minutes for the notebook to launch).
+
+This runs [examples/demo.ipynb](examples/demo.ipynb) on a [JupyterHub](https://github.com/jupyterhub/jupyterhub) server hosted by the [Binder](https://mybinder.org) project. If you make changes to the interactive online notebook, you can save them with `File` > `Download as` > `Notebook (.ipynb)` To run a downloaded notebook locally, use [IJulia](https://github.com/JuliaLang/IJulia.jl)
+
+```Julia
+julia> using IJulia
+julia> notebook()
+```
