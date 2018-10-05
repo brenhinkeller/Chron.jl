@@ -20,6 +20,7 @@ julia> Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
 ```
 
 ## Usage
+### Standard usage
 
 After installing [Julia](https://julialang.org/) and Chron.jl (above), run [examples/examples.jl](examples/examples.jl) to see how the code works.
 
