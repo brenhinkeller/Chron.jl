@@ -23,7 +23,7 @@ julia> Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
 
 After installing [Julia](https://julialang.org/) and Chron.jl (above), run [examples/examples.jl](examples/examples.jl) to see how the code works.
 
-## Online usage
+### Online / notebook usage
 
 For a quick test (without having to install anything), try the [interactive online Jupyter notebook](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2Fdemo.ipynb) (note: it'll take a few minutes for the notebook to launch).
 
