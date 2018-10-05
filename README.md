@@ -10,7 +10,7 @@ The second (stratigraphic) MCMC  model uses the estimated (posterior) eruption/d
 
 ## Installation
 
-In the [Julia](https://julialang.org/) package manager (type `]` in the REPL)
+In the Julia package manager (type `]` in the REPL)
 ```Julia
 (v1.0) pkg> add "https://github.com/brenhinkeller/Chron.jl"
 ```
@@ -21,8 +21,7 @@ julia> Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
 
 ## Usage
 
-Run [examples/examples.jl](examples/examples.jl) to see how the code works.
-
+After installing [Julia](https://julialang.org/) and Chron.jl (above), run [examples/examples.jl](examples/examples.jl) to see how the code works.
 
 ## Online usage
 
