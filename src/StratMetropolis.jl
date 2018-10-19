@@ -33,6 +33,8 @@
         )
         return smpl
     end
+    export NewStratAgeData
+
     # A type of object to hold data about hiatuses
     struct HiatusData
         Height::Array{Float64}
