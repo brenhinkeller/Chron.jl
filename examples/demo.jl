@@ -27,7 +27,6 @@
     end
 
 ## --- Define sample properties
-
 # # # # # # # # # # # # Enter sample information here! # # # # # # # # # # # # #
     # This example data is from Clyde et al. (2016) "Direct high-precision
     # U–Pb geochronology of the end-Cretaceous extinction and calibration of
@@ -36,29 +35,19 @@
     Name   =        ("KJ08-157", "KJ04-75", "KJ09-66", "KJ04-72", "KJ04-70",);
     Height =        [     -52.0,      44.0,      54.0,      82.0,      93.0,];
     Height_Sigma =  [       3.0,       1.0,       3.0,       3.0,       3.0,];
-    inputSigmaLevel = 2; # i.e., are the data files 1-sigma or 2-sigma. Integer.
     Path = "examples/DenverUPbExampleData/" # Where are the data files?
+    inputSigmaLevel = 2; # i.e., are the data files 1-sigma or 2-sigma. Integer.
+
     AgeUnit = "Ma" # Unit of measurement for ages and errors in the data files
     HeightUnit = "cm" # Unit of measurement for Height and Height_Sigma
+
+    # Make an instance of a Chron StratAgeData object with the data we've just enterd
+    smpl = NewStratAgeData(Name,Path,inputSigmaLevel)
+    smpl.Height[:] = Height
+    smpl.Height_Sigma[:] = Height_Sigma
+    smpl.Age_Sidedness[:] = zeros(length(Name)) # Sidedness (zeros by default, geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-    # Count the names to see how many samples we have
-    nSamples = length(Name);
-    # Make an instance of a ChronSection object with
-    smpl = StratAgeData(
-        Name,  # Sample names
-        Height,  # Sample heights
-        Height_Sigma,  # Height_sigma
-        fill(NaN,nSamples),  # Sample ages
-        fill(NaN,nSamples),  # Sample age uncertainty
-        fill(NaN,nSamples),  # Sample age 2.5% CI
-        fill(NaN,nSamples),  # Sample age 97.5% CI
-        zeros(nSamples), # Sidedness (zeros by default, geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
-        fill(NaN,5,nSamples), # Sample age distribution parameters
-        Path, # Relative path where we can find .csv data files
-        inputSigmaLevel,# i.e., are the data files 1-sigma or 2-sigma
-    );
-
 ## --- (Optional) Calculate bootstrapped distribution
 
     # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution

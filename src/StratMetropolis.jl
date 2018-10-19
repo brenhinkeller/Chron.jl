@@ -16,6 +16,23 @@
         inputSigmaLevel::Int
     end
 
+    function NewStratAgeData(Name,Path,inputSigmaLevel)
+        nSamples = length(Name)
+        smpl = StratAgeData(
+            Name,  # Sample names
+            fill(NaN,nSamples),  # Sample heights
+            fill(NaN,nSamples),  # Height_sigma
+            fill(NaN,nSamples),  # Sample ages
+            fill(NaN,nSamples),  # Sample age uncertainty
+            fill(NaN,nSamples),  # Sample age 2.5% CI
+            fill(NaN,nSamples),  # Sample age 97.5% CI
+            zeros(nSamples), # Sidedness (zeros by default, geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+            fill(NaN,5,nSamples), # Sample age distribution parameters
+            Path, # Relative path where we can find .csv data files
+            inputSigmaLevel, # i.e., are the data files 1-sigma or 2-sigma
+        )
+        return smpl
+    end
     # A type of object to hold data about hiatuses
     struct HiatusData
         Height::Array{Float64}
