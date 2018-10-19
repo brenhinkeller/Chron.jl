@@ -158,9 +158,9 @@
         # p[3] = standard deviation
         # p[4] = sharpness
         # p[5] = skew
-        xs = (x-p[2])./p[3]; # X scaled by mean and variance
-        v = 1/2-atan.(xs)/pi; # Sigmoid (positive on LHS)
-        f = p[1] .* exp.((p[4].^2).*(p[5].^2).*xs.*v - (p[4].^2)./(p[5].^2).*xs.*(1-v));
+        xs = (x .- p[2])./p[3]; # X scaled by mean and variance
+        v = 1/2 .- atan.(xs)./pi; # Sigmoid (positive on LHS)
+        f = p[1] .* exp.((p[4].^2).*(p[5].^2).*xs.*v .- (p[4].^2)./(p[5].^2).*xs.*(1 .- v));
         return f
     end
 
@@ -173,8 +173,8 @@
         # p[4] = sharpness
         # p[5] = skew
         xs = (x-p[2,:])./p[3,:]; # X scaled by mean and variance
-        v = 1/2-atan.(xs)/pi; # Sigmoid (positive on LHS)
-        f = log.(p[1,:]) + (p[4,:].^2).*(p[5,:].^2).*xs.*v - (p[4,:].^2)./(p[5,:].^2).*xs.*(1-v);
+        v = 1/2 .- atan.(xs)./pi; # Sigmoid (positive on LHS)
+        f = log.(p[1,:]) + (p[4,:].^2).*(p[5,:].^2).*xs.*v .- (p[4,:].^2)./(p[5,:].^2).*xs.*(1 .- v);
         return f
     end
 

@@ -40,7 +40,7 @@
         loglikelihood = 0.0;
         datarows = length(data);
         distrows = length(dist);
-        dist_xscale = distrows-1.00000000001;
+        dist_xscale = distrows - 1.00000000001;
         dist_yave = mean(dist);
         dt = abs(tmax-tmin);
         # Cycle through each datum in data array
