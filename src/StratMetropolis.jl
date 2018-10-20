@@ -103,7 +103,7 @@
         npoints = length(model_heights);
 
         # Start with a linear fit as an initial proposal
-        (a,b) = linreg(Height,Age)
+        (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         mages = a + b .* model_heights;
 
 
@@ -280,7 +280,7 @@
         npoints = length(model_heights);
 
         # Start with a linear fit as an initial proposal
-        (a,b) = linreg(Height,Age)
+        (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         mages = a + b .* model_heights;
 
 
@@ -532,7 +532,7 @@
         npoints = length(model_heights);
 
         # Start with a linear fit as an initial proposal
-        (a,b) = linreg(Height,Age)
+        (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         mages = a + b .* model_heights;
 
 
@@ -733,7 +733,7 @@
         npoints = length(model_heights);
 
         # Start with a linear fit as an initial proposal
-        (a,b) = linreg(Height,Age)
+        (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         mages = a + b .* model_heights;
 
 
