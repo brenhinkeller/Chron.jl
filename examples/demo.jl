@@ -186,7 +186,7 @@
     plot!(hdl, xlabel="Age ($AgeUnit)", ylabel="Depositional Rate ($HeightUnit / $AgeUnit over $binwidth $AgeUnit)", fg_color_legend=:white)
     ylims!(hdl, 0, 2500)
     savefig(hdl,"DepositionRateModel.pdf");
-    display(hdl)
+    display(hdl);
 
 ## --- Multiple confidence intervals (every 10)
 
@@ -215,7 +215,7 @@
     plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
     plot!(hdl, xlabel="Age ($AgeUnit)", ylabel="Depositional Rate ($HeightUnit / $AgeUnit over $binwidth $AgeUnit)", fg_color_legend=:white)
     savefig(hdl,"DepositionRateModelCI.pdf");
-    display(hdl)
+    display(hdl);
 
 ## --- Make heatmap
 
@@ -239,7 +239,7 @@
     img = plot(bincenters,cntr(edges),A,yflip=false,xflip=false, colorbar=:right);
     plot!(img, xlabel="Age ($AgeUnit)", ylabel="Rate ($HeightUnit / $AgeUnit, $binwidth $AgeUnit Bin)")
     savefig(img,"DepositionRateModelHeatmap.pdf");
-    display(img)
+    display(img);
 
     # dhdt_im_log = copy(dhdt_im);
     # dhdt_im_log[dhdt_im .>0] = log10.(dhdt_im[dhdt_im .>0])
