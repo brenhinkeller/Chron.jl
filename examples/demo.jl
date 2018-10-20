@@ -161,7 +161,7 @@
     # Calculate rates for the stratigraphy of each markov chain step
     dhdt_dist = Array{Float64}(undef,length(ages)-binoverlap,nsteps);
     @time for i=1:nsteps
-        heights = linterp1n(reverse(agedist[:,i]),reverse(mdl.Height),ages);
+        heights = linterp1(reverse(agedist[:,i]),reverse(mdl.Height),ages);
         dhdt_dist[:,i] = abs.(heights[1:end-spacing] - heights[spacing+1:end]) ./ binwidth;
     end
 
