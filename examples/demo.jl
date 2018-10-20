@@ -78,6 +78,10 @@
     # using JLD: @save, @load
     # @save "smpl.jld" smpl
 
+    # Print results to file
+    results = vcat(["Age", "2.5% CI", "97.5% CI", "sigma"], hcat(smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_Sigma))
+    writedlm(joinpath(Path,"results.csv"), results, ',')
+
 ## --- Run stratigraphic model
 
     # # (Optional) Load the saved sample struct
