@@ -37,7 +37,7 @@ module Chron
     using ProgressMeter: @showprogress
     using LsqFit: curve_fit
     using KernelDensity: kde
-    using Interpolations: interpolate, Gridded, Linear
+    using Interpolations: LinearInterpolation, Line
 
     # Weighted mean, etc
     include("Utilities.jl");

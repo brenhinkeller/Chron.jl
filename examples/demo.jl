@@ -147,8 +147,7 @@
     KTB = linterp1s(mdl.Height,mdl.Age,0)
     KTB_min = linterp1s(mdl.Height,mdl.Age_025CI,0)
     KTB_max = linterp1s(mdl.Height,mdl.Age_975CI,0)
-    @printf("Interpolated age: %0.3f +%0.3f/-%0.3f Ma", KTB, KTB_max-KTB, KTB-KTB_min)
-
+    print("Interpolated age: $KTB +$(KTB_max-KTB)/-$(KTB-KTB_min) Ma")
 
 ## --- Calculate deposition rate binned by age
 
@@ -162,7 +161,7 @@
     # Calculate rates for the stratigraphy of each markov chain step
     dhdt_dist = Array{Float64}(undef,length(ages)-binoverlap,nsteps);
     @time for i=1:nsteps
-        heights = linterp1(reverse(agedist[:,i]),reverse(mdl.Height),ages);
+        heights = linterp1n(reverse(agedist[:,i]),reverse(mdl.Height),ages);
         dhdt_dist[:,i] = abs.(heights[1:end-spacing] - heights[spacing+1:end]) ./ binwidth;
     end
 
@@ -231,10 +230,10 @@
     # Rescale image to fit in UInt8 (0-255)
     using IndirectArrays: IndirectArray
     imSc = dhdt_im./pctile(dhdt_im[:],97.5)*256; # Rescale to include 97.5 CI (may need ot adjust)
-    imSc[imSc.>255] = 255; # Cut off to fit in Uint8
+    imSc[imSc.>255] .= 255; # Cut off to fit in Uint8
 
     # Apply colormap. Available colormaps include viridis, inferno, plasma, fire
-    A = IndirectArray(floor.(UInt8,imSc)+1, inferno);
+    A = IndirectArray(floor.(UInt8,imSc) .+ 1, inferno);
 
     # Plot image
     img = plot(bincenters,cntr(edges),A,yflip=false,xflip=false, colorbar=:right);
@@ -255,7 +254,7 @@
     testAge_sigma = 0.05
 
     # Find index of nearest model height node
-    nearest = argmin((testHeight-mdl.Height).^2);
+    nearest = argmin((testHeight .- mdl.Height).^2);
 
     # Cycle through each possible age within testAge +/- 5 sigma, with resolution of 1/50 sigma
     test_ages = (testAge-5*testAge_sigma):testAge_sigma/50:(testAge+5*testAge_sigma)
@@ -266,7 +265,7 @@
     end
 
     # Normalized probability for each distance away from testAge between +5sigma and -5sigma
-    prob_norm = normpdf(testAge, testAge_sigma, test_ages) ./ sum(normpdf(testAge, testAge_sigma, test_ages));  # SUM = 1
+    prob_norm = normpdf.(testAge, testAge_sigma, test_ages) ./ sum(normpdf.(testAge, testAge_sigma, test_ages));  # SUM = 1
 
     # Integrate the product
     prob_older = sum(test_prob_older .* prob_norm)

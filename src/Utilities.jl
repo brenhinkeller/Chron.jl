@@ -63,35 +63,35 @@
 
     # Linear interpolation, sorting inputs
     function linterp1s(x,y,xq)
-        sI = sortperm(x); # indices to construct sorted array
-        itp = interpolate((x[sI],),y[sI],Gridded(Linear()));
-        yq = itp[xq]; # Interpolate value of y at queried x values
+        sI = sortperm(x) # indices to construct sorted array
+        itp = LinearInterpolation(x[sI], y[sI], extrapolation_bc = Line())
+        yq = itp(xq) # Interpolate value of y at queried x values
         return yq
     end
 
     # linear interpolation
     function linterp1(x,y,xq)
-        itp = interpolate((x,),y,Gridded(Linear()));
-        yq = itp[xq]; # Interpolate value of y at queried x values
+        itp = LinearInterpolation(x,y, extrapolation_bc = Line())
+        yq = itp(collect(xq)) # Interpolate value of y at queried x values
         return yq
     end
 
 ## --- Working with Gaussian distributions
 
     # Probability density function of the Normal (Gaussian) distribution
-    function normpdf(mu,sigma,x)
-        return exp.(-(x-mu).*(x-mu) ./ (2*sigma.*sigma)) ./ (sqrt(2*pi)*sigma)
+    function normpdf(mu::Number,sigma::Number,x::Number)
+        return exp(-(x-mu)*(x-mu) / (2*sigma*sigma)) / (sqrt(2*pi)*sigma)
     end
 
     # Cumulative density function of the Normal (Gaussian) distribution
     # Not precise enough for many uses, unfortunately
-    function normcdf(mu,sigma,x)
-        return 0.5 + erf.((x-mu) / (sigma*sqrt(2))) / 2
+    function normcdf(mu::Number,sigma::Number,x::Number)
+        return 0.5 + erf((x-mu) / (sigma*sqrt(2))) / 2
     end
 
     # How far away from the mean (in units of sigma) should we expect proportion
     # F of the samples to fall in a Normal (Gaussian) distribution
-    function norm_quantile(F)
+    function norm_quantile(F::Number)
         return sqrt(2)*erfinv(2*F-1)
     end
 
