@@ -154,14 +154,14 @@
     # Set bin width and spacing
     binwidth = 0.01; # Myr
     binoverlap = 10;
-    ages = minimum(mdl.Age):binwidth/binoverlap:maximum(mdl.Age);
+    ages = collect(minimum(mdl.Age):binwidth/binoverlap:maximum(mdl.Age))
     bincenters = ages[1+Int(binoverlap/2):end-Int(binoverlap/2)]
     spacing = binoverlap;
 
     # Calculate rates for the stratigraphy of each markov chain step
     dhdt_dist = Array{Float64}(undef,length(ages)-binoverlap,nsteps);
     @time for i=1:nsteps
-        heights = linterp1(reverse(agedist[:,i]),reverse(mdl.Height),ages);
+        heights = linterp1(reverse(agedist[:,i]), reverse(mdl.Height), ages)
         dhdt_dist[:,i] = abs.(heights[1:end-spacing] - heights[spacing+1:end]) ./ binwidth;
     end
 
