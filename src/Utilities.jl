@@ -368,7 +368,7 @@
     function findclosest(source, target)
         index=Array{Int64}(undef,size(source));
         for i=1:length(source)
-            index[i]=indmin((target-source[i]).^2);
+            index[i]=indmin((target .- source[i]).^2);
         end
         return index
     end
@@ -378,8 +378,8 @@
     function findclosestbelow(source, target)
         index=Array{Int64}(undef,size(source));
         for i=1:length(source)
-            t = find(target.<source[i]);
-            ti = indmin((target[t]-source[i]).^2);
+            t = find(target .< source[i]);
+            ti = indmin((target[t] .- source[i]).^2);
             index[i] = t[ti];
         end
         return index;
@@ -390,8 +390,8 @@
     function findclosestabove(source, target)
         index=Array{Int64}(undef,size(source));
         for i=1:length(source)
-            t = find(target.>source[i]);
-            ti = indmin((target[t]-source[i]).^2);
+            t = find(target .> source[i]);
+            ti = indmin((target[t] .- source[i]).^2);
             index[i] = t[ti];
         end
         return index;
