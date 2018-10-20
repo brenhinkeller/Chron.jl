@@ -155,8 +155,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age);
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = -(mages_prop[closest_prop] - Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
-            heightll_prop = -(sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
+            agell_prop = .- (mages_prop[closest_prop] - Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
+            heightll_prop = .- (sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age);
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop);
 
@@ -205,8 +205,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age);
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = -(mages_prop[closest_prop] - Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
-            heightll_prop = -(sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
+            agell_prop = .- (mages_prop[closest_prop] - Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
+            heightll_prop = .- (sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age);
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop);
 
@@ -367,8 +367,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age);
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = -(mages_prop[closest_prop] - Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
-            heightll_prop = -(sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
+            agell_prop = .- (mages_prop[closest_prop] - Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
+            heightll_prop = .- (sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age);
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop);
 
@@ -443,8 +443,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age);
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = -(mages_prop[closest_prop] - Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
-            heightll_prop = -(sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
+            agell_prop = .- (mages_prop[closest_prop] - Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
+            heightll_prop = .- (sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age);
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop);
 
@@ -595,7 +595,7 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age);
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             agell_prop = bilinear_exponential_LL(mages_prop[closest_prop],p)
-            heightll_prop = -(sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) .- log.(sqrt.(2*pi*Height_Sigma));
+            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) .- log.(sqrt.(2*pi*Height_Sigma));
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop] .- Age);
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop);
 
@@ -821,7 +821,7 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age);
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             agell_prop = bilinear_exponential_LL(mages_prop[closest_prop],p)
-            heightll_prop = -(sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
+            heightll_prop = .- (sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age);
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop);
 
@@ -897,7 +897,7 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age);
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             agell_prop = bilinear_exponential_LL(mages_prop[closest_prop],p)
-            heightll_prop = -(sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
+            heightll_prop = .- (sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age);
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop);
 
