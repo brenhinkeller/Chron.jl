@@ -104,7 +104,7 @@
 
         # Start with a linear fit as an initial proposal
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
-        mages = a + b .* model_heights;
+        mages = a .+ b .* model_heights;
 
 
         # Calculate log likelihood of initial proposal
@@ -281,7 +281,7 @@
 
         # Start with a linear fit as an initial proposal
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
-        mages = a + b .* model_heights;
+        mages = a .+ b .* model_heights;
 
 
         # Calculate log likelihood of initial proposal
@@ -533,7 +533,7 @@
 
         # Start with a linear fit as an initial proposal
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
-        mages = a + b .* model_heights;
+        mages = a .+ b .* model_heights;
 
 
         # Calculate log likelihood of initial proposal
@@ -734,7 +734,7 @@
 
         # Start with a linear fit as an initial proposal
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
-        mages = a + b .* model_heights;
+        mages = a .+ b .* model_heights;
 
 
         # Calculate log likelihood of initial proposal

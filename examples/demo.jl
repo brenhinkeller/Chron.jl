@@ -78,7 +78,7 @@
     # @save "smpl.jld" smpl
 
     # Print results to file
-    results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(smpl.Name,smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_Sigma))
+    results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(collect(smpl.Name),smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_Sigma))
     writedlm(joinpath(Path,"results.csv"), results, ',')
 
 ## --- Run stratigraphic model
