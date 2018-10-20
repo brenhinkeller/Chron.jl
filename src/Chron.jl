@@ -27,6 +27,7 @@ module Chron
     # Forwards compatibility
     if VERSION>=v"0.7"
         using Statistics
+        using StatsBase
         using DelimitedFiles
         using SpecialFunctions
     end

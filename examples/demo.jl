@@ -22,6 +22,7 @@
 
     if VERSION>=v"0.7"
         using Statistics
+        using StatsBase
         using DelimitedFiles
         using SpecialFunctions
     end
@@ -53,8 +54,8 @@
     # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution
     # shape from individual sample datafiles using a KDE of stacked sample data
     BootstrappedDistribution = BootstrapCrystDistributionKDEfromStrat(smpl)
-    plot(BootstrappedDistribution,xlabel="Time (arbitrary units)",ylabel="Probability Density",label="Bootstrapped distribution",fg_color_legend=:white)
-
+    h = plot(BootstrappedDistribution, xlabel="Time (arbitrary units)", ylabel="Probability Density", label="Bootstrapped distribution", fg_color_legend=:white)
+    savefig(h, joinpath(Path,"BootstrappedDistribution.pdf"))
 ## --- Estimate the eruption age distributions for each sample
 
 # # # # # # # # # # # # Configure distribution model here! # # # # # # # # # # #
@@ -176,7 +177,7 @@
 
     # Plot results
     hdl = plot(bincenters,dhdt, label="Mean", color=:black, linewidth=2)
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(minimum(mdl.Height),0.4,:darkred), linealpha=0, label="68% CI")
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(minimum(mdl.Height),0.4,:darkblue), linealpha=0, label="68% CI")
     plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
     plot!(hdl, xlabel="Age ($AgeUnit)", ylabel="Depositional Rate ($HeightUnit / $AgeUnit over $binwidth $AgeUnit)", fg_color_legend=:white)
     ylims!(hdl, 0, 2500)
