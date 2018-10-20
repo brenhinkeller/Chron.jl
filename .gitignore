@@ -5,7 +5,7 @@
 *.jl.*.cov
 *.jl.mem
 deps/deps.jl
-
+examples/DenverUPbExampleData/results.csv
 
 .ipynb_check*
 

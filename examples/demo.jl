@@ -57,7 +57,6 @@
     h = plot(BootstrappedDistribution, xlabel="Time (arbitrary units)", ylabel="Probability Density", label="Bootstrapped distribution", fg_color_legend=:white)
     savefig(h, joinpath(Path,"BootstrappedDistribution.pdf"))
 ## --- Estimate the eruption age distributions for each sample
-
 # # # # # # # # # # # # Configure distribution model here! # # # # # # # # # # #
   # Number of steps to run in distribution MCMC
   distSteps = 10^6;
@@ -79,7 +78,7 @@
     # @save "smpl.jld" smpl
 
     # Print results to file
-    results = vcat(["Age", "2.5% CI", "97.5% CI", "sigma"], hcat(smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_Sigma))
+    results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(smpl.Name,smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_Sigma))
     writedlm(joinpath(Path,"results.csv"), results, ',')
 
 ## --- Run stratigraphic model
@@ -205,13 +204,13 @@
 
     # Plot results
     hdl = plot(bincenters,dhdt, label="Mean", color=:black, linewidth=2)
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(minimum(mdl.Height),0.2,:darkred), linealpha=0, label="68% CI")
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_20p; reverse(dhdt_80p)], fill=(minimum(mdl.Height),0.2,:darkred), linealpha=0, label="")
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_25p; reverse(dhdt_75p)], fill=(minimum(mdl.Height),0.2,:darkred), linealpha=0, label="")
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_30p; reverse(dhdt_70p)], fill=(minimum(mdl.Height),0.2,:darkred), linealpha=0, label="")
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_35p; reverse(dhdt_65p)], fill=(minimum(mdl.Height),0.2,:darkred), linealpha=0, label="")
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_40p; reverse(dhdt_60p)], fill=(minimum(mdl.Height),0.2,:darkred), linealpha=0, label="")
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_45p; reverse(dhdt_55p)], fill=(minimum(mdl.Height),0.2,:darkred), linealpha=0, label="")
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(minimum(mdl.Height),0.2,:darkblue), linealpha=0, label="68% CI")
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_20p; reverse(dhdt_80p)], fill=(minimum(mdl.Height),0.2,:darkblue), linealpha=0, label="")
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_25p; reverse(dhdt_75p)], fill=(minimum(mdl.Height),0.2,:darkblue), linealpha=0, label="")
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_30p; reverse(dhdt_70p)], fill=(minimum(mdl.Height),0.2,:darkblue), linealpha=0, label="")
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_35p; reverse(dhdt_65p)], fill=(minimum(mdl.Height),0.2,:darkblue), linealpha=0, label="")
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_40p; reverse(dhdt_60p)], fill=(minimum(mdl.Height),0.2,:darkblue), linealpha=0, label="")
+    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_45p; reverse(dhdt_55p)], fill=(minimum(mdl.Height),0.2,:darkblue), linealpha=0, label="")
     plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
     plot!(hdl, xlabel="Age ($AgeUnit)", ylabel="Depositional Rate ($HeightUnit / $AgeUnit over $binwidth $AgeUnit)", fg_color_legend=:white)
     savefig(hdl,"DepositionRateModelCI.pdf");
