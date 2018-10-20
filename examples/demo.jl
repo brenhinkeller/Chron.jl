@@ -25,6 +25,8 @@
         using StatsBase
         using DelimitedFiles
         using SpecialFunctions
+    else
+        using Compat
     end
 
 ## --- Define sample properties
@@ -112,7 +114,7 @@
     # # Youngest Zircon
     # for i=1:length(smpl.Name)
     #     data = readdlm(string(smpl.Path, smpl.Name[i], ".csv"),',')
-    #     Iyz = indmin(data[:,1]);
+    #     Iyz = argmin(data[:,1]);
     #     smpl.Age[i] = minimum(data[Iyz,1]);
     #     smpl.Age_Sigma[i] = minimum(data[Iyz,2]/smpl.inputSigmaLevel);
     # end
@@ -253,7 +255,7 @@
     testAge_sigma = 0.05
 
     # Find index of nearest model height node
-    nearest = indmin((testHeight-mdl.Height).^2);
+    nearest = argmin((testHeight-mdl.Height).^2);
 
     # Cycle through each possible age within testAge +/- 5 sigma, with resolution of 1/50 sigma
     test_ages = (testAge-5*testAge_sigma):testAge_sigma/50:(testAge+5*testAge_sigma)
@@ -302,7 +304,7 @@
     # # Consider only the distribution of ages at model nodes where we have an ash bed
     # age_dist_X = Array{Float64}(undef,length(smpl.Height),size(agedist,2));
     # for i = 1:length(smpl.Height)
-    #    closest_model_node = indmin(abs.(mdl.Height-smpl.Height[i]))
+    #    closest_model_node = argmin(abs.(mdl.Height-smpl.Height[i]))
     #    age_dist_X[i,:] = agedist[closest_model_node,:];
     # end
     #
