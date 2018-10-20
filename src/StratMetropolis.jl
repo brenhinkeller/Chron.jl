@@ -228,9 +228,9 @@
 
         mdl = StratAgeModel(
             model_heights[active_height_t], # Model heights
-            mean(agedist[active_height_t,:],2), # Mean age
-            std(agedist[active_height_t,:],2), # Standard deviation
-            median(agedist[active_height_t,:],2), # Median age
+            nanmean(agedist[active_height_t,:],dim=2), # Mean age
+            nanstd(agedist[active_height_t,:],dim=2), # Standard deviation
+            nanmedian(agedist[active_height_t,:],dim=2), # Median age
             pctile(agedist[active_height_t,:],2.5,dim=2), # 2.5th percentile
             pctile(agedist[active_height_t,:],97.5,dim=2) # 97.5th percentile
         );
@@ -476,9 +476,9 @@
 
         mdl = StratAgeModel(
             model_heights[active_height_t], # Model heights
-            mean(agedist[active_height_t,:],2), # Mean age
-            std(agedist[active_height_t,:],2), # Standard deviation
-            median(agedist[active_height_t,:],2), # Median age
+            nanmean(agedist[active_height_t,:],dim=2), # Mean age
+            nanstd(agedist[active_height_t,:],dim=2), # Standard deviation
+            nanmedian(agedist[active_height_t,:],dim=2), # Median age
             pctile(agedist[active_height_t,:],2.5,dim=2), # 2.5th percentile
             pctile(agedist[active_height_t,:],97.5,dim=2) # 97.5th percentile
         );
@@ -677,9 +677,9 @@
 
         mdl = StratAgeModel(
             model_heights[active_height_t], # Model heights
-            mean(agedist[active_height_t,:],2), # Mean age
-            std(agedist[active_height_t,:],2), # Standard deviation
-            median(agedist[active_height_t,:],2), # Median age
+            nanmean(agedist[active_height_t,:],dim=2), # Mean age
+            nanstd(agedist[active_height_t,:],dim=2), # Standard deviation
+            nanmedian(agedist[active_height_t,:],dim=2), # Median age
             pctile(agedist[active_height_t,:],2.5,dim=2), # 2.5th percentile
             pctile(agedist[active_height_t,:],97.5,dim=2) # 97.5th percentile
         );
@@ -929,9 +929,9 @@
 
         mdl = StratAgeModel(
             model_heights[active_height_t], # Model heights
-            mean(agedist[active_height_t,:],2), # Mean age
-            std(agedist[active_height_t,:],2), # Standard deviation
-            median(agedist[active_height_t,:],2), # Median age
+            nanmean(agedist[active_height_t,:],dim=2), # Mean age
+            nanstd(agedist[active_height_t,:],dim=2), # Standard deviation
+            nanmedian(agedist[active_height_t,:],dim=2), # Median age
             pctile(agedist[active_height_t,:],2.5,dim=2), # 2.5th percentile
             pctile(agedist[active_height_t,:],97.5,dim=2) # 97.5th percentile
         );
