@@ -283,22 +283,22 @@
 
 ## --- (Optional) If your section has hiata / exposure surfaces of known duration, try this:
 
-    # # A type of object to hold data about hiatuses
-    # hiatus = HiatusData(
-    #     [20.0,35.0], # Height
-    #     [0.0,0.0], # Height_Sigma
-    #     [0.2,0.3], # Duration -- this is a minimum duration only
-    #     [0.05,0.05], # Duration_Sigma (one-sided, minimum only)
-    # );
-    #
-    # # Run the model
-    # (mdl, agedist, hiatusdist, lldist) = StratMetropolisDistHiatus(smpl, hiatus, config);
-    #
-    # # Plot results (mean and 95% confidence interval for both model and data)
-    # hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
-    # plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="")
-    # plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
-    # plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)")
+    # A type of object to hold data about hiatuses
+    hiatus = HiatusData(
+        [20.0,35.0], # Height
+        [0.0,0.0], # Height_Sigma
+        [0.2,0.3], # Duration -- this is a minimum duration only
+        [0.05,0.05], # Duration_Sigma (one-sided, minimum only)
+    );
+
+    # Run the model
+    (mdl, agedist, hiatusdist, lldist) = StratMetropolisDistHiatus(smpl, hiatus, config);
+
+    # Plot results (mean and 95% confidence interval for both model and data)
+    hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
+    plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="")
+    plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
+    plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)")
 
 ## --- (Optional) Add systematic uncertainties for U-Pb data
 

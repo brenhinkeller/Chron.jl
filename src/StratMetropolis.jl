@@ -307,7 +307,7 @@
         end
 
         # Add log likelihood for hiatuses
-        duration_prop = abs.(mages[closest_h_unique-1]-mages[closest_h_unique]);
+        duration_prop = abs.(mages[closest_h_unique-1] .- mages[closest_h_unique]);
         ll += sum(-max.(hiatus_Duration-duration_prop,0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
         duration = copy(duration_prop)
 
@@ -375,7 +375,7 @@
             # if hiatus_height_uncert>0
             #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights);
             # end
-            duration_prop = abs.(mages_prop[closest_h_unique-1]-mages_prop[closest_h_unique]);
+            duration_prop = abs.(mages_prop[closest_h_unique-1] .- mages_prop[closest_h_unique]);
             ll_prop += sum(-max.(hiatus_Duration-duration_prop,0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
 
             # Accept or reject proposal based on likelihood
@@ -453,7 +453,7 @@
             # if hiatus_height_uncert>0
             #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights);
             # end
-            duration_prop = abs.(mages_prop[closest_h_unique-1]-mages_prop[closest_h_unique]);
+            duration_prop = abs.(mages_prop[closest_h_unique-1] .- mages_prop[closest_h_unique]);
             ll_prop += sum(-max.(hiatus_Duration-duration_prop,0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
 
 
@@ -760,7 +760,7 @@
         end
 
         # Add log likelihood for hiatuses
-        duration_prop = abs.(mages[closest_h_unique-1]-mages[closest_h_unique]);
+        duration_prop = abs.(mages[closest_h_unique-1] .- mages[closest_h_unique]);
         ll += sum(-max.(hiatus_Duration-duration_prop,0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
         duration = copy(duration_prop)
 
@@ -828,7 +828,7 @@
             # if hiatus_height_uncert>0
             #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights);
             # end
-            duration_prop = abs.(mages_prop[closest_h_unique-1]-mages_prop[closest_h_unique]);
+            duration_prop = abs.(mages_prop[closest_h_unique-1] .- mages_prop[closest_h_unique]);
             ll_prop += sum(-max.(hiatus_Duration-duration_prop,0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
 
             # Accept or reject proposal based on likelihood
@@ -906,7 +906,7 @@
             # if hiatus_height_uncert>0
             #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights);
             # end
-            duration_prop = abs.(mages_prop[closest_h_unique-1]-mages_prop[closest_h_unique]);
+            duration_prop = abs.(mages_prop[closest_h_unique-1] .- mages_prop[closest_h_unique]);
             ll_prop += sum(-max.(hiatus_Duration-duration_prop,0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
 
 

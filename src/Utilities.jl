@@ -415,4 +415,14 @@
     end
 
 
+## --- Other
+
+    # Direct system() access without stripping special characters like Julia's
+    # rather protective "run()".
+    function system(cmdstr)
+        return ccall((:system,), Int, (Cstring,), cmdstr)
+    end
+    export system
+
+
 ## --- End of File
