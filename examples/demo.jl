@@ -149,6 +149,15 @@
     KTB_max = linterp1s(mdl.Height,mdl.Age_975CI,0)
     print("Interpolated age: $KTB +$(KTB_max-KTB)/-$(KTB-KTB_min) Ma")
 
+
+    # # Optional: interpolate full age distribution
+    # height = 0
+    # interpolated_distribution = Array{Float64}(undef,size(agedist,2))
+    # for i=1:size(agedist,2)
+    #     interpolated_distribution[i] = linterp1s(mdl.Height,agedist[:,i],height)
+    # end
+
+
 ## --- Calculate deposition rate binned by age
 
     # Set bin width and spacing

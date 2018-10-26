@@ -95,7 +95,7 @@
             Age = smpl.Age;
             Age_Sigma = smpl.Age_Sigma;
             Height = smpl.Height;
-            Height_Sigma = smpl.Height_Sigma + 1E-9; # Avoid divide-by-zero issues
+            Height_Sigma = smpl.Height_Sigma .+ 1E-9; # Avoid divide-by-zero issues
             Age_Sidedness = smpl.Age_Sidedness; # Bottom is a maximum age and top is a minimum age
             model_heights = bottom:resolution:top;
         end
@@ -161,7 +161,7 @@
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop);
 
             # Accept or reject proposal based on likelihood
-            if rand() < exp(ll_prop - ll)
+            if log(rand(Float64)) < (ll_prop - ll)
                 mages = copy(mages_prop);
                 sample_height = copy(sample_height_prop);
                 closest = copy(closest_prop);
@@ -212,7 +212,7 @@
 
 
             # Accept or reject proposal based on likelihood
-            if rand() < exp(ll_prop - ll)
+            if log(rand(Float64)) < (ll_prop - ll)
                 mages = copy(mages_prop);
                 sample_height = copy(sample_height_prop);
                 closest = copy(closest_prop);
@@ -272,7 +272,7 @@
             Age = smpl.Age;
             Age_Sigma = smpl.Age_Sigma;
             Height = smpl.Height;
-            Height_Sigma = smpl.Height_Sigma + 1E-9; # Avoid divide-by-zero issues
+            Height_Sigma = smpl.Height_Sigma .+ 1E-9; # Avoid divide-by-zero issues
             Age_Sidedness = smpl.Age_Sidedness; # Bottom is a maximum age and top is a minimum age
             model_heights = bottom:resolution:top;
         end
@@ -379,7 +379,7 @@
             ll_prop += sum(-max.(hiatus_Duration-duration_prop,0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
 
             # Accept or reject proposal based on likelihood
-            if rand() < exp(ll_prop - ll)
+            if log(rand(Float64)) < (ll_prop - ll)
                 mages = copy(mages_prop);
                 sample_height = copy(sample_height_prop);
                 closest = copy(closest_prop);
@@ -458,7 +458,7 @@
 
 
             # Accept or reject proposal based on likelihood
-            if rand() < exp(ll_prop - ll)
+            if log(rand(Float64)) < (ll_prop - ll)
                 mages = copy(mages_prop);
                 sample_height = copy(sample_height_prop);
                 closest = copy(closest_prop);
@@ -600,7 +600,7 @@
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop);
 
             # Accept or reject proposal based on likelihood
-            if rand() < exp(ll_prop - ll)
+            if log(rand(Float64)) < (ll_prop - ll)
                 mages = copy(mages_prop);
                 sample_height = copy(sample_height_prop);
                 closest = copy(closest_prop);
@@ -661,7 +661,7 @@
 
 
             # Accept or reject proposal based on likelihood
-            if rand() < exp(ll_prop - ll)
+            if log(rand(Float64)) < (ll_prop - ll)
                 mages = copy(mages_prop);
                 sample_height = copy(sample_height_prop);
                 closest = copy(closest_prop);
@@ -715,7 +715,7 @@
             Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH];
             Age_Sigma = [mean(smpl.Age_Sigma)/10; smpl.Age_Sigma; mean(smpl.Age_Sigma)/10];
             Height = [bottom-offset; smpl.Height; top+offset];
-            Height_Sigma = [0; smpl.Height_Sigma; 0]+1E-9; # Avoid divide-by-zero issues
+            Height_Sigma = [0; smpl.Height_Sigma; 0] .+ 1E-9; # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
             pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = mean(smpl.Age_Sigma)/10;
@@ -832,7 +832,7 @@
             ll_prop += sum(-max.(hiatus_Duration-duration_prop,0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
 
             # Accept or reject proposal based on likelihood
-            if rand() < exp(ll_prop - ll)
+            if log(rand(Float64)) < (ll_prop - ll)
                 mages = copy(mages_prop);
                 sample_height = copy(sample_height_prop);
                 closest = copy(closest_prop);
@@ -911,7 +911,7 @@
 
 
             # Accept or reject proposal based on likelihood
-            if rand() < exp(ll_prop - ll)
+            if log(rand(Float64)) < (ll_prop - ll)
                 mages = copy(mages_prop);
                 sample_height = copy(sample_height_prop);
                 closest = copy(closest_prop);

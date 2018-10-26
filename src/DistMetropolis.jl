@@ -137,7 +137,7 @@
             # Calculate log likelihood for new proposal
             ll_proposed =  check_cryst_LL(dist, data, uncert, tmin_proposed, tmax_proposed);
             # Decide to accept or reject the proposal
-            if rand() < exp(ll_proposed-ll)
+            if log(rand(Float64)) < (ll_proposed-ll)
                 if tmin_proposed != tmin
                     tmin_step = abs(tmin_proposed-tmin)*stepfactor;
                 end
@@ -205,7 +205,7 @@
             # Calculate log likelihood for new proposal
             ll_proposed =  check_cryst_LL(dist, data, uncert, tmin_proposed, tmax_proposed);
             # Decide to accept or reject the proposal
-            if rand() < exp(ll_proposed-ll)
+            if log(rand(Float64)) < (ll_proposed-ll)
                 if tmin_proposed != tmin
                     tmin_step = abs(tmin_proposed-tmin)*stepfactor;
                 end
