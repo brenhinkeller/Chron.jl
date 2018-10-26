@@ -88,7 +88,7 @@
             Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH];
             Age_Sigma = [mean(smpl.Age_Sigma)/10; smpl.Age_Sigma; mean(smpl.Age_Sigma)/10];
             Height = [bottom-offset; smpl.Height; top+offset];
-            Height_Sigma = [0; smpl.Height_Sigma; 0]+1E-9; # Avoid divide-by-zero issues
+            Height_Sigma = [0; smpl.Height_Sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
         else
@@ -265,7 +265,7 @@
             Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH];
             Age_Sigma = [mean(smpl.Age_Sigma)/10; smpl.Age_Sigma; mean(smpl.Age_Sigma)/10];
             Height = [bottom-offset; smpl.Height; top+offset];
-            Height_Sigma = [0; smpl.Height_Sigma; 0]+1E-9; # Avoid divide-by-zero issues
+            Height_Sigma = [0; smpl.Height_Sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
         else
