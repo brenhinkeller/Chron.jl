@@ -355,9 +355,9 @@
                         mages_prop[chosen_point-1] = mages[chosen_point-1] + r
                         #Resolve conflicts
                         if r>0
-                            mages_prop[(mages_prop .< mages_prop[chosen_point-1]) .& (index .< [chosen_point-1])] = mages_prop[chosen_point-1]
+                            mages_prop[(mages_prop .< mages_prop[chosen_point-1]) .& (index .< [chosen_point-1])] .= mages_prop[chosen_point-1]
                         else
-                            mages_prop[(mages_prop .> mages_prop[chosen_point-1]) .& (index .> [chosen_point-1])] = mages_prop[chosen_point-1]
+                            mages_prop[(mages_prop .> mages_prop[chosen_point-1]) .& (index .> [chosen_point-1])] .= mages_prop[chosen_point-1]
                         end
                     end
                 end
@@ -431,10 +431,10 @@
                         #Resolve conflicts
                         if r>0
                             younger_points_below = (mages_prop .< mages_prop[chosen_point-1]) .& (index .< (chosen_point-1))
-                            mages_prop[younger_points_below] = mages_prop[chosen_point-1]
+                            mages_prop[younger_points_below] .= mages_prop[chosen_point-1]
                         else
                             older_points_above = (mages_prop .> mages_prop[chosen_point-1]) .& (index .> (chosen_point-1))
-                            mages_prop[older_points_above] = mages_prop[chosen_point-1]
+                            mages_prop[older_points_above] .= mages_prop[chosen_point-1]
                         end
                     end
                 end
@@ -808,9 +808,9 @@
                         mages_prop[chosen_point-1] = mages[chosen_point-1] + r
                         #Resolve conflicts
                         if r>0
-                            mages_prop[(mages_prop .< mages_prop[chosen_point-1]) .& (index .< [chosen_point-1])] = mages_prop[chosen_point-1]
+                            mages_prop[(mages_prop .< mages_prop[chosen_point-1]) .& (index .< [chosen_point-1])] .= mages_prop[chosen_point-1]
                         else
-                            mages_prop[(mages_prop .> mages_prop[chosen_point-1]) .& (index .> [chosen_point-1])] = mages_prop[chosen_point-1]
+                            mages_prop[(mages_prop .> mages_prop[chosen_point-1]) .& (index .> [chosen_point-1])] .= mages_prop[chosen_point-1]
                         end
                     end
                 end
@@ -884,10 +884,10 @@
                         #Resolve conflicts
                         if r>0
                             younger_points_below = (mages_prop .< mages_prop[chosen_point-1]) .& (index .< (chosen_point-1))
-                            mages_prop[younger_points_below] = mages_prop[chosen_point-1]
+                            mages_prop[younger_points_below] .= mages_prop[chosen_point-1]
                         else
                             older_points_above = (mages_prop .> mages_prop[chosen_point-1]) .& (index .> (chosen_point-1))
-                            mages_prop[older_points_above] = mages_prop[chosen_point-1]
+                            mages_prop[older_points_above] .= mages_prop[chosen_point-1]
                         end
                     end
                 end
