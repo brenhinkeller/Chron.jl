@@ -155,8 +155,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age);
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = .- (mages_prop[closest_prop] - Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
-            heightll_prop = .- (sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
+            agell_prop = .- (mages_prop[closest_prop] .- Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
+            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age);
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop);
 
@@ -205,8 +205,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age);
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = .- (mages_prop[closest_prop] - Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
-            heightll_prop = .- (sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
+            agell_prop = .- (mages_prop[closest_prop] .- Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
+            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age);
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop);
 
@@ -307,8 +307,8 @@
         end
 
         # Add log likelihood for hiatuses
-        duration_prop = abs.(mages[closest_h_unique-1] .- mages[closest_h_unique]);
-        ll += sum(-max.(hiatus_Duration-duration_prop,0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
+        duration_prop = abs.(mages[closest_h_unique .- 1] .- mages[closest_h_unique]);
+        ll += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
         duration = copy(duration_prop)
 
         # Introduce variables so they will be accessible outside loop
@@ -367,16 +367,16 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age);
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = .- (mages_prop[closest_prop] - Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
-            heightll_prop = .- (sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
+            agell_prop = .- (mages_prop[closest_prop] .- Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
+            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age);
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop);
 
             # if hiatus_height_uncert>0
             #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights);
             # end
-            duration_prop = abs.(mages_prop[closest_h_unique-1] .- mages_prop[closest_h_unique]);
-            ll_prop += sum(-max.(hiatus_Duration-duration_prop,0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
+            duration_prop = abs.(mages_prop[closest_h_unique .- 1] .- mages_prop[closest_h_unique]);
+            ll_prop += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (ll_prop - ll)
@@ -443,8 +443,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age);
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = .- (mages_prop[closest_prop] - Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
-            heightll_prop = .- (sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
+            agell_prop = .- (mages_prop[closest_prop] .- Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma));
+            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age);
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop);
 
@@ -453,8 +453,8 @@
             # if hiatus_height_uncert>0
             #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights);
             # end
-            duration_prop = abs.(mages_prop[closest_h_unique-1] .- mages_prop[closest_h_unique]);
-            ll_prop += sum(-max.(hiatus_Duration-duration_prop,0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
+            duration_prop = abs.(mages_prop[closest_h_unique .- 1] .- mages_prop[closest_h_unique]);
+            ll_prop += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
 
 
             # Accept or reject proposal based on likelihood
@@ -760,8 +760,8 @@
         end
 
         # Add log likelihood for hiatuses
-        duration_prop = abs.(mages[closest_h_unique-1] .- mages[closest_h_unique]);
-        ll += sum(-max.(hiatus_Duration-duration_prop,0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
+        duration_prop = abs.(mages[closest_h_unique .- 1] .- mages[closest_h_unique]);
+        ll += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
         duration = copy(duration_prop)
 
         # Introduce variables so they will be accessible outside loop
@@ -821,15 +821,15 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age);
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             agell_prop = bilinear_exponential_LL(mages_prop[closest_prop],p)
-            heightll_prop = .- (sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
+            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age);
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop);
 
             # if hiatus_height_uncert>0
             #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights);
             # end
-            duration_prop = abs.(mages_prop[closest_h_unique-1] .- mages_prop[closest_h_unique]);
-            ll_prop += sum(-max.(hiatus_Duration-duration_prop,0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
+            duration_prop = abs.(mages_prop[closest_h_unique .- 1] .- mages_prop[closest_h_unique]);
+            ll_prop += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (ll_prop - ll)
@@ -897,7 +897,7 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age);
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             agell_prop = bilinear_exponential_LL(mages_prop[closest_prop],p)
-            heightll_prop = .- (sample_height_prop - Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
+            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma));
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age);
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop);
 
@@ -906,8 +906,8 @@
             # if hiatus_height_uncert>0
             #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights);
             # end
-            duration_prop = abs.(mages_prop[closest_h_unique-1] .- mages_prop[closest_h_unique]);
-            ll_prop += sum(-max.(hiatus_Duration-duration_prop,0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
+            duration_prop = abs.(mages_prop[closest_h_unique .- 1] .- mages_prop[closest_h_unique]);
+            ll_prop += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)); #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
 
 
             # Accept or reject proposal based on likelihood
