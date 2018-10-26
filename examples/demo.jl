@@ -102,7 +102,7 @@
     # Pass configuration to a struct
     config = StratAgeModelConfiguration(
         resolution, # Resolution
-        burnin, # Lenght of burnin
+        burnin, # Length of burnin
         nsteps, # Number of regular MC steps
         sieve, # Seive strength
         bounding, # Runaway bounds
