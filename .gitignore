@@ -1,5 +1,7 @@
 .DS_STORE
-*.pdf
+/*.pdf
+examples/*.pdf
+examples/*/*.pdf
 *.jld
 *.jl.cov
 *.jl.*.cov
