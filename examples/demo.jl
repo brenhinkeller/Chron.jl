@@ -21,10 +21,7 @@
     using Plots; gr(); default(fmt = :svg);
 
     if VERSION>=v"0.7"
-        using Statistics
-        using StatsBase
-        using DelimitedFiles
-        using SpecialFunctions
+        using Statistics, StatsBase, DelimitedFiles, SpecialFunctions
     else
         using Compat
     end
