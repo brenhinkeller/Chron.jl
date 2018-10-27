@@ -10,7 +10,7 @@ The second (stratigraphic) MCMC  model uses the estimated (posterior) eruption/d
 
 ## Installation
 
-Chron.jl is written in the [Julia](https://julialang.org/) language.
+Chron.jl is written in the [Julia programming language](https://julialang.org/).
 
 In the Julia package manager (type `]` in the REPL)
 ```Julia
