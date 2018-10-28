@@ -36,13 +36,13 @@
     smpl = NewStratAgeData(nSamples)
     smpl.Name      =   ("KJ08-157", "KJ04-75", "KJ09-66", "KJ04-72", "KJ04-70",)
     smpl.Height[:] =   [     -52.0,      44.0,      54.0,      82.0,      93.0,]
-    smpl.Height_Sigma[:] = [   3.0,       1.0,       3.0,       3.0,       3.0,]
+    smpl.Height_sigma[:] = [   3.0,       1.0,       3.0,       3.0,       3.0,]
     smpl.Age_Sidedness[:] = zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
     smpl.Path = "examples/DenverUPbExampleData/" # Where are the data files?
     smpl.inputSigmaLevel = 2 # i.e., are the data files 1-sigma or 2-sigma. Integer.
 
     AgeUnit = "Ma" # Unit of measurement for ages and errors in the data files
-    HeightUnit = "cm" # Unit of measurement for Height and Height_Sigma
+    HeightUnit = "cm" # Unit of measurement for Height and Height_sigma
 
 ## --- (Optional) Calculate bootstrapped distribution - - - - - - - - - - - - -
 
@@ -71,7 +71,7 @@
     @time smpl = tMinDistMetropolis(smpl,distSteps,distBurnin,dist)
 
     # Print results to file
-    results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(collect(smpl.Name),smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_Sigma))
+    results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(collect(smpl.Name),smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_sigma))
     writedlm(joinpath(smpl.Path,"results.csv"), results, ',')
 
     # # (Optional) Save the sample struct for later use
@@ -104,7 +104,7 @@
     #     data = readdlm(string(smpl.Path, smpl.Name[i], ".csv"),',')
     #     Iyz = argmin(data[:,1])
     #     smpl.Age[i] = minimum(data[Iyz,1])
-    #     smpl.Age_Sigma[i] = minimum(data[Iyz,2]/smpl.inputSigmaLevel)
+    #     smpl.Age_sigma[i] = minimum(data[Iyz,2]/smpl.inputSigmaLevel)
     # end
     # (mdl, agedist, lldist) = StratMetropolis(smpl, config)
 
@@ -116,7 +116,7 @@
     #     Ns = min(size(data,1),3)
     #     (mu, sigma) = awmean(data[sI[1:Ns],1],data[sI[1:Ns],2]./smpl.inputSigmaLevel)
     #     smpl.Age[i] = mu
-    #     smpl.Age_Sigma[i] = sigma
+    #     smpl.Age_sigma[i] = sigma
     # end
     # (mdl, agedist, lldist) = StratMetropolis(smpl, config)
 
@@ -273,9 +273,9 @@
     nHiatuses = 2 # The number of hiatuses you have data for
     hiatus = NewHiatusData(nHiatuses) # Struct to hold data
     hiatus.Height         = [20.0, 35.0 ]
-    hiatus.Height_Sigma   = [ 0.0,  0.0 ]
+    hiatus.Height_sigma   = [ 0.0,  0.0 ]
     hiatus.Duration       = [ 0.2,  0.3 ]
-    hiatus.Duration_Sigma = [ 0.05, 0.05]
+    hiatus.Duration_sigma = [ 0.05, 0.05]
 
     # Run the model
     @time (mdl, agedist, hiatusdist, lldist) = StratMetropolisDistHiatus(smpl, hiatus, config)

@@ -5,9 +5,9 @@
     mutable struct StratAgeData
         Name::Tuple
         Height::Array{Float64}
-        Height_Sigma::Array{Float64}
+        Height_sigma::Array{Float64}
         Age::Array{Float64}
-        Age_Sigma::Array{Float64}
+        Age_sigma::Array{Float64}
         Age_025CI::Array{Float64}
         Age_975CI::Array{Float64}
         Age_Sidedness::Array{Float64}
@@ -37,9 +37,9 @@
     # A type of object to hold data about hiatuses
     mutable struct HiatusData
         Height::Array{Float64}
-        Height_Sigma::Array{Float64}
+        Height_sigma::Array{Float64}
         Duration::Array{Float64}
-        Duration_Sigma::Array{Float64}
+        Duration_sigma::Array{Float64}
     end
 
     function NewHiatusData(nHiatuses)
@@ -47,7 +47,7 @@
             fill(NaN,nHiatuses),  # Height
             fill(NaN,nHiatuses),  # Height_sigma
             fill(NaN,nHiatuses),  # Duration
-            fill(NaN,nHiatuses),  # Duration_Sigma
+            fill(NaN,nHiatuses),  # Duration_sigma
         )
         return hiatus
     end
@@ -71,7 +71,7 @@
     struct StratAgeModel
         Height::Array{Float64}
         Age::Array{Float64}
-        Age_Sigma::Array{Float64}
+        Age_sigma::Array{Float64}
         Age_Median::Array{Float64}
         Age_025CI::Array{Float64}
         Age_975CI::Array{Float64}
@@ -95,23 +95,23 @@
         (bottom, top) = extrema(smpl.Height)
         (youngest, oldest) = extrema(smpl.Age)
         dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = mean(smpl.Age_Sigma)
+        aveuncert = mean(smpl.Age_sigma)
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]
-            Age_Sigma = [mean(smpl.Age_Sigma)/10; smpl.Age_Sigma; mean(smpl.Age_Sigma)/10]
+            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]
             Height = [bottom-offset; smpl.Height; top+offset]
-            Height_Sigma = [0; smpl.Height_Sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
+            Height_sigma = [0; smpl.Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
         else
             Age = smpl.Age
-            Age_Sigma = smpl.Age_Sigma
+            Age_sigma = smpl.Age_sigma
             Height = smpl.Height
-            Height_Sigma = smpl.Height_Sigma .+ 1E-9 # Avoid divide-by-zero issues
+            Height_sigma = smpl.Height_sigma .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = smpl.Age_Sidedness # Bottom is a maximum age and top is a minimum age
             model_heights = bottom:resolution:top
         end
@@ -128,10 +128,10 @@
         # proposals older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
         sample_height = Height
         closest = findclosest(sample_height,model_heights)
-        agell = .- (mages[closest] .- Age).^2 ./ (2 .* Age_Sigma.^2) .- log.(sqrt.(2*pi*Age_Sigma))
-        heightll = .-(sample_height .- Height).^2 ./ (2 .* Height_Sigma.^2) .- log.(sqrt.(2*pi*Height_Sigma))
+        agell = .- (mages[closest] .- Age).^2 ./ (2 .* Age_sigma.^2) .- log.(sqrt.(2*pi*Age_sigma))
+        heightll = .-(sample_height .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
         diff_sign = Age_Sidedness .!= sign.(mages[closest] .- Age)
-        ll = sum(agell[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll)
+        ll = sum(agell[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll)
 
         # Introduce variables so they will be accessible outside loop
         mages_prop = copy(mages)
@@ -150,7 +150,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop += randn(size(Height)) .* Height_Sigma
+                sample_height_prop += randn(size(Height)) .* Height_sigma
                 closest_prop = findclosest(sample_height_prop, model_heights)
             else
                 # Adjust one point at a time then resolve conflicts
@@ -171,10 +171,10 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = .- (mages_prop[closest_prop] .- Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma))
-            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma))
+            agell_prop = .- (mages_prop[closest_prop] .- Age).^2 ./ (2 .* Age_sigma.^2) -log.(sqrt.(2*pi*Age_sigma))
+            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) -log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age)
-            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop)
+            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (ll_prop - ll)
@@ -201,7 +201,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop += randn(size(Height)) .* Height_Sigma
+                sample_height_prop += randn(size(Height)) .* Height_sigma
                 closest_prop = findclosest(sample_height_prop, model_heights)
             else
                 # Adjust one point at a time then resolve conflicts
@@ -221,10 +221,10 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = .- (mages_prop[closest_prop] .- Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma))
-            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma))
+            agell_prop = .- (mages_prop[closest_prop] .- Age).^2 ./ (2 .* Age_sigma.^2) -log.(sqrt.(2*pi*Age_sigma))
+            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) -log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age)
-            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop)
+            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
 
 
             # Accept or reject proposal based on likelihood
@@ -272,23 +272,23 @@
         (bottom, top) = extrema(smpl.Height)
         (youngest, oldest) = extrema(smpl.Age)
         dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = mean(smpl.Age_Sigma)
+        aveuncert = mean(smpl.Age_sigma)
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]
-            Age_Sigma = [mean(smpl.Age_Sigma)/10; smpl.Age_Sigma; mean(smpl.Age_Sigma)/10]
+            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]
             Height = [bottom-offset; smpl.Height; top+offset]
-            Height_Sigma = [0; smpl.Height_Sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
+            Height_sigma = [0; smpl.Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
         else
             Age = smpl.Age
-            Age_Sigma = smpl.Age_Sigma
+            Age_sigma = smpl.Age_sigma
             Height = smpl.Height
-            Height_Sigma = smpl.Height_Sigma .+ 1E-9 # Avoid divide-by-zero issues
+            Height_sigma = smpl.Height_sigma .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = smpl.Age_Sidedness # Bottom is a maximum age and top is a minimum age
             model_heights = bottom:resolution:top
         end
@@ -305,26 +305,26 @@
         # proposals older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
         sample_height = Height
         closest = findclosest(sample_height,model_heights)
-        agell = .- (mages[closest] .- Age).^2 ./ (2 .* Age_Sigma.^2) .- log.(sqrt.(2*pi*Age_Sigma))
-        heightll = .- (sample_height .- Height).^2 ./ (2 .* Height_Sigma.^2) .- log.(sqrt.(2*pi*Height_Sigma))
+        agell = .- (mages[closest] .- Age).^2 ./ (2 .* Age_sigma.^2) .- log.(sqrt.(2*pi*Age_sigma))
+        heightll = .- (sample_height .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
         diff_sign = Age_Sidedness .!= sign.(mages[closest] .- Age)
-        ll = sum(agell[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll)
+        ll = sum(agell[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll)
 
         # Ensure there is only one effective hiatus at most for each height node
         closest_h = findclosestabove(hiatus.Height,model_heights)
         closest_h_unique = unique(closest_h)
         hiatus_Height = Array{Float64}(undef,size(closest_h_unique))
         hiatus_Duration = Array{Float64}(undef,size(closest_h_unique))
-        hiatus_Duration_Sigma = Array{Float64}(undef,size(closest_h_unique))
+        hiatus_Duration_sigma = Array{Float64}(undef,size(closest_h_unique))
         for i=1:length(closest_h_unique)
             hiatus_Height[i] = mean(hiatus.Height[closest_h.==closest_h_unique[i]])
             hiatus_Duration[i] = sum(hiatus.Duration[closest_h.==closest_h_unique[i]])
-            hiatus_Duration_Sigma[i] = sqrt(sum(hiatus.Duration_Sigma[closest_h.==closest_h_unique[i]].^2))
+            hiatus_Duration_sigma[i] = sqrt(sum(hiatus.Duration_sigma[closest_h.==closest_h_unique[i]].^2))
         end
 
         # Add log likelihood for hiatuses
         duration_prop = abs.(mages[closest_h_unique .- 1] .- mages[closest_h_unique])
-        ll += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)) #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
+        ll += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_sigma.^2)) #-log.(sqrt.(2*pi*hiatus_Duration_sigma))
         duration = copy(duration_prop)
 
         # Introduce variables so they will be accessible outside loop
@@ -345,7 +345,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop += randn(size(Height)) .* Height_Sigma
+                sample_height_prop += randn(size(Height)) .* Height_sigma
                 closest_prop = findclosest(sample_height_prop, model_heights)
             else
                 # Adjust one point at a time then resolve conflicts
@@ -383,16 +383,16 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = .- (mages_prop[closest_prop] .- Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma))
-            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma))
+            agell_prop = .- (mages_prop[closest_prop] .- Age).^2 ./ (2 .* Age_sigma.^2) -log.(sqrt.(2*pi*Age_sigma))
+            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) -log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age)
-            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop)
+            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
 
             # if hiatus_height_uncert>0
             #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights)
             # end
             duration_prop = abs.(mages_prop[closest_h_unique .- 1] .- mages_prop[closest_h_unique])
-            ll_prop += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)) #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
+            ll_prop += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_sigma.^2)) #-log.(sqrt.(2*pi*hiatus_Duration_sigma))
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (ll_prop - ll)
@@ -420,7 +420,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop += randn(size(Height)) .* Height_Sigma
+                sample_height_prop += randn(size(Height)) .* Height_sigma
                 closest_prop = findclosest(sample_height_prop, model_heights)
             else
                 # Adjust one point at a time then resolve conflicts
@@ -459,10 +459,10 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = .- (mages_prop[closest_prop] .- Age).^2 ./ (2 .* Age_Sigma.^2) -log.(sqrt.(2*pi*Age_Sigma))
-            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma))
+            agell_prop = .- (mages_prop[closest_prop] .- Age).^2 ./ (2 .* Age_sigma.^2) -log.(sqrt.(2*pi*Age_sigma))
+            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) -log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age)
-            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop)
+            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
 
 
             # Add log likelihood for duration
@@ -470,7 +470,7 @@
             #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights)
             # end
             duration_prop = abs.(mages_prop[closest_h_unique .- 1] .- mages_prop[closest_h_unique])
-            ll_prop += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)) #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
+            ll_prop += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_sigma.^2)) #-log.(sqrt.(2*pi*hiatus_Duration_sigma))
 
 
             # Accept or reject proposal based on likelihood
@@ -520,7 +520,7 @@
         (bottom, top) = extrema(smpl.Height)
         (youngest, oldest) = extrema(smpl.Age)
         dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = mean(smpl.Age_Sigma)
+        aveuncert = mean(smpl.Age_sigma)
         p = smpl.Params
 
         if bounding>0
@@ -528,19 +528,19 @@
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]
-            Age_Sigma = [mean(smpl.Age_Sigma)/10; smpl.Age_Sigma; mean(smpl.Age_Sigma)/10]
+            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]
             Height = [bottom-offset; smpl.Height; top+offset]
-            Height_Sigma = [0; smpl.Height_Sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
+            Height_sigma = [0; smpl.Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
-            pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = mean(smpl.Age_Sigma)/10
-            pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = mean(smpl.Age_Sigma)/10
+            pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = mean(smpl.Age_sigma)/10
+            pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = mean(smpl.Age_sigma)/10
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
         else
             Age = smpl.Age
-            Age_Sigma = smpl.Age_Sigma
+            Age_sigma = smpl.Age_sigma
             Height = smpl.Height
-            Height_Sigma = smpl.Height_Sigma .+ 1E-9 # Avoid divide-by-zero issues
+            Height_sigma = smpl.Height_sigma .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = smpl.Age_Sidedness # Bottom is a maximum age and top is a minimum age
             model_heights = bottom:resolution:top
         end
@@ -558,9 +558,9 @@
         sample_height = Height
         closest = findclosest(sample_height,model_heights)
         agell = bilinear_exponential_LL(mages[closest],p)
-        heightll = .- (sample_height .- Height).^2 ./ (2 .* Height_Sigma.^2) .- log.(sqrt.(2*pi*Height_Sigma))
+        heightll = .- (sample_height .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
         diff_sign = Age_Sidedness .!= sign.(mages[closest] .- Age)
-        ll = sum(agell[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll)
+        ll = sum(agell[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll)
 
         # Introduce variables so they will be accessible outside loop
         mages_prop = copy(mages)
@@ -579,7 +579,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop += randn(size(Height)) .* Height_Sigma
+                sample_height_prop += randn(size(Height)) .* Height_sigma
                 closest_prop = findclosest(sample_height_prop, model_heights)
             else
                 # Adjust one point at a time then resolve conflicts
@@ -611,9 +611,9 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             agell_prop = bilinear_exponential_LL(mages_prop[closest_prop],p)
-            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) .- log.(sqrt.(2*pi*Height_Sigma))
+            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop] .- Age)
-            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop)
+            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (ll_prop - ll)
@@ -640,7 +640,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop += randn(size(Height)) .* Height_Sigma
+                sample_height_prop += randn(size(Height)) .* Height_sigma
                 closest_prop = findclosest(sample_height_prop, model_heights)
             else
                 # Adjust one point at a time then resolve conflicts
@@ -671,9 +671,9 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             agell_prop = bilinear_exponential_LL(mages_prop[closest_prop],p)
-            heightll_prop = .-(sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) .- log.(sqrt.(2*pi*Height_Sigma))
+            heightll_prop = .-(sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop] .- Age)
-            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop)
+            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
 
 
             # Accept or reject proposal based on likelihood
@@ -721,7 +721,7 @@
         (bottom, top) = extrema(smpl.Height)
         (youngest, oldest) = extrema(smpl.Age)
         dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = mean(smpl.Age_Sigma)
+        aveuncert = mean(smpl.Age_sigma)
         p = smpl.Params
 
         if bounding>0
@@ -729,19 +729,19 @@
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]
-            Age_Sigma = [mean(smpl.Age_Sigma)/10; smpl.Age_Sigma; mean(smpl.Age_Sigma)/10]
+            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]
             Height = [bottom-offset; smpl.Height; top+offset]
-            Height_Sigma = [0; smpl.Height_Sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
+            Height_sigma = [0; smpl.Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
-            pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = mean(smpl.Age_Sigma)/10
-            pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = mean(smpl.Age_Sigma)/10
+            pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = mean(smpl.Age_sigma)/10
+            pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = mean(smpl.Age_sigma)/10
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
         else
             Age = smpl.Age
-            Age_Sigma = smpl.Age_Sigma
+            Age_sigma = smpl.Age_sigma
             Height = smpl.Height
-            Height_Sigma = smpl.Height_Sigma .+ 1E-9 # Avoid divide-by-zero issues
+            Height_sigma = smpl.Height_sigma .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = smpl.Age_Sidedness # Bottom is a maximum age and top is a minimum age
             model_heights = bottom:resolution:top
         end
@@ -759,25 +759,25 @@
         sample_height = Height
         closest = findclosest(sample_height,model_heights)
         agell = bilinear_exponential_LL(mages[closest],p)
-        heightll = .- (sample_height .- Height).^2 ./ (2 .* Height_Sigma.^2) .- log.(sqrt.(2*pi*Height_Sigma))
+        heightll = .- (sample_height .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
         diff_sign = Age_Sidedness .!= sign.(mages[closest] .- Age)
-        ll = sum(agell[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll)
+        ll = sum(agell[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll)
 
         # Ensure there is only one effective hiatus at most for each height node
         closest_h = findclosestabove(hiatus.Height,model_heights)
         closest_h_unique = unique(closest_h)
         hiatus_Height = Array{Float64}(undef,size(closest_h_unique))
         hiatus_Duration = Array{Float64}(undef,size(closest_h_unique))
-        hiatus_Duration_Sigma = Array{Float64}(undef,size(closest_h_unique))
+        hiatus_Duration_sigma = Array{Float64}(undef,size(closest_h_unique))
         for i=1:length(closest_h_unique)
             hiatus_Height[i] = mean(hiatus.Height[closest_h.==closest_h_unique[i]])
             hiatus_Duration[i] = sum(hiatus.Duration[closest_h.==closest_h_unique[i]])
-            hiatus_Duration_Sigma[i] = sqrt(sum(hiatus.Duration_Sigma[closest_h.==closest_h_unique[i]].^2))
+            hiatus_Duration_sigma[i] = sqrt(sum(hiatus.Duration_sigma[closest_h.==closest_h_unique[i]].^2))
         end
 
         # Add log likelihood for hiatuses
         duration_prop = abs.(mages[closest_h_unique .- 1] .- mages[closest_h_unique])
-        ll += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)) #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
+        ll += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_sigma.^2)) #-log.(sqrt.(2*pi*hiatus_Duration_sigma))
         duration = copy(duration_prop)
 
         # Introduce variables so they will be accessible outside loop
@@ -798,7 +798,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop += randn(size(Height)) .* Height_Sigma
+                sample_height_prop += randn(size(Height)) .* Height_sigma
                 closest_prop = findclosest(sample_height_prop, model_heights)
             else
                 # Adjust one point at a time then resolve conflicts
@@ -837,15 +837,15 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             agell_prop = bilinear_exponential_LL(mages_prop[closest_prop],p)
-            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma))
+            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) -log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age)
-            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop)
+            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
 
             # if hiatus_height_uncert>0
             #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights)
             # end
             duration_prop = abs.(mages_prop[closest_h_unique .- 1] .- mages_prop[closest_h_unique])
-            ll_prop += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)) #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
+            ll_prop += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_sigma.^2)) #-log.(sqrt.(2*pi*hiatus_Duration_sigma))
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (ll_prop - ll)
@@ -873,7 +873,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop += randn(size(Height)) .* Height_Sigma
+                sample_height_prop += randn(size(Height)) .* Height_sigma
                 closest_prop = findclosest(sample_height_prop, model_heights)
             else
                 # Adjust one point at a time then resolve conflicts
@@ -913,9 +913,9 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             agell_prop = bilinear_exponential_LL(mages_prop[closest_prop],p)
-            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_Sigma.^2) -log.(sqrt.(2*pi*Height_Sigma))
+            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) -log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age)
-            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_Sigma[.~diff_sign]))) + sum(heightll_prop)
+            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
 
 
             # Add log likelihood for duration
@@ -923,7 +923,7 @@
             #     closest_h = findclosestabove(h.Height+randn(size(h.Height)).*hiatus_height_uncert,heights)
             # end
             duration_prop = abs.(mages_prop[closest_h_unique .- 1] .- mages_prop[closest_h_unique])
-            ll_prop += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_Sigma.^2)) #-log.(sqrt.(2*pi*hiatus_Duration_Sigma))
+            ll_prop += sum(-max.(hiatus_Duration .- duration_prop, 0).^2 ./ (2 .* hiatus_Duration_sigma.^2)) #-log.(sqrt.(2*pi*hiatus_Duration_sigma))
 
 
             # Accept or reject proposal based on likelihood

@@ -76,7 +76,7 @@
 
             # Fill in the strat sample object with our new results
             smpl.Age[i] = mean(tminDist[burnin:end])
-            smpl.Age_Sigma[i] = std(tminDist[burnin:end])
+            smpl.Age_sigma[i] = std(tminDist[burnin:end])
             smpl.Age_025CI[i] = percentile(tminDist[burnin:end],2.5)
             smpl.Age_975CI[i] = percentile(tminDist[burnin:end],97.5)
 
@@ -136,7 +136,7 @@
 
             # Fill in the strat sample object with our new results
             smpl.Age[i] = mean(tminDist[burnin:end])
-            smpl.Age_Sigma[i] = std(tminDist[burnin:end])
+            smpl.Age_sigma[i] = std(tminDist[burnin:end])
             smpl.Age_025CI[i] = percentile(tminDist[burnin:end],2.5)
             smpl.Age_975CI[i] = percentile(tminDist[burnin:end],97.5)
 
