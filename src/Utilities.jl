@@ -180,9 +180,9 @@
         # p[3] = variance
         # p[4] = sharpness
         # p[5] = skew
-        xs = (x .- p[2])./abs.(p[3]) # X scaled by mean and variance
+        xs = (x .- p[2])./p[3] # X scaled by mean and variance
         v = 1/2 .- atan.(xs)./pi # Sigmoid (positive on LHS)
-        f = p[1] .* exp.(abs.(p[4].*p[5]).*xs.*v .- abs.(p[4]./p[5]).*xs.*(1 .- v))
+        f = p[1] .* exp.((p[4].^2).*(p[5].^2).*xs.*v .- (p[4].^2)./(p[5].^2).*xs.*(1 .- v))
         return f
     end
 
@@ -194,9 +194,9 @@
         # p[3] = variance
         # p[4] = sharpness
         # p[5] = skew
-        xs = (x-p[2,:])./abs.(p[3,:]) # X scaled by mean and variance
+        xs = (x-p[2,:])./p[3,:] # X scaled by mean and variance
         v = 1/2 .- atan.(xs)./pi # Sigmoid (positive on LHS)
-        f = log.(p[1,:]) + abs.(p[4,:].*p[5,:]).*xs.*v .- abs.(p[4,:]./p[5,:]).*xs.*(1 .- v)
+        f = log.(p[1,:]) + (p[4,:].^2).*(p[5,:].^2).*xs.*v .- (p[4,:].^2)./(p[5,:].^2).*xs.*(1 .- v)
         return f
     end
 
