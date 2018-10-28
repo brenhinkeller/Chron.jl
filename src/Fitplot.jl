@@ -100,7 +100,7 @@
 
             # Rank-order plot of analyses and eruption/deposition age range
             nAnalyses = length(data[:,1])
-            h1 = plot_rankorder_errorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age (Ma)",label="Ages")
+            h1 = plot_rankorder_errorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age (Ma)",label="Observed ages")
             m = ones(nAnalyses).*smpl.Age[i]
             l = ones(nAnalyses).*smpl.Age_025CI[i]
             u = ones(nAnalyses).*smpl.Age_975CI[i]
@@ -110,7 +110,7 @@
 
             # Plot model fit to histogram
             h2 = plot(bincenters,N,label="Histogram")
-            plot!(h2,bincenters,bilinear_exponential(bincenters,smpl.Params[:,i]),label="Curve fit")
+            plot!(h2,bincenters, bilinear_exponential(bincenters,smpl.Params[:,i]), label="Curve fit")
             plot!(h2,legend=:topleft,xlabel="Age",ylabel="Probability density")
             savefig(h2,string(smpl.Path,smpl.Name[i],"_distribution.pdf"))
 
@@ -160,17 +160,17 @@
 
             # Rank-order plot of analyses and eruption/deposition age range
             nAnalyses = length(data[:,1])
-            h1 = plot_rankorder_errorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age (Ma)",label="Ages")
+            h1 = plot_rankorder_errorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age (Ma)",label="Observed ages")
             m = ones(nAnalyses).*smpl.Age[i]
-            l = m - 2*smpl.Age_Sigma[i]
-            u = m + 2*smpl.Age_Sigma[i]
+            l = ones(nAnalyses).*smpl.Age_025CI[i]
+            u = ones(nAnalyses).*smpl.Age_975CI[i]
             plot!(h1,1:nAnalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="Model interpretation")
-            plot!(h1,1:nAnalyses,m,linecolor=:black,linestyle=:dot,label="")
+            plot!(h1,1:nAnalyses,m,linecolor=:black,linestyle=:dot,label="",legend=:topleft)
             savefig(h1,string(smpl.Path,smpl.Name[i],"_rankorder.pdf"))
 
             # Plot model fit to histogram
             h2 = plot(bincenters,N,label="Histogram")
-            plot!(h2,bincenters, bilinear_exponential(bincenters,smpl.Params[:,i]),label="Curve fit")
+            plot!(h2,bincenters, bilinear_exponential(bincenters,smpl.Params[:,i]), label="Curve fit")
             plot!(h2,legend=:topleft,xlabel="Age",ylabel="Probability density")
             savefig(h2,string(smpl.Path,smpl.Name[i],"_distribution.pdf"))
 
