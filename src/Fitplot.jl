@@ -111,7 +111,7 @@
             # Plot model fit to histogram
             h2 = plot(bincenters,N,label="Histogram")
             plot!(h2,bincenters,bilinear_exponential(bincenters,smpl.Params[:,i]),label="Curve fit")
-            plot!(h2,legend=:topleft,xlabel="Age",ylabel="Likelihood")
+            plot!(h2,legend=:topleft,xlabel="Age",ylabel="Probability density")
             savefig(h2,string(smpl.Path,smpl.Name[i],"_distribution.pdf"))
 
         end
@@ -171,7 +171,7 @@
             # Plot model fit to histogram
             h2 = plot(bincenters,N,label="Histogram")
             plot!(h2,bincenters, bilinear_exponential(bincenters,smpl.Params[:,i]),label="Curve fit")
-            plot!(h2,legend=:topleft,xlabel="Age",ylabel="Likelihood")
+            plot!(h2,legend=:topleft,xlabel="Age",ylabel="Probability density")
             savefig(h2,string(smpl.Path,smpl.Name[i],"_distribution.pdf"))
 
         end
