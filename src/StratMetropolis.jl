@@ -2,7 +2,7 @@
 
     # Define a type of struct object to hold data about geochron samples from
     # a stratigraphic section of interest
-    struct StratAgeData
+    mutable struct StratAgeData
         Name::Tuple
         Height::Array{Float64}
         Height_Sigma::Array{Float64}
@@ -36,7 +36,7 @@
     export NewStratAgeData
 
     # A type of object to hold data about hiatuses
-    struct HiatusData
+    mutable struct HiatusData
         Height::Array{Float64}
         Height_Sigma::Array{Float64}
         Duration::Array{Float64}
@@ -44,7 +44,7 @@
     end
 
     # A type of object to specify the configuration of the stratigraphic model
-    struct StratAgeModelConfiguration
+    mutable struct StratAgeModelConfiguration
         resolution::Float64
         burnin::Int
         nsteps::Int
