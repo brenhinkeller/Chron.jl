@@ -89,9 +89,9 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[DiffEqDiffTools]]
 deps = ["LinearAlgebra", "Test"]
-git-tree-sha1 = "5d220295e07640ae3c096c3511fcc15081e61f80"
+git-tree-sha1 = "67700c9fc82033ec68a145bc650f6b9debdf9103"
 uuid = "01453d9d-ee7c-5054-8395-0335cb756afa"
-version = "0.7.0"
+version = "0.7.1"
 
 [[DiffResults]]
 deps = ["Compat", "StaticArrays"]
