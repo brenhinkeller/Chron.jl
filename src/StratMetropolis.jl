@@ -16,10 +16,9 @@
         inputSigmaLevel::Int
     end
 
-    function NewStratAgeData(Name,Path,inputSigmaLevel)
-        nSamples = length(Name)
+    function NewStratAgeData(nSamples)
         smpl = StratAgeData(
-            Name,  # Sample names
+            ("Sample Names",),
             fill(NaN,nSamples),  # Sample heights
             fill(NaN,nSamples),  # Height_sigma
             fill(NaN,nSamples),  # Sample ages
@@ -28,8 +27,8 @@
             fill(NaN,nSamples),  # Sample age 97.5% CI
             zeros(nSamples), # Sidedness (zeros by default, geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
             fill(NaN,5,nSamples), # Sample age distribution parameters
-            Path, # Relative path where we can find .csv data files
-            inputSigmaLevel, # i.e., are the data files 1-sigma or 2-sigma
+            "Relative path where we can find .csv data files",
+            2, # i.e., are the data files 1-sigma or 2-sigma
         )
         return smpl
     end
@@ -43,6 +42,17 @@
         Duration_Sigma::Array{Float64}
     end
 
+    function NewHiatusData(nHiatuses)
+        hiatus = HiatusData(
+            fill(NaN,nHiatuses),  # Height
+            fill(NaN,nHiatuses),  # Height_sigma
+            fill(NaN,nHiatuses),  # Duration
+            fill(NaN,nHiatuses),  # Duration_Sigma
+        )
+        return hiatus
+    end
+    export NewHiatusData
+
     # A type of object to specify the configuration of the stratigraphic model
     mutable struct StratAgeModelConfiguration
         resolution::Float64
@@ -51,6 +61,12 @@
         sieve::Int
         bounding::Float64
     end
+
+    function NewStratAgeModelConfiguration()
+        return StratAgeModelConfiguration(NaN, 0, 0, 0, NaN)
+    end
+    export NewStratAgeModelConfiguration
+
 
     struct StratAgeModel
         Height::Array{Float64}
