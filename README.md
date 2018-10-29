@@ -143,10 +143,11 @@ results = readdlm(smpl.Path*"results.csv",',')
      "KJ04-70"   65.8518  65.7857      65.898        0.0288371
 
 
+Let's look at the plots for sample KJ04-70:
 
-![svg](readme_figures/KJ04-75_rankorder.svg)
+![svg](readme_figures/KJ04-70_rankorder.svg)
 
-For each sample, the eruption/deposition age distribution is inherently asymmetric. For example:
+For each sample, the eruption/deposition age distribution is inherently asymmetric, because of the one-sided relationship between mineral closure and eruption/deposition. For example:
 
 ![svg](readme_figures/KJ04-70_distribution.svg)
 
