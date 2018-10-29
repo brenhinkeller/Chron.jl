@@ -44,6 +44,24 @@
     AgeUnit = "Ma" # Unit of measurement for ages and errors in the data files
     HeightUnit = "cm" # Unit of measurement for Height and Height_sigma
 
+    # For each sample in smpl.Name, we must have a csv file at smpl.Path which
+    # contains each individual mineral age and uncertainty. For instance,
+    # examples/DenverUPbExampleData/KJ08-157.csv contains:
+    #
+    #   66.12,0.14
+    #   66.115,0.048
+    #   66.11,0.1
+    #   66.11,0.17
+    #   66.096,0.056
+    #   66.088,0.081
+    #   66.085,0.076
+    #   66.073,0.084
+    #   66.07,0.11
+    #   66.055,0.043
+    #   66.05,0.16
+    #   65.97,0.12
+
+
 ## --- (Optional) Calculate bootstrapped distribution - - - - - - - - - - - - -
 
     # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution
