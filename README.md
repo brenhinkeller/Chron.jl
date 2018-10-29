@@ -73,9 +73,7 @@ AgeUnit = "Ma" # Unit of measurement for ages and errors in the data files
 HeightUnit = "cm"; # Unit of measurement for Height and Height_sigma
 ```
 
-For each sample in smpl.Name, we must have a csv file at smpl.Path which
-contains each individual mineral age and uncertainty. For instance,
-[examples/DenverUPbExampleData/KJ08-157.csv](examples/DenverUPbExampleData/KJ08-157.csv) contains:
+For each sample in `smpl.Name`, we must have a `.csv` file in `smpl.Path` which contains each individual mineral age and uncertainty. For instance, [examples/DenverUPbExampleData/KJ08-157.csv](examples/DenverUPbExampleData/KJ08-157.csv) contains:
 ```
 66.12,0.14
 66.115,0.048
