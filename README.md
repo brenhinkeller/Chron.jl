@@ -144,13 +144,11 @@ results = readdlm(smpl.Path*"results.csv",',')
 
 
 
-![svg](readme_figures/KJ04-75_rankorder.pdf)
-<img src="readme_figures/KJ04-75_rankorder.pdf">
+![svg](readme_figures/KJ04-75_rankorder.svg)
 
 For each sample, the eruption/deposition age distribution is inherently asymmetric. For example:
 
-![svg](readme_figures/KJ04-70_distribution.pdf)
-<img src="readme_figures/KJ04-70_distribution.pdf">
+![svg](readme_figures/KJ04-70_distribution.svg)
 
 Consequently, rather than simply taking a mean and standard deviation of the stationary distribtuion of the Markov Chain, the histogram of the stationary distribution is fit to an empirical distribution function of the form
 
