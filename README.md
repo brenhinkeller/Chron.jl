@@ -1,7 +1,6 @@
 # Chron.jl
 
 [![DOI](readme_figures/osf.io:TQX3F.svg)](https://doi.org/10.17605/OSF.IO/TQX3F)
-[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2Fdemo.ipynb)
 
 A two-part framework for (1) estimating eruption/deposition age distributions from complex mineral age spectra and (2) subsequently building a stratigraphic age model based on those distributions. Each step relies on a Markov-Chain Monte Carlo model.
 
@@ -90,7 +89,7 @@ To learn more about the eruption/deposition age estimation model, see also [Kell
 distSteps = 10^7
 distBurnin = floor(Int,distSteps/100)
 
-# Choose the form of the prior distribution to use. 
+# Choose the form of the prior distribution to use.
 # A variety of potentially useful distributions are provided in DistMetropolis.jl - Options include UniformDisribution,
 # TriangularDistribution, BootstrappedDistribution, and MeltsVolcanicZirconDistribution - or you can define your own.
 dist = TriangularDistribution;
@@ -136,7 +135,7 @@ results = readdlm(smpl.Path*"results.csv",',')
 
 
     6×5 Array{Any,2}:
-     "Sample"      "Age"    "2.5% CI"    "97.5% CI"   "sigma" 
+     "Sample"      "Age"    "2.5% CI"    "97.5% CI"   "sigma"
      "KJ08-157"  66.065   66.0312      66.0896       0.0151996
      "KJ04-75"   65.9744  65.9237      66.0056       0.0198365
      "KJ09-66"   65.9475  65.9143      65.9807       0.0168379
@@ -145,13 +144,13 @@ results = readdlm(smpl.Path*"results.csv",',')
 
 
 
-![pdf](readme_figures/KJ04-75_rankorder.pdf)
+![svg](readme_figures/KJ04-75_rankorder.pdf)
 
 For each sample, the eruption/deposition age distribution is inherently asymmetric. For example:
 
-![pdf](readme_figures/KJ04-70_distribution.pdf)
+![svg](readme_figures/KJ04-70_distribution.pdf)
 
-Consequently, rather than simply taking a mean and standard deviation of the stationary distribtuion of the Markov Chain, the histogram of the stationary distribution is fit to an empirical distribution function of the form 
+Consequently, rather than simply taking a mean and standard deviation of the stationary distribtuion of the Markov Chain, the histogram of the stationary distribution is fit to an empirical distribution function of the form
 
 $
 \begin{align
@@ -159,7 +158,7 @@ f(x) = a * \exp\left[d e \frac{x - b}{c}\left(\frac{1}{2} - \frac{\arctan\left(\
 \end{align}
 $
 
-where 
+where
 
 $
 \begin{align}
@@ -172,10 +171,10 @@ $
 ## Configure and run stratigraphic model
 note: to spare Binder's servers, this demo uses
 ```
-config.nsteps = 3000 
+config.nsteps = 3000
 config.burnin = 2000*npoints_approx
 ```
-However, you probably want higher numbers for a publication-quality result, for instance 
+However, you probably want higher numbers for a publication-quality result, for instance
 ```
 config.nsteps = 30000 # Number of steps to run in distribution MCMC
 config.burnin = 10000*npoints_approx # Number to discard
