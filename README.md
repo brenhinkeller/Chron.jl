@@ -147,12 +147,12 @@ For each sample, the eruption/deposition age distribution is inherently asymmetr
 Consequently, rather than simply taking a mean and standard deviation of the stationary distribtuion of the Markov Chain, the histogram of the stationary distribution is fit to an empirical distribution function of the form
 
 
-![png](readme_figures/Eqn1.png)
+<img src="readme_figures/Eqn1.png" width="565">
 
 
 where
 
-![png](readme_figures/Eqn2.png)
+<img src="readme_figures/Eqn2.png" width="110">
 
 *i.e.*, an asymmetric exponential function with two log-linear segments joined with an arctangent sigmoid. After fitting, the five parameters $a$ - $e$ are stored in `smpl.params` and passed to the stratigraphic model
 
@@ -188,7 +188,7 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 (mdl, agedist, lldist) = StratMetropolisDist(smpl, config); sleep(0.5)
 
 # Plot the log likelihood to make sure we're converged (n.b burnin isn't recorded)
-plot(lldist,xlabel="Step number",ylabel="Log likelihood",label="",line=(0.85,:darkblue))
+plot(lldist,xlabel="Step number",ylabel="Log likelihood",label="",line=(0.85,:darkblue))=
 ```
 
     Generating stratigraphic age-depth model...
