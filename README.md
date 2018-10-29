@@ -38,25 +38,18 @@ julia> notebook()
 
 After installing [Julia](https://julialang.org/downloads/) with or without [Juno](http://junolab.org/), and Chron.jl (above), run [examples/demo.jl](examples/demo.jl) to see how the code works. It should look something like this:
 
-#### Load external resources
-
+#### Load necessary Julia packages
 
 ```julia
-# Load (and install if necessary) the Chron.jl package
 if VERSION>=v"0.7"
     using Statistics, StatsBase, DelimitedFiles, SpecialFunctions
 else
     using Compat
 end
 
-try
-    using Chron
-catch
-    Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
-    using Chron
-end
+using Chron
 
-using Plots; gr(); default(fmt = :png)
+using Plots; gr();
 ```
 
 #### Enter sample information
@@ -81,7 +74,7 @@ HeightUnit = "cm"; # Unit of measurement for Height and Height_sigma
 ```
 
 #### Configure and run eruption/deposition age model
-To learn more about the eruption/deposition age estimation model, see also [Keller, Schoene, and Sameperton (2018)](https://doi.org/10.7185/geochemlet.1826) and the [BayeZirChron demo notebook](http://brenh.in/BayeZirChron)
+To learn more about the eruption/deposition age estimation model, see also [Keller, Schoene, and Sameperton (2018)](https://doi.org/10.7185/geochemlet.1826) and the [BayeZirChron demo notebook](http://brenh.in/BayeZirChron). It is important to note that this model (like most if not all others) has no knowledge of open-system behaviour, so *e.g.*, Pb-loss will lead to erroneous results.
 
 
 ```julia
@@ -153,19 +146,13 @@ For each sample, the eruption/deposition age distribution is inherently asymmetr
 
 Consequently, rather than simply taking a mean and standard deviation of the stationary distribtuion of the Markov Chain, the histogram of the stationary distribution is fit to an empirical distribution function of the form
 
-$
-\begin{align
-f(x) = a * \exp\left[d e \frac{x - b}{c}\left(\frac{1}{2} - \frac{\arctan\left(\frac{x - b}{c}\right)}{\pi}\right)  - \frac{d}{e}\frac{x - b}{c}\left(\frac{1}{2} + \frac{\arctan\left(\frac{x - b}{c}\right)}{\pi}\right)\right]
-\end{align}
-$
+
+![png](readme_figures/Eqn1.png)
+
 
 where
 
-$
-\begin{align}
-\{a,c,d,e\} \geq 0
-\end{align}
-$
+![png](readme_figures/Eqn2.png)
 
 *i.e.*, an asymmetric exponential function with two log-linear segments joined with an arctangent sigmoid. After fitting, the five parameters $a$ - $e$ are stored in `smpl.params` and passed to the stratigraphic model
 
