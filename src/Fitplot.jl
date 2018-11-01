@@ -107,14 +107,20 @@
             plot!(h1,1:nAnalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="Model interpretation")
             plot!(h1,1:nAnalyses,m,linecolor=:black,linestyle=:dot,label="",legend=:topleft,fg_color_legend=:white)
             savefig(h1,string(smpl.Path,smpl.Name[i],"_rankorder.pdf"))
+            savefig(h1,string(smpl.Path,smpl.Name[i],"_rankorder.svg"))
 
             # Plot model fit to histogram
             h2 = plot(bincenters,N,label="Histogram",fg_color_legend=:white)
             plot!(h2,bincenters, bilinear_exponential(bincenters,smpl.Params[:,i]), label="Curve fit")
             plot!(h2,legend=:topleft,xlabel="Age",ylabel="Probability density")
             savefig(h2,string(smpl.Path,smpl.Name[i],"_distribution.pdf"))
+            savefig(h2,string(smpl.Path,smpl.Name[i],"_distribution.svg"))
 
         end
+
+        # Save results as csv
+        results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(collect(smpl.Name),smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_sigma))
+        writedlm(joinpath(smpl.Path,"results.csv"), results, ',')
 
         return smpl
     end

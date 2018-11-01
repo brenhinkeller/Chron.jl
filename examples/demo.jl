@@ -88,9 +88,8 @@
     # Run MCMC to estimate saturation and eruption/deposition age distributions
     @time smpl = tMinDistMetropolis(smpl,distSteps,distBurnin,dist)
 
-    # Print results to file
-    results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(collect(smpl.Name),smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_sigma))
-    writedlm(joinpath(smpl.Path,"results.csv"), results, ',')
+    # This will save rank-order and distribution plots, and print results to a
+    # csv file -- you can find them in smpl.Path
 
     # # (Optional) Save the sample struct for later use
     # using JLD: @save, @load

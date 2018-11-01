@@ -2,12 +2,14 @@
 /*.pdf
 examples/*.pdf
 examples/*/*.pdf
+examples/*/*.svg
 *.jld
 *.jl.cov
 *.jl.*.cov
 *.jl.mem
 deps/deps.jl
 examples/DenverUPbExampleData/results.csv
+results.csv
 
 .ipynb_check*
 
