@@ -14,6 +14,8 @@
         Params::Array{Float64}
         Path::String
         inputSigmaLevel::Int
+        Age_Unit::String
+        Height_Unit::String
     end
 
     function NewStratAgeData(nSamples)
@@ -29,6 +31,8 @@
             fill(NaN,5,nSamples), # Sample age distribution parameters
             "Relative path where we can find .csv data files",
             2, # i.e., are the data files 1-sigma or 2-sigma
+            "Ma",
+            "m",
         )
         return smpl
     end
@@ -40,6 +44,8 @@
         Height_sigma::Array{Float64}
         Duration::Array{Float64}
         Duration_sigma::Array{Float64}
+        Age_Unit::String
+        Height_Unit::String
     end
 
     function NewHiatusData(nHiatuses)
@@ -48,6 +54,8 @@
             fill(NaN,nHiatuses),  # Height_sigma
             fill(NaN,nHiatuses),  # Duration
             fill(NaN,nHiatuses),  # Duration_sigma
+            "Ma",
+            "m",
         )
         return hiatus
     end

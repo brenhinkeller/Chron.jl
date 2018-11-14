@@ -40,9 +40,8 @@
     smpl.Age_Sidedness[:] = zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
     smpl.Path = "examples/DenverUPbExampleData/" # Where are the data files?
     smpl.inputSigmaLevel = 2 # i.e., are the data files 1-sigma or 2-sigma. Integer.
-
-    AgeUnit = "Ma" # Unit of measurement for ages and errors in the data files
-    HeightUnit = "cm" # Unit of measurement for Height and Height_sigma
+    smpl.Age_Unit = "Ma" # Unit of measurement for ages and errors in the data files
+    smpl.Height_Unit = "cm" # Unit of measurement for Height and Height_sigma
 
     # For each sample in smpl.Name, we must have a csv file at smpl.Path which
     # contains each individual mineral age and uncertainty. For instance,
@@ -144,7 +143,7 @@
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white)
     plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
-    plot!(hdl, xlabel="Age ($AgeUnit)", ylabel="Height ($HeightUnit)")
+    plot!(hdl, xlabel="Age ($smpl.Age_Unit)", ylabel="Height ($smpl.Height_Unit)")
     savefig(hdl,"AgeDepthModel.pdf")
     display(hdl)
 
@@ -195,7 +194,7 @@
     hdl = plot(bincenters,dhdt, label="Mean", color=:black, linewidth=2)
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(minimum(mdl.Height),0.4,:darkblue), linealpha=0, label="68% CI")
     plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
-    plot!(hdl, xlabel="Age ($AgeUnit)", ylabel="Depositional Rate ($HeightUnit / $AgeUnit over $binwidth $AgeUnit)", fg_color_legend=:white)
+    plot!(hdl, xlabel="Age ($smpl.Age_Unit)", ylabel="Depositional Rate ($smpl.Height_Unit / $smpl.Age_Unit over $binwidth $smpl.Age_Unit)", fg_color_legend=:white)
     ylims!(hdl, 0, 2500)
     savefig(hdl,"DepositionRateModel.pdf")
     display(hdl)
@@ -225,7 +224,7 @@
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_40p; reverse(dhdt_60p)], fill=(minimum(mdl.Height),0.2,:darkblue), linealpha=0, label="")
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_45p; reverse(dhdt_55p)], fill=(minimum(mdl.Height),0.2,:darkblue), linealpha=0, label="")
     plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
-    plot!(hdl, xlabel="Age ($AgeUnit)", ylabel="Depositional Rate ($HeightUnit / $AgeUnit over $binwidth $AgeUnit)", fg_color_legend=:white)
+    plot!(hdl, xlabel="Age ($smpl.Age_Unit)", ylabel="Depositional Rate ($smpl.Height_Unit / $smpl.Age_Unit over $binwidth $smpl.Age_Unit)", fg_color_legend=:white)
     savefig(hdl,"DepositionRateModelCI.pdf")
     display(hdl)
 
@@ -249,13 +248,13 @@
 
     # Plot image
     img = plot(bincenters,cntr(edges),A,yflip=false,xflip=false, colorbar=:right)
-    plot!(img, xlabel="Age ($AgeUnit)", ylabel="Rate ($HeightUnit / $AgeUnit, $binwidth $AgeUnit Bin)")
+    plot!(img, xlabel="Age ($smpl.Age_Unit)", ylabel="Rate ($smpl.Height_Unit / $smpl.Age_Unit, $binwidth $smpl.Age_Unit Bin)")
     savefig(img,"DepositionRateModelHeatmap.pdf")
     display(img)
 
     # dhdt_im_log = copy(dhdt_im)
     # dhdt_im_log[dhdt_im .>0] = log10.(dhdt_im[dhdt_im .>0])
-    # heatmap(bincenters,cntr(edges),dhdt_im_log, xlabel="Age ($AgeUnit)", ylabel="Rate ($HeightUnit / $AgeUnit, $binwidth $AgeUnit Bin)")
+    # heatmap(bincenters,cntr(edges),dhdt_im_log, xlabel="Age ($smpl.Age_Unit)", ylabel="Rate ($smpl.Height_Unit / $smpl.Age_Unit, $binwidth $smpl.Age_Unit Bin)")
 
 
 ## --- Probability that a given interval of stratigraphy was deposited entirely before/after a given time
@@ -281,7 +280,7 @@
 
     # Integrate the product
     prob_older = sum(test_prob_older .* prob_norm)
-    print("$(prob_older*100) % chance that $(mdl.Height[nearest]) $HeightUnit was deposited before $testAge +/- $testAge_sigma $AgeUnit Gaussian")
+    print("$(prob_older*100) % chance that $(mdl.Height[nearest]) $smpl.Height_Unit was deposited before $testAge +/- $testAge_sigma $smpl.Age_Unit Gaussian")
 
 
 ## --- (Optional) If your section has hiata / exposure surfaces of known duration, try this:
