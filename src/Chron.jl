@@ -69,7 +69,7 @@ module Chron
         tMinDistMetropolisLA, metropolis_minmax_cryst_LA,
         check_dist_LL, check_cryst_LL,
         bilinear_exponential, bilinear_exponential_LL,
-        plot_rankorder_errorbar, screen_outliers
+        plot_rankorder_errorbar, screen_outliers,
         BootstrapCrystDistributionKDE,
         BootstrapCrystDistributionKDEfromStrat
 
