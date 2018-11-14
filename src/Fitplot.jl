@@ -3,7 +3,7 @@
     function plot_rankorder_errorbar(data,uncert; seriestype=:scatter,ylabel="",label="",xticks=[],xlabel="")
         sI = sortperm(data)
         h = plot(1:length(sI),data[sI],yerror=uncert[sI],seriestype=seriestype,
-                 label=label,ylabel=ylabel,xlabel=xlabel,xticks=xticks)
+                 linecolor=:match,label=label,ylabel=ylabel,xlabel=xlabel,xticks=xticks)
         return h
     end
 
