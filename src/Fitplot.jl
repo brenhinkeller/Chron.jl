@@ -100,11 +100,11 @@
 
             # Rank-order plot of analyses and eruption/deposition age range
             nAnalyses = length(data[:,1])
-            h1 = plot_rankorder_errorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age ($(smpl.Age_Unit))",label="Data")
+            h1 = plot_rankorder_errorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age ($(smpl.Age_Unit))",label="Data (observed ages)")
             m = ones(nAnalyses).*smpl.Age[i]
             l = ones(nAnalyses).*smpl.Age_025CI[i]
             u = ones(nAnalyses).*smpl.Age_975CI[i]
-            plot!(h1,1:nAnalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="Model: $(round(m,sigdigits=5)) +$(round(u-m,sigdigits=2))/-$(round(m-l,sigdigits=2)) $(smpl.Age_Unit)")
+            plot!(h1,1:nAnalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="Model ($(round(m[1],digits=3)) +$(round(u[1]-m[1],digits=3))/-$(round(m[1]-l[1],digits=3)) $(smpl.Age_Unit))")
             plot!(h1,1:nAnalyses,m,linecolor=:black,linestyle=:dot,label="",legend=:topleft,fg_color_legend=:white,framestyle=:box)
             savefig(h1,string(smpl.Path,smpl.Name[i],"_rankorder.pdf"))
             savefig(h1,string(smpl.Path,smpl.Name[i],"_rankorder.svg"))

@@ -22,14 +22,20 @@ __precompile__()
 
 module Chron
 
-    # Backwards compatibility
-    using Compat
+
     # Forwards compatibility
     if VERSION>=v"0.7"
         using Statistics
         using StatsBase
         using DelimitedFiles
         using SpecialFunctions
+    else
+        # Backwards compatibility
+        using Compat
+
+        # Various ugly hacks
+        import Base.round
+        round(x; digits=n::Number) = round(x,digits)
     end
 
     # Basic statistics and UI resources
