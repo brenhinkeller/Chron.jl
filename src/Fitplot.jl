@@ -23,7 +23,7 @@
             hdl = plot(1:nAnalyses,data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:red, markerstrokecolor=:red,label="rejected",legend=:topleft,framestyle=:box,fg_color_legend=:white)
 
             # Filter data to exclude outliers
-            sigma = nanmean(data[j,2]) / smpl.inputSigmaLevel
+            sigma = nanmean(data[:,2]) / smpl.inputSigmaLevel
             for j=nAnalyses:-1:2
                 dt_sigma = abs(data[j,1]-data[j-1,1]) / sigma # Time gap divided by relative sigma
 
