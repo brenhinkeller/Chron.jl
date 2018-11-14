@@ -11,7 +11,7 @@
 
     # Bootstrap a KDE of the pre-eruptive (or pre-deposition) mineral crystallization
     # distribution shape from a 2-d array of sample ages using a KDE of stacked sample data
-    function BootstrapCrystDistributionKDEfromStrat(smpl::StratAgeData; cutoff=-0.05::Number)
+    function BootstrapCrystDistributionKDEfromStrat(smpl::StratAgeData; cutoff::Number=-0.05)
         # Load all data points and scale from 0 to 1
         allscaled = Array{Float64}([])
         for i=1:length(smpl.Name)
@@ -41,7 +41,7 @@
 
     # Bootstrap a KDE of the pre-eruptive (or pre-deposition) mineral crystallization
     # distribution shape from a 2-d array of sample ages using a KDE of stacked sample data
-    function BootstrapCrystDistributionKDE(data::Array{Float64}; cutoff=-0.05::Number)
+    function BootstrapCrystDistributionKDE(data::Array{Float64}; cutoff::Number=-0.05)
         # Load all data points and scale from 0 to 1
         allscaled = Array{Float64,1}([])
         for i=1:size(data,2)
