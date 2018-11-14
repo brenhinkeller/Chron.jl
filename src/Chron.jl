@@ -76,7 +76,7 @@ module Chron
         draw_from_distribution, fill_from_distribution
 
     # Colormaps
-    export viridis, inferno, plasma, magma, fire
+    export viridis, inferno, plasma, magma, fire, water
 
     # Distributions
     export UniformDistribution, TriangularDistribution, HalfNormalDistribution, TruncatedNormalDistribution,
