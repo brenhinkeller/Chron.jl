@@ -45,9 +45,9 @@
         # Load all data points and scale from 0 to 1
         allscaled = Array{Float64,1}([])
         for i=1:size(data,2)
-            scaled = data[:,i]-minimum(data[:,i])
+            scaled = data[:,i] .- minimum(data[:,i])
             if maximum(scaled) > 0
-                scaled = scaled./maximum(scaled)
+                scaled = scaled ./ maximum(scaled)
             end
             allscaled = [allscaled; scaled]
         end
