@@ -7,7 +7,41 @@
         return h
     end
 
-## -- Bootstrap prior distribution shape
+## --- Remove outliers
+
+    function screen_outliers(smpl::StratAgeData; maxgap=100)
+        system("mkdir -p $(smpl.Path)screened/")
+        for i=1:length(smpl.Name)
+            # With screening
+            # Maximum offset before cutoff
+            data = readdlm("$(smpl.Path)$(smpl.Name[i]).csv", ',')
+            data = sortslices(data,dims=1) # Sort ages in ascending order
+            nAnalyses = size(data,1)
+            maxdt_sigma = maxgap*norm_width(nAnalyses)/nAnalyses
+
+            # Rank-order plot of all individual ages for comparison
+            hdl = plot(1:nAnalyses,data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:red, markerstrokecolor=:red,label="rejected",legend=:topleft,framestyle=:box,fg_color_legend=:white)
+
+            # Filter data to exclude outliers
+            sigma = nanmean(data[j,2]) / smpl.inputSigmaLevel
+            for j=nAnalyses:-1:2
+                dt_sigma = abs(data[j,1]-data[j-1,1]) / sigma # Time gap divided by relative sigma
+
+                # If we exceed the maximum allowed dt/sigma, delete any points
+                # below (older than) the gap
+                if dt_sigma>maxdt_sigma && j>2
+                    data=data[1:j-1,:]
+                end
+            end
+            plot!(hdl, 1:size(data,1),data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:blue,markerstrokecolor=:blue,label="included",xlabel="N",ylabel="Age ($(smpl.Age_Unit))")
+            savefig(hdl,"$(smpl.Path)screened/$(smpl.Name[i])_screening.pdf")
+            writedlm("$(smpl.Path)screened/$(smpl.Name[i]).csv", data, ',')
+        end
+        smpl.Path = "$(smpl.Path)screened/"
+        return smpl
+    end
+
+## --- Bootstrap prior distribution shape
 
     # Bootstrap a KDE of the pre-eruptive (or pre-deposition) mineral crystallization
     # distribution shape from a 2-d array of sample ages using a KDE of stacked sample data

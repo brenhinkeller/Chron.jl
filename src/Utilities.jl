@@ -117,6 +117,13 @@
         return sqrt(2)*erfinv(2*F-1)
     end
 
+    # How dispersed (in units of sigma) should we expect a sample of N numbers
+    # drawn from a Normal (Gaussian) distribution to be?
+    function norm_width(N)
+        F = 1 - 1/(N+1)
+        return 2*norm_quantile(F)
+    end
+
 ## --- Drawing from distributions
 
     # Draw random numbers from a distribution specified by a vector of points

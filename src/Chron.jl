@@ -69,7 +69,7 @@ module Chron
         tMinDistMetropolisLA, metropolis_minmax_cryst_LA,
         check_dist_LL, check_cryst_LL,
         bilinear_exponential, bilinear_exponential_LL,
-        plot_rankorder_errorbar,
+        plot_rankorder_errorbar, screen_outliers
         BootstrapCrystDistributionKDE,
         BootstrapCrystDistributionKDEfromStrat
 
@@ -77,7 +77,7 @@ module Chron
     # Utility functions
     export nanminimum, nanmaximum, nanrange, pctile, nanmedian, nanmean, nanstd,
         linsp, linterp1s, linterp1, cntr, gwmean, awmean,
-        normpdf, normcdf, norm_quantile,
+        normpdf, normcdf, norm_quantile, norm_width,
         findclosest, findclosestbelow, findclosestabove,
         draw_from_distribution, fill_from_distribution
 
