@@ -23,9 +23,9 @@
             hdl = plot(1:nAnalyses,data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:red, markerstrokecolor=:red,label="rejected",legend=:topleft,framestyle=:box,fg_color_legend=:white)
 
             # Filter data to exclude outliers
-            sigma = nanmean(data[:,2]) / smpl.inputSigmaLevel
+            sigma_mutual = nanmean(data[:,2]) / smpl.inputSigmaLevel * sqrt(2)
             for j=nAnalyses:-1:2
-                dt_sigma = abs(data[j,1]-data[j-1,1]) / sigma # Time gap divided by relative sigma
+                dt_sigma = abs(data[j,1]-data[j-1,1]) / sigma_mutual # Time gap divided by relative sigma
 
                 # If we exceed the maximum allowed dt/sigma, delete any points
                 # below (older than) the gap
