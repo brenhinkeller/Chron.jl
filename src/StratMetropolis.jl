@@ -10,6 +10,8 @@
         Age_sigma::Array{Float64}
         Age_025CI::Array{Float64}
         Age_975CI::Array{Float64}
+        Age_14C::Array{Float64}
+        Age_14C_sigma::Array{Float64}
         Age_Sidedness::Array{Float64}
         Params::Array{Float64}
         Path::String
@@ -27,9 +29,11 @@
             fill(NaN,nSamples),  # Sample age uncertainty
             fill(NaN,nSamples),  # Sample age 2.5% CI
             fill(NaN,nSamples),  # Sample age 97.5% CI
+            fill(NaN,nSamples),  # Sample 14C ages
+            fill(NaN,nSamples),  # Sample 14C uncertainties
             zeros(nSamples), # Sidedness (zeros by default, geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
             fill(NaN,5,nSamples), # Sample age distribution parameters
-            "Relative path where we can find .csv data files",
+            "./", # Relative path where we can find .csv data files
             2, # i.e., are the data files 1-sigma or 2-sigma
             "Ma",
             "m",
@@ -962,3 +966,188 @@
 
         return mdl, agedist[active_height_t,:], lldist, hiatusdist
     end
+
+## --- Stratigraphic MCMC model without hiatus, for radiocarbon ages # # # # # #
+
+    function StratMetropolis14C(smpl::StratAgeData,config::StratAgeModelConfiguration)
+        # Run stratigraphic MCMC model
+
+        print("Generating stratigraphic age-depth model...\n")
+
+        # Model configuration -- read from struct
+        resolution = config.resolution
+        burnin = config.burnin
+        nsteps = config.nsteps
+        sieve = config.sieve
+        bounding = config.bounding
+
+        # Stratigraphic age constraints
+        (bottom, top) = extrema(smpl.Height)
+        (youngest, oldest) = extrema(smpl.Age)
+        dt_dH = (oldest-youngest)/(top-bottom)
+        aveuncert = mean(smpl.Age_sigma)
+        p = smpl.Params
+
+        if bounding>0
+            # If bounding is requested, add extrapolated top and bottom bounds to avoid
+            # issues with the stratigraphic markov chain wandering off to +/- infinity
+            offset = (top-bottom)*bounding
+            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]
+            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]
+            Height = [bottom-offset; smpl.Height; top+offset]
+            Height_sigma = [0; smpl.Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
+            model_heights = (bottom-offset):resolution:(top+offset)
+            boundsigma = mean(smpl.Age_sigma)/10
+            pl = normpdf_LL.(oldest + offset*dt_dH, boundsigma, intcal["Age_Calendar"])
+            pu = normpdf_LL.(youngest - offset*dt_dH, boundsigma, intcal["Age_Calendar"])
+            p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
+        else
+            Age = smpl.Age
+            Age_sigma = smpl.Age_sigma
+            Height = smpl.Height
+            Height_sigma = smpl.Height_sigma .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = smpl.Age_Sidedness # Bottom is a maximum age and top is a minimum age
+            model_heights = bottom:resolution:top
+        end
+        active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
+        npoints = length(model_heights)
+
+        # Start with a linear fit as an initial proposal
+        (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
+        mages = a .+ b .* collect(model_heights)
+
+
+        # Calculate log likelihood of initial proposal
+        # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
+        # proposals older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
+        sample_height = Height
+        closest = findclosest(sample_height,model_heights)
+        agell = interpolate_LL(mages[closest],p)
+        heightll = .- (sample_height .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
+        diff_sign = Age_Sidedness .!= sign.(mages[closest] .- Age)
+        ll = sum(agell[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll)
+
+        # Introduce variables so they will be accessible outside loop
+        mages_prop = copy(mages)
+        closest_prop = copy(closest)
+        sample_height_prop = copy(sample_height)
+        ll_prop = copy(ll)
+
+        acceptancedist = fill(false,burnin)
+        # Run burnin
+        print("Burn-in: ", burnin, " steps\n")
+        index = collect(1:npoints)
+        @showprogress 5 "Burn-in..." for i=1:burnin
+            mages_prop = copy(mages)
+            closest_prop = copy(closest)
+            sample_height_prop = copy(sample_height)
+
+            if rand() < 0.1
+                # Adjust heights
+                sample_height_prop += randn(size(Height)) .* Height_sigma
+                closest_prop = findclosest(sample_height_prop, model_heights)
+            else
+                # Adjust one point at a time then resolve conflicts
+                r = randn() * aveuncert # Generate a random adjustment
+                chosen_point = ceil(Int, rand() * npoints) # Pick a point
+                mages_prop[chosen_point] = mages[chosen_point] + r
+                #Resolve conflicts
+                if r > 0 # If proposing increased age
+                    younger_points_below = (mages_prop .< mages_prop[chosen_point]) .& (index .< chosen_point)
+                    mages_prop[younger_points_below] .= mages_prop[chosen_point]
+                else # if proposing decreased age
+                    older_points_above = (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point)
+                    mages_prop[older_points_above] .= mages_prop[chosen_point]
+                end
+            end
+
+
+            # Calculate log likelihood of proposal
+            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
+            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
+            agell_prop = interpolate_LL(mages_prop[closest_prop],p)
+            heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
+            diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop] .- Age)
+            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
+
+            # Accept or reject proposal based on likelihood
+            if log(rand(Float64)) < (ll_prop - ll)
+                mages = copy(mages_prop)
+                sample_height = copy(sample_height_prop)
+                closest = copy(closest_prop)
+                ll = copy(ll_prop)
+                acceptancedist[i] = true
+            end
+        end
+
+        # Run Markov Chain Monte Carlo
+        print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
+        agedist = Array{Float64}(undef,npoints,nsteps)
+        lldist = Array{Float64}(undef,nsteps)
+        # acceptancedist = Array{Bool}(undef,nsteps)
+
+
+        # Run the model
+        @showprogress 5 "Collecting..." for i=1:(nsteps*sieve)
+            mages_prop = copy(mages)
+            closest_prop = copy(closest)
+            sample_height_prop = copy(sample_height)
+
+            if rand() < 0.1
+                # Adjust heights
+                sample_height_prop += randn(size(Height)) .* Height_sigma
+                closest_prop = findclosest(sample_height_prop, model_heights)
+            else
+                # Adjust one point at a time then resolve conflicts
+                r = randn() * aveuncert # Generate a random adjustment
+                chosen_point = ceil(Int, rand() * npoints) # Pick a point
+                mages_prop[chosen_point] = mages[chosen_point] + r
+                #Resolve conflicts
+                if r > 0 # If proposing increased age
+                    younger_points_below = (mages_prop .< mages_prop[chosen_point]) .& (index .< chosen_point)
+                    mages_prop[younger_points_below] .= mages_prop[chosen_point]
+                else # if proposing decreased age
+                    older_points_above = (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point)
+                    mages_prop[older_points_above] .= mages_prop[chosen_point]
+                end
+            end
+
+            # Calculate log likelihood of proposal
+            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
+            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
+            agell_prop = interpolate_LL(mages_prop[closest_prop],p)
+            heightll_prop = .-(sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
+            diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop] .- Age)
+            ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
+
+
+            # Accept or reject proposal based on likelihood
+            if log(rand(Float64)) < (ll_prop - ll)
+                mages = copy(mages_prop)
+                sample_height = copy(sample_height_prop)
+                closest = copy(closest_prop)
+                ll = copy(ll_prop)
+            end
+
+            # Record sieved results
+            if mod(i,sieve) == 0
+                agedist[:,Int(i/sieve)] = mages
+                lldist[Int(i/sieve)] = ll
+            end
+        end
+
+        mdl = StratAgeModel(
+            model_heights[active_height_t], # Model heights
+            nanmean(agedist[active_height_t,:],dim=2), # Mean age
+            nanstd(agedist[active_height_t,:],dim=2), # Standard deviation
+            nanmedian(agedist[active_height_t,:],dim=2), # Median age
+            pctile(agedist[active_height_t,:],2.5,dim=2), # 2.5th percentile
+            pctile(agedist[active_height_t,:],97.5,dim=2) # 97.5th percentile
+        )
+
+        return mdl, agedist[active_height_t,:], lldist
+    end
+    export StratMetropolis14C
+
+## ---

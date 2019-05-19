@@ -46,18 +46,20 @@ module Chron
     using Interpolations
 
     # Weighted mean, etc
-    include("Utilities.jl");
+    include("Utilities.jl")
+    # Intcal2013 calibration curve for radiocarbion
+    include("Intcal.jl")
     # Functions for estimating extrema of a finite-range distribution
-    include("DistMetropolis.jl");
+    include("DistMetropolis.jl")
     # Functions for stratigraphic modelling
-    include("StratMetropolis.jl");
+    include("StratMetropolis.jl")
 
     # Higher-level functions for fitting and plotting
     using Colors: RGB, N0f8
-    include("Colormaps.jl");
+    include("Colormaps.jl")
 
     using Plots; gr();
-    include("Fitplot.jl");
+    include("Fitplot.jl")
 
     # Structs
     export StratAgeData, HiatusData, StratAgeModelConfiguration, StratAgeModel
@@ -66,8 +68,6 @@ module Chron
     export  StratMetropolis, StratMetropolisHiatus,
         StratMetropolisDist, StratMetropolisDistHiatus,
         tMinDistMetropolis, metropolis_minmax_cryst,
-        tMinDistMetropolisLA, metropolis_minmax_cryst_LA,
-        check_dist_LL, check_cryst_LL,
         bilinear_exponential, bilinear_exponential_LL,
         plot_rankorder_errorbar, screen_outliers,
         BootstrapCrystDistributionKDE,
@@ -79,7 +79,8 @@ module Chron
         linsp, linterp1s, linterp1, cntr, gwmean, awmean,
         normpdf, normcdf, norm_quantile, norm_width,
         findclosest, findclosestbelow, findclosestabove,
-        draw_from_distribution, fill_from_distribution
+        draw_from_distribution, fill_from_distribution,
+        linterp_at_index, interpolate_LL
 
     # Colormaps
     export viridis, inferno, plasma, magma, fire, water

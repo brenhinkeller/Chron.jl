@@ -64,7 +64,19 @@
         return wx, wsigma, mswd
     end
 
-## --- Interpolating
+## --- Interpolation
+
+    # Linearly interpolate vector y at index i, returning outboundsval if out of bounds
+    function linterp_at_index(y::AbstractArray, i::Number, outboundsval=NaN)
+        if i > 1 && i < length(y)
+            i_below = floor(Int, i)
+            i_above = i_below + 1
+            f = i - i_below
+            return @inbounds Float64(f*y[i_above] + (1-f)*y[i_below])
+        else
+            return Float64(outboundsval)
+        end
+    end
 
     # Linear interpolation, sorting inputs
     if VERSION>v"0.7"
@@ -104,6 +116,12 @@
     function normpdf(mu::Number,sigma::Number,x::Number)
         return exp(-(x-mu)*(x-mu) / (2*sigma*sigma)) / (sqrt(2*pi)*sigma)
     end
+
+    # Fast Log Likelihood corresponding to a Normal (Gaussian) distribution
+    function normpdf_LL(mu::Number,sigma::Number,x::Number)
+        return -(x-mu)*(x-mu) / (2*sigma*sigma)
+    end
+    export normpdf_LL
 
     # Cumulative density function of the Normal (Gaussian) distribution
     # Not precise enough for many uses, unfortunately
@@ -205,6 +223,15 @@
         v = 1/2 .- atan.(xs)./pi # Sigmoid (positive on LHS)
         f = log.(p[1,:]) + (p[4,:].^2).*(p[5,:].^2).*xs.*v .- (p[4,:].^2)./(p[5,:].^2).*xs.*(1 .- v)
         return f
+    end
+
+    # Interpolate log likelihood from an array
+    function interpolate_LL(x,p)
+        ll = Array{Float64}(undef, size(x))
+        for i = 1:length(x)
+            ll[i] = linterp_at_index(p[:,i], x[i], -Inf)
+        end
+        return ll
     end
 
     # # Two-sided linear exponential distribution joined by an atan sigmoid.
