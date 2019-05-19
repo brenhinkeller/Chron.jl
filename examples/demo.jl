@@ -17,7 +17,13 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 ## --- Load the Chron package - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    using Chron
+    try
+        using Chron
+    catch
+        Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
+        using Chron
+    end
+
     using Plots; gr(); default(fmt = :svg)
 
     if VERSION>=v"0.7"
