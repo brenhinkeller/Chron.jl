@@ -28,7 +28,6 @@ module Chron
         using Statistics
         using StatsBase
         using DelimitedFiles
-        using SpecialFunctions
     else
         # Backwards compatibility
         using Compat
@@ -46,6 +45,7 @@ module Chron
     using Interpolations
 
     # Weighted mean, etc
+    include("erf.jl")
     include("Utilities.jl")
     # Intcal2013 calibration curve for radiocarbion
     include("Intcal.jl")
