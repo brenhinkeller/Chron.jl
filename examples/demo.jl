@@ -78,8 +78,8 @@
 ## --- Estimate the eruption age distributions for each sample  - - - - - - - -
 
     # Configure distribution model here
-    distSteps = 10^7 # Number of steps to run in distribution MCMC
-    distBurnin = floor(Int,distSteps/100) # Number to discard
+    distSteps = 10^6 # Number of steps to run in distribution MCMC
+    distBurnin = floor(Int,distSteps/10) # Number to discard
 
     # Choose the form of the prior distribution to use
     # A variety of potentially useful distributions are provided in DistMetropolis.jl
@@ -143,28 +143,35 @@
     # (mdl, agedist, lldist) = StratMetropolis(smpl, config)
 
 
-## --- Plot strat model - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+## --- Plot stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - - 
 
     # Plot results (mean and 95% confidence interval for both model and data)
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white)
     plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
-    plot!(hdl, xlabel="Age ($smpl.Age_Unit)", ylabel="Height ($smpl.Height_Unit)")
+    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
     savefig(hdl,"AgeDepthModel.pdf")
     display(hdl)
 
-    # Interpolate results at KTB (height = 0)
-    KTB = linterp1s(mdl.Height,mdl.Age,0)
-    KTB_min = linterp1s(mdl.Height,mdl.Age_025CI,0)
-    KTB_max = linterp1s(mdl.Height,mdl.Age_975CI,0)
-    print("Interpolated age: $KTB +$(KTB_max-KTB)/-$(KTB-KTB_min) Ma")
+## --- Interpolate model age at a specific stratigraphic height - - - - - - - -
+
+    # Stratigraphic height at which to interpolate
+    height = 0
+
+    age_at_height = linterp1s(mdl.Height,mdl.Age,height)
+    age_at_height_min = linterp1s(mdl.Height,mdl.Age_025CI,height)
+    age_at_height_max = linterp1s(mdl.Height,mdl.Age_975CI,height)
+    print("Interpolated age at height=$height: $age_at_height +$(age_at_height_max-age_at_height)/-$(age_at_height-age_at_height_min) $(smpl.Age_Unit)")
 
     # Optional: interpolate full age distribution
-    height = 0
     interpolated_distribution = Array{Float64}(undef,size(agedist,2))
     for i=1:size(agedist,2)
         interpolated_distribution[i] = linterp1s(mdl.Height,agedist[:,i],height)
     end
+    hdl = histogram(interpolated_distribution, nbins=50, label="")
+    plot!(hdl, xlabel="Age ($(smpl.Age_Unit)) at height=$height", ylabel="Likelihood (unnormalized)")
+    savefig(hdl, "Interpolated age distribution.pdf")
+    display(hdl)
 
 ## --- Calculate deposition rate binned by age  - - - - - - - - - - - - - - - -
 
@@ -200,7 +207,7 @@
     hdl = plot(bincenters,dhdt, label="Mean", color=:black, linewidth=2)
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(minimum(mdl.Height),0.4,:darkblue), linealpha=0, label="68% CI")
     plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
-    plot!(hdl, xlabel="Age ($smpl.Age_Unit)", ylabel="Depositional Rate ($smpl.Height_Unit / $smpl.Age_Unit over $binwidth $smpl.Age_Unit)", fg_color_legend=:white)
+    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Depositional Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))", fg_color_legend=:white)
     ylims!(hdl, 0, 2500)
     savefig(hdl,"DepositionRateModel.pdf")
     display(hdl)
@@ -230,7 +237,7 @@
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_40p; reverse(dhdt_60p)], fill=(minimum(mdl.Height),0.2,:darkblue), linealpha=0, label="")
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_45p; reverse(dhdt_55p)], fill=(minimum(mdl.Height),0.2,:darkblue), linealpha=0, label="")
     plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
-    plot!(hdl, xlabel="Age ($smpl.Age_Unit)", ylabel="Depositional Rate ($smpl.Height_Unit / $smpl.Age_Unit over $binwidth $smpl.Age_Unit)", fg_color_legend=:white)
+    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Depositional Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))", fg_color_legend=:white)
     savefig(hdl,"DepositionRateModelCI.pdf")
     display(hdl)
 
@@ -254,14 +261,13 @@
 
     # Plot image
     img = plot(bincenters,cntr(edges),A,yflip=false,xflip=false, colorbar=:right)
-    plot!(img, xlabel="Age ($smpl.Age_Unit)", ylabel="Rate ($smpl.Height_Unit / $smpl.Age_Unit, $binwidth $smpl.Age_Unit Bin)")
+    plot!(img, xlabel="Age ($(smpl.Age_Unit))", ylabel="Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit), $binwidth $(smpl.Age_Unit) Bin)")
     savefig(img,"DepositionRateModelHeatmap.pdf")
     display(img)
 
     # dhdt_im_log = copy(dhdt_im)
     # dhdt_im_log[dhdt_im .>0] = log10.(dhdt_im[dhdt_im .>0])
     # heatmap(bincenters,cntr(edges),dhdt_im_log, xlabel="Age ($smpl.Age_Unit)", ylabel="Rate ($smpl.Height_Unit / $smpl.Age_Unit, $binwidth $smpl.Age_Unit Bin)")
-
 
 ## --- Probability that a given interval of stratigraphy was deposited entirely before/after a given time
 
@@ -286,7 +292,7 @@
 
     # Integrate the product
     prob_older = sum(test_prob_older .* prob_norm)
-    print("$(prob_older*100) % chance that $(mdl.Height[nearest]) $smpl.Height_Unit was deposited before $testAge +/- $testAge_sigma $smpl.Age_Unit Gaussian")
+    print("$(prob_older*100) % chance that $(mdl.Height[nearest]) $(smpl.Height_Unit) was deposited before $testAge +/- $testAge_sigma $(smpl.Age_Unit) Gaussian")
 
 
 ## --- (Optional) If your section has hiata / exposure surfaces of known duration, try this:
