@@ -1,6 +1,6 @@
 # Chron.jl
 
-[![DOI](readme_figures/osf.io:TQX3F.svg)](https://doi.org/10.17605/OSF.IO/TQX3F)
+[![DOI](readme_figures/osf_io_TQX3F.svg)](https://doi.org/10.17605/OSF.IO/TQX3F)
 
 A two-part framework for (1) estimating eruption/deposition age distributions from complex mineral age spectra and (2) subsequently building a stratigraphic age model based on those distributions. Each step relies on a Markov-Chain Monte Carlo model.
 
