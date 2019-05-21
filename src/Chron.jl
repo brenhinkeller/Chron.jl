@@ -22,17 +22,10 @@ __precompile__()
 
 module Chron
 
-
-    # Forwards compatibility
-    if VERSION>=v"0.7"
-        using Statistics
-        using StatsBase
-        using DelimitedFiles
-    else
-        # Backwards compatibility
+    if VERSION>=v"0.7" # Forwards compatibility
+        using Statistics, StatsBase, DelimitedFiles, SpecialFunctions
+    else # Backwards compatibility
         using Compat
-
-        # Various ugly hacks
         import Base.round
         round(x; digits=n::Number) = round(x,digits)
     end
@@ -45,7 +38,6 @@ module Chron
     using Interpolations
 
     # Weighted mean, etc
-    include("erf.jl")
     include("Utilities.jl")
     # Intcal2013 calibration curve for radiocarbion
     include("Intcal.jl")
