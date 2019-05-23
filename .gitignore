@@ -1,8 +1,12 @@
 .DS_STORE
 /*.pdf
 examples/*.pdf
+examples/*.svg
 examples/*/*.pdf
 examples/*/*.svg
+examples/MyData/
+examples/agedist.csv
+*.tar.gz
 *.jld
 *.jl.cov
 *.jl.*.cov
