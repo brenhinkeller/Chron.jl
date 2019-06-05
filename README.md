@@ -6,7 +6,7 @@ A two-part framework for (1) estimating eruption/deposition age distributions fr
 
 The first (distribution) MCMC model is based on the work of [Keller, Schoene, and Samperton (2018)]( https://doi.org/10.7185/geochemlet.1826) and uses information about the possible shape of the true mineral crystallization (or closure) age distribution (e.g., no crystallization possible after eruption or deposition). In this first model, the true eruption or deposition age is a parameter of this scaled crystallization distribution. The stationary distribution of this first MCMC model then gives an estimate of the eruption/deposition age.
 
-The second (stratigraphic) MCMC  model uses the estimated (posterior) eruption/deposition age distributions along with the constraint of stratigraphic superposition to produce an age-depth model
+The second (stratigraphic) MCMC model, developed for use in [Schoene et al. (2019)](https://doi.org/10.1126/science.aau2422) and [Deino et al. (2019)](https://doi.org/10.1016/j.quascirev.2019.05.009) among others, uses the estimated (posterior) eruption/deposition age distributions along with the constraint of stratigraphic superposition to produce an age-depth model. This stratigraphic model can incorporate either standard Gaussian or asymmetric empirical distributions as age constraints, as well additional complications such as hiatuses of known minimum duration, height uncertainty, and one-sided age constraints. The stationary distribution of this second MCMC model yields an estimate of age at each model horizon throughout the section.
 
 ## Installation
 
