@@ -7,6 +7,19 @@
         return h
     end
 
+    function plot_rankorder_errorbar!(h::Plots.Plot,data,uncert,i0; seriestype=:scatter,ylabel="",label="",xticks=[],xlabel="")
+        sI = sortperm(data)
+        plot!(h, i0 .+ (1:length(sI)),data[sI],yerror=uncert[sI],seriestype=seriestype,
+                 markerstrokecolor=:auto,label=label,ylabel=ylabel,xlabel=xlabel,xticks=xticks)
+    end
+
+    function plot_rankorder_errorbar!(data,uncert,i0; seriestype=:scatter,ylabel="",label="",xticks=[],xlabel="")
+        sI = sortperm(data)
+        plot!(i0 .+ (1:length(sI)),data[sI],yerror=uncert[sI],seriestype=seriestype,
+                 markerstrokecolor=:auto,label=label,ylabel=ylabel,xlabel=xlabel,xticks=xticks)
+    end
+
+
 ## --- Remove outliers
 
     function screen_outliers(smpl::StratAgeData; maxgap=100)
