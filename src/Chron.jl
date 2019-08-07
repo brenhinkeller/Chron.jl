@@ -61,8 +61,8 @@ module Chron
         StratMetropolisDist, StratMetropolisDistHiatus,
         tMinDistMetropolis, metropolis_minmax_cryst,
         bilinear_exponential, bilinear_exponential_LL,
-        plot_rankorder_errorbar, screen_outliers,
-        BootstrapCrystDistributionKDE,
+        plot_rankorder_errorbar, plot_rankorder_errorbar!,
+        screen_outliers, BootstrapCrystDistributionKDE,
         BootstrapCrystDistributionKDEfromStrat
 
 
