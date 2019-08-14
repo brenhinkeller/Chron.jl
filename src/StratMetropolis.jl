@@ -1,97 +1,6 @@
-## --- Custom objects for holding stratigraphic age data
-
-    # Define a type of struct object to hold data about geochron samples from
-    # a stratigraphic section of interest
-    mutable struct StratAgeData
-        Name::Tuple
-        Height::Array{Float64}
-        Height_sigma::Array{Float64}
-        Age::Array{Float64}
-        Age_sigma::Array{Float64}
-        Age_025CI::Array{Float64}
-        Age_975CI::Array{Float64}
-        Age_14C::Array{Float64}
-        Age_14C_sigma::Array{Float64}
-        Age_Sidedness::Array{Float64}
-        Params::Array{Float64}
-        Path::String
-        inputSigmaLevel::Int
-        Age_Unit::String
-        Height_Unit::String
-    end
-
-    function NewStratAgeData(nSamples)
-        smpl = StratAgeData(
-            ("Sample Names",),
-            fill(NaN,nSamples),  # Sample heights
-            fill(NaN,nSamples),  # Height_sigma
-            fill(NaN,nSamples),  # Sample ages
-            fill(NaN,nSamples),  # Sample age uncertainty
-            fill(NaN,nSamples),  # Sample age 2.5% CI
-            fill(NaN,nSamples),  # Sample age 97.5% CI
-            fill(NaN,nSamples),  # Sample 14C ages
-            fill(NaN,nSamples),  # Sample 14C uncertainties
-            zeros(nSamples), # Sidedness (zeros by default, geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
-            fill(NaN,5,nSamples), # Sample age distribution parameters
-            "./", # Relative path where we can find .csv data files
-            2, # i.e., are the data files 1-sigma or 2-sigma
-            "Ma",
-            "m",
-        )
-        return smpl
-    end
-    export NewStratAgeData
-
-    # A type of object to hold data about hiatuses
-    mutable struct HiatusData
-        Height::Array{Float64}
-        Height_sigma::Array{Float64}
-        Duration::Array{Float64}
-        Duration_sigma::Array{Float64}
-        Age_Unit::String
-        Height_Unit::String
-    end
-
-    function NewHiatusData(nHiatuses)
-        hiatus = HiatusData(
-            fill(NaN,nHiatuses),  # Height
-            fill(NaN,nHiatuses),  # Height_sigma
-            fill(NaN,nHiatuses),  # Duration
-            fill(NaN,nHiatuses),  # Duration_sigma
-            "Ma",
-            "m",
-        )
-        return hiatus
-    end
-    export NewHiatusData
-
-    # A type of object to specify the configuration of the stratigraphic model
-    mutable struct StratAgeModelConfiguration
-        resolution::Float64
-        burnin::Int
-        nsteps::Int
-        sieve::Int
-        bounding::Float64
-    end
-
-    function NewStratAgeModelConfiguration()
-        return StratAgeModelConfiguration(NaN, 0, 0, 0, NaN)
-    end
-    export NewStratAgeModelConfiguration
-
-
-    struct StratAgeModel
-        Height::Array{Float64}
-        Age::Array{Float64}
-        Age_sigma::Array{Float64}
-        Age_Median::Array{Float64}
-        Age_025CI::Array{Float64}
-        Age_975CI::Array{Float64}
-    end
-
 ## --- Stratigraphic MCMC model without hiatus # # # # # # # # # # # # # # # # #
 
-    function StratMetropolis(smpl::StratAgeData,config::StratAgeModelConfiguration)
+    function StratMetropolis(smpl::ChronAgeData,config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model
 
         print("Generating stratigraphic age-depth model...\n")
@@ -268,7 +177,7 @@
 
 ## --- Stratigraphic MCMC model with hiata # # # # # # # # # # # # # # # # # # #
 
-    function StratMetropolisHiatus(smpl::StratAgeData,hiatus::HiatusData,config::StratAgeModelConfiguration)
+    function StratMetropolisHiatus(smpl::ChronAgeData,hiatus::HiatusData,config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model, with hiata
 
         print("Generating stratigraphic age-depth model...\n")
@@ -516,7 +425,7 @@
 
 ## --- Stratigraphic MCMC model without hiatus, with distribution LL # # # # # #
 
-    function StratMetropolisDist(smpl::StratAgeData,config::StratAgeModelConfiguration)
+    function StratMetropolisDist(smpl::ChronAgeData,config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model
 
         print("Generating stratigraphic age-depth model...\n")
@@ -717,7 +626,7 @@
 
 ## --- Stratigraphic MCMC model with hiata, with distribution LL # # # # # # # #
 
-    function StratMetropolisDistHiatus(smpl::StratAgeData,hiatus::HiatusData,config::StratAgeModelConfiguration)
+    function StratMetropolisDistHiatus(smpl::ChronAgeData,hiatus::HiatusData,config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model, with hiata
 
         print("Generating stratigraphic age-depth model...\n")
@@ -969,7 +878,7 @@
 
 ## --- Stratigraphic MCMC model without hiatus, for radiocarbon ages # # # # # #
 
-    function StratMetropolis14C(smpl::StratAgeData,config::StratAgeModelConfiguration)
+    function StratMetropolis14C(smpl::ChronAgeData,config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model
 
         print("Generating stratigraphic age-depth model...\n")

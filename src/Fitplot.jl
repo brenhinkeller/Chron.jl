@@ -25,7 +25,7 @@
 
 ## --- Remove outliers
 
-    function screen_outliers(smpl::StratAgeData; maxgap=100)
+    function screen_outliers(smpl::ChronAgeData; maxgap=100)
         system("mkdir -p $(smpl.Path)screened/")
         for i=1:length(smpl.Name)
             # With screening
@@ -61,7 +61,7 @@
 
     # Bootstrap a KDE of the pre-eruptive (or pre-deposition) mineral crystallization
     # distribution shape from a 2-d array of sample ages using a KDE of stacked sample data
-    function BootstrapCrystDistributionKDEfromStrat(smpl::StratAgeData; cutoff::Number=-0.05)
+    function BootstrapCrystDistributionKDEfromStrat(smpl::ChronAgeData; cutoff::Number=-0.05)
         # Load all data points and scale from 0 to 1
         allscaled = Array{Float64}([])
         for i=1:length(smpl.Name)
@@ -112,7 +112,7 @@
 ## --- Fit and plot results from stationary distribution of depostion/eruption age distribution model
 
     # Process and fit stationary distribution for eruption age
-    function tMinDistMetropolis(smpl::StratAgeData,nsteps::Int,burnin::Int,dist::Array{Float64})
+    function tMinDistMetropolis(smpl::ChronAgeData,nsteps::Int,burnin::Int,dist::Array{Float64})
 
         # Estimate the distribution for each sample
         print("Estimating eruption/deposition age distributions...\n")
@@ -129,6 +129,7 @@
             smpl.Age_sigma[i] = std(tminDist[burnin:end])
             smpl.Age_025CI[i] = percentile(tminDist[burnin:end],2.5)
             smpl.Age_975CI[i] = percentile(tminDist[burnin:end],97.5)
+            smpl.Age_Distribution = tminDist[burnin:end]
 
             # Fit custom many-parametric distribution function to histogram
             edges = linsp(minimum(tminDist[burnin:end]),maximum(tminDist[burnin:end]),101) # Vector of bin edges

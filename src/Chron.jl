@@ -54,7 +54,7 @@ module Chron
     include("Fitplot.jl")
 
     # Structs
-    export StratAgeData, HiatusData, StratAgeModelConfiguration, StratAgeModel
+    export ChronAgeData, HiatusData, StratAgeModelConfiguration, StratAgeModel
 
     # High-level functions
     export  StratMetropolis, StratMetropolisHiatus,
