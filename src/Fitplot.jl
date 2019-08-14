@@ -129,7 +129,7 @@
             smpl.Age_sigma[i] = std(tminDist[burnin:end])
             smpl.Age_025CI[i] = percentile(tminDist[burnin:end],2.5)
             smpl.Age_975CI[i] = percentile(tminDist[burnin:end],97.5)
-            smpl.Age_Distribution = tminDist[burnin:end]
+            smpl.Age_Distribution[i] = tminDist[burnin:end]
 
             # Fit custom many-parametric distribution function to histogram
             edges = linsp(minimum(tminDist[burnin:end]),maximum(tminDist[burnin:end]),101) # Vector of bin edges
