@@ -7,7 +7,6 @@
         r = exp.(agedistmyr .* λ238) .- 1
         return log.(r .* σtracer .+ 1) ./ λ238_
     end
-
     function add_systematic_uncert_UPb(agedistmyr::Array{Float64,2})
         λ238 = log(2)/44683 # Jaffey decay constant, 1/Myr
         λ238_ = log(2)./(44683 .+ 24 .* randn(1, size(agedistmyr,2))) # Jaffey decay with uncertainty 1/Myr
@@ -15,6 +14,8 @@
         r = exp.(agedistmyr .* λ238) .- 1
         return log.(r .* σtracer .+ 1) ./ λ238_
     end
+
+    export add_systematic_uncert_UPb
 
     function add_systematic_uncert_ArAr(agedistmyr::Array{Float64,1})
         # Optimization intercalibration values from Renne 2011 reply
@@ -51,7 +52,6 @@
         λ_ = λβ_ .+ λϵ_
         return log.(Rdist.*κ_.*λ_./λϵ_ .+ 1)./(λ_.*1000000)
     end
-
     function add_systematic_uncert_ArAr(agedistmyr::Array{Float64,2})
         # Optimization intercalibration values from Renne 2011 reply
         # Values
@@ -87,5 +87,7 @@
         λ_ = λβ_ .+ λϵ_
         return log.(Rdist.*κ_.*λ_./λϵ_ .+ 1)./(λ_.*1000000)
     end
+
+    export add_systematic_uncert_ArAr
 
 ## --- End of File
