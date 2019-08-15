@@ -37,8 +37,13 @@ module Chron
     using KernelDensity: kde
     using Interpolations
 
-    # Weighted mean, etc
+    # Weighted mean, systematic errors, etc
     include("Utilities.jl")
+    # Functions for propagating systematic uncertainties
+    using Distributions
+    include("Systematic.jl")
+    # Custom objects for holding Chron age data
+    include("Objects.jl")
     # Intcal2013 calibration curve for radiocarbion
     include("Intcal.jl")
     # Functions for estimating extrema of a finite-range distribution
