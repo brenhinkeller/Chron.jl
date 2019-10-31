@@ -142,6 +142,20 @@
         return 2*norm_quantile(F)
     end
 
+    # Integral of the product of two normal distributions N(μ1,σ1) * N(μ2,σ2)
+    function normproduct(μ1::Number, σ1::Number, μ2::Number, σ2::Number)
+        # The integral of the product of two normal distributions is itself just
+        # another Normal distribution! Specifically, one with variance σ1^2 + σ2^2
+        normpdf(μ1, sqrt(σ1^2 + σ2^2), μ2)
+    end
+
+    # Log likelihood corresponding to the integral of N(μ1,σ1) * N(μ2,σ2)
+    function normproduct_LL(μ1::Number, σ1::Number, μ2::Number, σ2::Number)
+        # As above, but using the fast log likelihood of a Normal distribution
+        normpdf_LL(μ1, sqrt(σ1^2 + σ2^2), μ2)
+    end
+
+
 ## --- Drawing from distributions
 
     # Draw random numbers from a distribution specified by a vector of points
