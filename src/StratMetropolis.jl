@@ -908,8 +908,8 @@
             Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
             boundsigma = mean(smpl.Age_sigma)/10
-            pl = normpdf_LL.(oldest + offset*dt_dH, boundsigma, intcal13["Age_Calendar"])
-            pu = normpdf_LL.(youngest - offset*dt_dH, boundsigma, intcal13["Age_Calendar"])
+            pl = normpdf_LL.(oldest + offset*dt_dH, boundsigma, 1:50000)
+            pu = normpdf_LL.(youngest - offset*dt_dH, boundsigma, 1:50000)
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
         else
             Age = smpl.Age
