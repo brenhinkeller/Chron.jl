@@ -9,7 +9,6 @@ The first (distribution) MCMC model is based on the work of [Keller, Schoene, an
 The second (stratigraphic) MCMC model, developed for use in [Schoene et al. (2019)](https://doi.org/10.1126/science.aau2422) and [Deino et al. (2019)](https://doi.org/10.1016/j.quascirev.2019.05.009) among others, uses the estimated (posterior) eruption/deposition age distributions along with the constraint of stratigraphic superposition to produce an age-depth model. This stratigraphic model can incorporate either standard Gaussian or asymmetric empirical distributions as age constraints, as well additional complications such as hiatuses of known minimum duration, height uncertainty, and one-sided age constraints. The stationary distribution of this second MCMC model yields an estimate of age at each model horizon throughout the section.
 
 ## Installation
-
 Chron.jl is written in the [Julia programming language](https://julialang.org/).
 
 In the Julia package manager (type `]` in the REPL)
@@ -23,9 +22,8 @@ julia> Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
 
 ## Usage
 ### Online / notebook usage
-[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2Fdemo.ipynb)
-
-For a quick test (without having to install anything), try the [interactive online Jupyter notebook](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2Fdemo.ipynb) (note: it'll take a few minutes for the notebook to launch).
+#### Coupled eruption/deposition age and age-depth modelling
+For a quick test (without having to install anything), try the [interactive online Jupyter notebook](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2Fdemo.ipynb) (note: it'll take a few minutes for the notebook to launch). [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2Fdemo.ipynb)
 
 This runs [examples/demo.ipynb](examples/demo.ipynb) on a [JupyterHub](https://github.com/jupyterhub/jupyterhub) server hosted by the [Binder](https://mybinder.org) project. If you make changes to the interactive online notebook, you can save them with `File` > `Download as` > `Notebook (.ipynb)` To run a downloaded notebook locally, use [IJulia](https://github.com/JuliaLang/IJulia.jl)
 
@@ -34,12 +32,13 @@ julia> using IJulia
 julia> notebook()
 ```
 
-### Standard usage
+#### Standalone age-depth modelling
+If you want to use Chron.jl for for age-depth modelling without the eruption/deposition age estimation step, there are also example notebooks standalone age-depth modelling using either [simple Gaussian age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2FChron1.0StratOnly.ipynb) or [non-Gaussian radiocarbon age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2FChron1.0Radiocarbon.ipynb), with or without hiatuses.
 
+### Standard usage
 After installing [Julia](https://julialang.org/downloads/) with or without [Juno](http://junolab.org/), and Chron.jl (above), run [examples/demo.jl](examples/demo.jl) to see how the code works. It should look something like this:
 
 #### Load necessary Julia packages
-
 ```julia
 if VERSION>=v"0.7"
     using Statistics, StatsBase, DelimitedFiles, SpecialFunctions
@@ -172,7 +171,7 @@ where
 
 *i.e.*, an asymmetric exponential function with two log-linear segments joined with an arctangent sigmoid. After fitting, the five parameters $a$ - $e$ are stored in `smpl.params` and passed to the stratigraphic model
 
-## Configure and run stratigraphic model
+#### Configure and run stratigraphic model
 note: to spare Binder's servers, this demo uses
 ```
 config.nsteps = 3000
@@ -217,9 +216,7 @@ plot(lldist,xlabel="Step number",ylabel="Log likelihood",label="",line=(0.85,:da
 
 
 
-## Plot results
-
-
+#### Plot results
 ```julia
 # Plot results (mean and 95% confidence interval for both model and data)
 hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
@@ -314,7 +311,7 @@ display(hdl)
 ![png](readme_figures/output_17_0.png)
 
 
-## Stratigraphic model including hiatuses
+#### Stratigraphic model including hiatuses
 We can also deal with discrete hiatuses in the stratigraphic section if we know where they are and about how long they lasted. We need some different models and methods though. In particular, in addition to the `StratAgeData` struct, we also need a `HiatusData` struct now, and we're going to want to pass these to `StratMetropolisDistHiatus` instead of `StratMetropolisDist` like before.
 
 
