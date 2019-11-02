@@ -160,13 +160,13 @@
     hiatus.Duration       = [ 100.0,   123.0]
     hiatus.Duration_sigma = [  30.5,    20.0]
 
-    # Run the model. Note: we're using `StratMetropolis14CHiatus` now, instead of just `StratMetropolisDistHiatus`
+    # Run the model. Note: we're using `StratMetropolis14CHiatus` now, instead of just `StratMetropolis14C`
     (mdl, agedist, hiatusdist, lldist) = StratMetropolis14CHiatus(smpl, hiatus, config); sleep(0.5)
 
     # Plot results (mean and 95% confidence interval for both model and data)
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white)
     plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
-    plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)")
+    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
 
 ## --- End of File
