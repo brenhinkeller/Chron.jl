@@ -419,24 +419,24 @@
         return out
     end
 
-    # Standard deviation, ignoring NaNs
-    function nanstd(A; dim=0)
+    # Median, ignoring NaNs
+    function nanmedian(A; dim=0)
         s = size(A)
         if dim == 2
-            out = Array{eltype(A)}(undef,s[1])
+            out = Array{eltype(A)}(undef, s[1])
             for i=1:s[1]
                 t = .~ isnan.(A[i,:])
-                out[i] = any(t) ? std(A[i,t]) : NaN
+                out[i] = any(t) ? median(A[i,t]) : NaN
             end
         elseif dim == 1
             out = Array{eltype(A)}(undef, 1, s[2])
             for i=1:s[2]
                 t = .~ isnan.(A[:,i])
-                out[i] = any(t) ? std(A[t,i]) : NaN
+                out[i] = any(t) ? median(A[t,i]) : NaN
             end
         else
             t = .~ isnan.(A)
-            out = any(t) ? std(A[t]) : NaN
+            out = any(t) ? median(A[t]) : NaN
         end
         return out
     end
