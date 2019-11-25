@@ -22,9 +22,9 @@ julia> Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
 
 ## Online / Notebook Usage
 ### Coupled eruption/deposition age and age-depth modelling
-For a quick test (without having to install anything), try the [interactive online Jupyter notebook](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2Fdemo.ipynb) (note: it'll take a few minutes for the notebook to launch). [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2Fdemo.ipynb)
+For a quick test (without having to install anything), try the [interactive online Jupyter notebook](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0Coupled.ipynb) (note: it'll take a few minutes for the notebook to launch). [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0Coupled.ipynb)
 
-This runs [examples/demo.ipynb](examples/demo.ipynb) on a [JupyterHub](https://github.com/jupyterhub/jupyterhub) server hosted by the [Binder](https://mybinder.org) project. If you make changes to the interactive online notebook, you can save them with `File` > `Download as` > `Notebook (.ipynb)` To run a downloaded notebook locally, use [IJulia](https://github.com/JuliaLang/IJulia.jl)
+This runs [examples/Chron1.0Coupled.ipynb](examples/Chron1.0Coupled.ipynb) on a [JupyterHub](https://github.com/jupyterhub/jupyterhub) server hosted by the [Binder](https://mybinder.org) project. If you make changes to the interactive online notebook, you can save them with `File` > `Download as` > `Notebook (.ipynb)` To run a downloaded notebook locally, use [IJulia](https://github.com/JuliaLang/IJulia.jl)
 
 ```Julia
 julia> using IJulia
@@ -32,10 +32,10 @@ julia> notebook()
 ```
 
 ### Standalone age-depth modelling
-If you want to use Chron.jl for for age-depth modelling without the eruption/deposition age estimation step, there are also example notebooks standalone age-depth modelling using either [simple Gaussian age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2FChron1.0StratOnly.ipynb) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2FChron1.0StratOnly.ipynb) or [non-Gaussian radiocarbon age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2FChron1.0Radiocarbon.ipynb) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples%2FChron1.0Radiocarbon.ipynb), with or without hiatuses.
+If you want to use Chron.jl for for age-depth modelling without the eruption/deposition age estimation step, there are also example notebooks standalone age-depth modelling using either [simple Gaussian age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0StratOnly.ipynb) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0StratOnly.ipynb) or [non-Gaussian radiocarbon age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0Radiocarbon.ipynb) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0Radiocarbon.ipynb), with or without hiatuses.
 
 ## Standard Usage
-After installing [Julia](https://julialang.org/downloads/) with or without [Juno](http://junolab.org/), and Chron.jl (above), run [examples/demo.jl](examples/demo.jl) to see how the code works. It should look something like this:
+After installing [Julia](https://julialang.org/downloads/) with or without [Juno](http://junolab.org/), and Chron.jl (above), run [examples/Chron1.0Coupled.jl](examples/Chron1.0Coupled.jl) to see how the code works. It should look something like this:
 
 #### Load necessary Julia packages
 ```julia
