@@ -171,12 +171,7 @@ where
 *i.e.*, an asymmetric exponential function with two log-linear segments joined with an arctangent sigmoid. After fitting, the five parameters $a$ - $e$ are stored in `smpl.params` and passed to the stratigraphic model
 
 #### Configure and run stratigraphic model
-note: to spare Binder's servers, this demo uses
-```
-config.nsteps = 3000
-config.burnin = 2000*npoints_approx
-```
-However, you probably want higher numbers for a publication-quality result, for instance
+For a publication-quality result, you probably want nsteps and burnin on the order of
 ```
 config.nsteps = 30000 # Number of steps to run in distribution MCMC
 config.burnin = 10000*npoints_approx # Number to discard
