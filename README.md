@@ -35,6 +35,7 @@ julia> notebook()
 If you want to use Chron.jl for for age-depth modelling without the eruption/deposition age estimation step, there are also example notebooks standalone age-depth modelling using either
 * [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0StratOnly.ipynb) [simple Gaussian age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0StratOnly.ipynb) or
 * [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0Radiocarbon.ipynb) [non-Gaussian radiocarbon age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0Radiocarbon.ipynb)
+
 with or without hiatuses.
 
 ## Standard Usage
