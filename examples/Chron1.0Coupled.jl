@@ -38,6 +38,7 @@
     # U–Pb geochronology of the end-Cretaceous extinction and calibration of
     # Paleocene astronomical timescales" EPSL 452, 272–280.
     # doi: 10.1016/j.epsl.2016.07.041
+
     nSamples = 5 # The number of samples you have data for
     smpl = NewChronAgeData(nSamples)
     smpl.Name      =   ("KJ08-157", "KJ04-75", "KJ09-66", "KJ04-72", "KJ04-70",)
@@ -48,6 +49,12 @@
     smpl.inputSigmaLevel = 2 # i.e., are the data files 1-sigma or 2-sigma. Integer.
     smpl.Age_Unit = "Ma" # Unit of measurement for ages and errors in the data files
     smpl.Height_Unit = "cm" # Unit of measurement for Height and Height_sigma
+
+    # IMPORTANT: smpl.Height must increase with increasing stratigraphic height
+    # -- i.e., stratigraphically younger samples must be more positive. For this
+    # reason, it is convenient to represent depths below surface as negative
+    # numbers.
+
     # For each sample in smpl.Name, we must have a csv file at smpl.Path which
     # contains each individual mineral age and uncertainty. For instance,
     # examples/DenverUPbExampleData/KJ08-157.csv contains:

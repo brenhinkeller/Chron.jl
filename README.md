@@ -91,6 +91,8 @@ For each sample in `smpl.Name`, we must have a `.csv` file in `smpl.Path` which 
 65.97,0.12
 ```
 
+Note also that smpl.Height *must* increase with increasing stratigraphic height -- i.e., stratigraphically younger samples must be more positive. For this reason, it is convenient to represent depths below surface as negative numbers.
+
 #### Configure and run eruption/deposition age model
 To learn more about the eruption/deposition age estimation model, see also [Keller, Schoene, and Sameperton (2018)](https://doi.org/10.7185/geochemlet.1826) and the [BayeZirChron demo notebook](http://brenh.in/BayeZirChron). It is important to note that this model (like most if not all others) has no knowledge of open-system behaviour, so *e.g.*, Pb-loss will lead to erroneous results.
 

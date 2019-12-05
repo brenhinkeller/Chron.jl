@@ -13,10 +13,8 @@
 ## --- Define sample properties
 
     # # # # # # # # # # # Enter sample information here! # # # # # # # # # # # #
-
     # Input the number of samples we wish to model (must match below)
     nSamples = 4
-
     # Make an instance of a ChronSection object for nSamples
     smpl = NewChronAgeData(nSamples)
     smpl.Name          = ("Sample 1", "Sample 2", "Sample 3", "Sample 4") # Et cetera
@@ -27,6 +25,11 @@
     smpl.Age_Sidedness[:] = zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
     smpl.Age_Unit = "Years BP" # Unit of measurement for ages
     smpl.Height_Unit = "m" # Unit of measurement for Height and Height_sigma
+
+    # IMPORTANT: smpl.Height must increase with increasing stratigraphic height
+    # -- i.e., stratigraphically younger samples must be more positive. For this
+    # reason, it is convenient to represent depths below surface as negative
+    # numbers.
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
