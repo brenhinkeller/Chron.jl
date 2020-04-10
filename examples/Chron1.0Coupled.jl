@@ -116,7 +116,7 @@
     config = NewStratAgeModelConfiguration()
     # If you in doubt, you can probably leave these parameters as-is
     config.resolution = 1.0 # Same units as sample height. Smaller is slower!
-    config.bounding = 0.1 # how far away do we place runaway bounds, as a fraction of total section height
+    config.bounding = 0.5 # how far away do we place runaway bounds, as a fraction of total section height
     (bottom, top) = extrema(smpl.Height)
     npoints_approx = round(Int,length(bottom:config.resolution:top) * (1 + 2*config.bounding))
     config.nsteps = 15000 # Number of steps to run in distribution MCMC
@@ -181,7 +181,8 @@
 ## --- Calculate deposition rate binned by age  - - - - - - - - - - - - - - - -
 
     # Set bin width and spacing
-    binwidth = 0.01 # Myr
+    binwidth = round(nanrange(mdl.Age)/10,sigdigits=1) # Can also set manually, commented out below
+    # binwidth = 0.01 # Same units as smpl.Age
     binoverlap = 10
     ages = collect(minimum(mdl.Age):binwidth/binoverlap:maximum(mdl.Age))
     bincenters = ages[1+Int(binoverlap/2):end-Int(binoverlap/2)]
