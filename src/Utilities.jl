@@ -118,10 +118,10 @@
     end
 
     # Fast Log Likelihood corresponding to a Normal (Gaussian) distribution
-    function normpdf_LL(mu::Number,sigma::Number,x::Number)
+    function normpdf_ll(mu::Number,sigma::Number,x::Number)
         return -(x-mu)*(x-mu) / (2*sigma*sigma)
     end
-    export normpdf_LL
+    export normpdf_ll
 
     # Cumulative density function of the Normal (Gaussian) distribution
     # Not precise enough for many uses, unfortunately
@@ -150,9 +150,9 @@
     end
 
     # Log likelihood corresponding to the integral of N(μ1,σ1) * N(μ2,σ2)
-    function normproduct_LL(μ1::Number, σ1::Number, μ2::Number, σ2::Number)
+    function normproduct_ll(μ1::Number, σ1::Number, μ2::Number, σ2::Number)
         # As above, but using the fast log likelihood of a Normal distribution
-        normpdf_LL(μ1, sqrt(σ1^2 + σ2^2), μ2)
+        normpdf_ll(μ1, sqrt(σ1^2 + σ2^2), μ2)
     end
 
 
@@ -226,7 +226,7 @@
     end
 
     # Log of two-sided linear exponential distribution joined by an atan sigmoid.
-    function bilinear_exponential_LL(x,p)
+    function bilinear_exponential_ll(x,p)
         # If to a normal-esque PDF, parameters p roughly correspond to:
         # p[1] = pre-exponential (normaliation constant)
         # p[2] = mean (central moment)
@@ -240,7 +240,7 @@
     end
 
     # Interpolate log likelihood from an array
-    function interpolate_LL(x,p)
+    function interpolate_ll(x,p)
         ll = Array{Float64}(undef, size(x))
         for i = 1:length(x)
             ll[i] = linterp_at_index(p[:,i], x[i], -Inf)
@@ -249,7 +249,7 @@
     end
 
     # # Two-sided linear exponential distribution joined by an atan sigmoid.
-    # function biparabolic_exponential_LL(x,p)
+    # function biparabolic_exponential_ll(x,p)
     #     # If to a normal-esque PDF, parameters p roughly correspond to:
     #     # p[1] = pre-exponential (normaliation constant)
     #     # p[2] = mean (central moment)
@@ -263,7 +263,7 @@
     # end
     #
     # # Log of two-sided parabolic exponential distribution joined by an atan sigmoid.
-    # function biparabolic_exponential_LL(x,p)
+    # function biparabolic_exponential_ll(x,p)
     #     # If to a normal-esque PDF, parameters p roughly correspond to:
     #     # p[1] = pre-exponential (normaliation constant)
     #     # p[2] = mean (central moment)

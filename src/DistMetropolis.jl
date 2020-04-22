@@ -2,7 +2,7 @@
 
 
     # Return the log-likelihood of drawing the dataset 'data' from the distribution 'dist'
-    function check_dist_LL(dist::Array{Float64}, data::Array{Float64}, uncert::Array{Float64}, tmin::Float64, tmax::Float64)
+    function check_dist_ll(dist::Array{Float64}, data::Array{Float64}, uncert::Array{Float64}, tmin::Float64, tmax::Float64)
         # Define some frequently used variables
         loglikelihood = 0.0
         datarows = length(data)
@@ -35,7 +35,7 @@
     end
 
     # Return the log-likelihood of a proposed crystallization distribution, with adjustments to prevent runaway at low N
-    function check_cryst_LL(dist::Array{Float64}, data::Array{Float64}, uncert::Array{Float64}, tmin::Float64, tmax::Float64)
+    function check_cryst_ll(dist::Array{Float64}, data::Array{Float64}, uncert::Array{Float64}, tmin::Float64, tmax::Float64)
         # Define some frequently used variables
         loglikelihood = 0.0
         datarows = length(data)
@@ -111,7 +111,7 @@
         tmin_proposed = tmin
         tmax_proposed = tmax
         # Log likelihood of initial proposal
-        ll =  check_cryst_LL(dist, data, uncert, tmin, tmax)
+        ll =  check_cryst_ll(dist, data, uncert, tmin, tmax)
         ll_proposed = ll
         # Allocate ouput arrays
         tminDist = Array{Float64}(undef,nsteps)
@@ -135,7 +135,7 @@
                 tmax_proposed = r
             end
             # Calculate log likelihood for new proposal
-            ll_proposed =  check_cryst_LL(dist, data, uncert, tmin_proposed, tmax_proposed)
+            ll_proposed =  check_cryst_ll(dist, data, uncert, tmin_proposed, tmax_proposed)
             # Decide to accept or reject the proposal
             if log(rand(Float64)) < (ll_proposed-ll)
                 if tmin_proposed != tmin

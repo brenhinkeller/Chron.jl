@@ -476,7 +476,7 @@
         # proposals older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
         sample_height = Height
         closest = findclosest(sample_height,model_heights)
-        agell = bilinear_exponential_LL(mages[closest],p)
+        agell = bilinear_exponential_ll(mages[closest],p)
         heightll = .- (sample_height .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
         diff_sign = Age_Sidedness .!= sign.(mages[closest] .- Age)
         ll = sum(agell[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll)
@@ -529,7 +529,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = bilinear_exponential_LL(mages_prop[closest_prop],p)
+            agell_prop = bilinear_exponential_ll(mages_prop[closest_prop],p)
             heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop] .- Age)
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
@@ -588,7 +588,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = bilinear_exponential_LL(mages_prop[closest_prop],p)
+            agell_prop = bilinear_exponential_ll(mages_prop[closest_prop],p)
             heightll_prop = .-(sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop] .- Age)
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
@@ -676,7 +676,7 @@
         # proposals older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
         sample_height = Height
         closest = findclosest(sample_height,model_heights)
-        agell = bilinear_exponential_LL(mages[closest],p)
+        agell = bilinear_exponential_ll(mages[closest],p)
         heightll = .- (sample_height .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
         diff_sign = Age_Sidedness .!= sign.(mages[closest] .- Age)
         ll = sum(agell[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll)
@@ -754,7 +754,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = bilinear_exponential_LL(mages_prop[closest_prop],p)
+            agell_prop = bilinear_exponential_ll(mages_prop[closest_prop],p)
             heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) -log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age)
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
@@ -829,7 +829,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = bilinear_exponential_LL(mages_prop[closest_prop],p)
+            agell_prop = bilinear_exponential_ll(mages_prop[closest_prop],p)
             heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) -log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age)
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
@@ -904,8 +904,8 @@
             Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
             boundsigma = mean(smpl.Age_sigma)/10
-            pl = normpdf_LL.(oldest + offset*dt_dH, boundsigma, 1:50000)
-            pu = normpdf_LL.(youngest - offset*dt_dH, boundsigma, 1:50000)
+            pl = normpdf_ll.(oldest + offset*dt_dH, boundsigma, 1:50000)
+            pu = normpdf_ll.(youngest - offset*dt_dH, boundsigma, 1:50000)
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
         else
             Age = smpl.Age
@@ -928,7 +928,7 @@
         # proposals older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
         sample_height = Height
         closest = findclosest(sample_height,model_heights)
-        agell = interpolate_LL(mages[closest],p)
+        agell = interpolate_ll(mages[closest],p)
         heightll = .- (sample_height .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
         diff_sign = Age_Sidedness .!= sign.(mages[closest] .- Age)
         ll = sum(agell[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll)
@@ -971,7 +971,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = interpolate_LL(mages_prop[closest_prop],p)
+            agell_prop = interpolate_ll(mages_prop[closest_prop],p)
             heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop] .- Age)
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
@@ -1020,7 +1020,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = interpolate_LL(mages_prop[closest_prop],p)
+            agell_prop = interpolate_ll(mages_prop[closest_prop],p)
             heightll_prop = .-(sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop] .- Age)
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
@@ -1086,8 +1086,8 @@
             Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
             boundsigma = mean(smpl.Age_sigma)/10
-            pl = normpdf_LL.(oldest + offset*dt_dH, boundsigma, 1:50000)
-            pu = normpdf_LL.(youngest - offset*dt_dH, boundsigma, 1:50000)
+            pl = normpdf_ll.(oldest + offset*dt_dH, boundsigma, 1:50000)
+            pu = normpdf_ll.(youngest - offset*dt_dH, boundsigma, 1:50000)
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
         else
             Age = smpl.Age
@@ -1110,7 +1110,7 @@
         # proposals older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
         sample_height = Height
         closest = findclosest(sample_height,model_heights)
-        agell = interpolate_LL(mages[closest],p)
+        agell = interpolate_ll(mages[closest],p)
         heightll = .- (sample_height .- Height).^2 ./ (2 .* Height_sigma.^2) .- log.(sqrt.(2*pi*Height_sigma))
         diff_sign = Age_Sidedness .!= sign.(mages[closest] .- Age)
         ll = sum(agell[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll)
@@ -1188,7 +1188,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = interpolate_LL(mages_prop[closest_prop],p)
+            agell_prop = interpolate_ll(mages_prop[closest_prop],p)
             heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) -log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age)
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
@@ -1263,7 +1263,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            agell_prop = interpolate_LL(mages_prop[closest_prop],p)
+            agell_prop = interpolate_ll(mages_prop[closest_prop],p)
             heightll_prop = .- (sample_height_prop .- Height).^2 ./ (2 .* Height_sigma.^2) -log.(sqrt.(2*pi*Height_sigma))
             diff_sign = Age_Sidedness .!= sign.(mages_prop[closest_prop]-Age)
             ll_prop = sum(agell_prop[diff_sign]) + sum(-log.(sqrt.(2*pi*Age_sigma[.~diff_sign]))) + sum(heightll_prop)
