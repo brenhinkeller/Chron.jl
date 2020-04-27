@@ -20,17 +20,13 @@
     try
         using Chron
     catch
-        Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
+        using Pkg
+        Pkg.add(PackageSpec(url="https://github.com/brenhinkeller/Chron.jl"))
         using Chron
     end
 
-    using Plots; gr(); default(fmt = :svg)
-
-    if VERSION>=v"0.7"
-        using Statistics, StatsBase, DelimitedFiles, SpecialFunctions
-    else
-        using Compat
-    end
+    using Statistics, StatsBase, DelimitedFiles, SpecialFunctions
+    using Plots; gr();
 
 ## --- Define sample properties - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -84,8 +80,8 @@
 ## --- Estimate the eruption age distributions for each sample  - - - - - - - -
 
     # Configure distribution model here
-    distSteps = 10^6 # Number of steps to run in distribution MCMC
-    distBurnin = floor(Int,distSteps/10) # Number to discard
+    distSteps = 5*10^5 # Number of steps to run in distribution MCMC
+    distBurnin = floor(Int,distSteps/2) # Number to discard
 
     # Choose the form of the prior distribution to use
     # A variety of potentially useful distributions are provided in DistMetropolis.jl
@@ -127,6 +123,7 @@
     # Run the stratigraphic MCMC model
     @time (mdl, agedist, lldist) = StratMetropolisDist(smpl, config)
 
+    # # Other options:
     # # Youngest Zircon
     # for i=1:length(smpl.Name)
     #     data = readdlm(string(smpl.Path, smpl.Name[i], ".csv"),',')
@@ -171,7 +168,7 @@
     # Optional: interpolate full age distribution
     interpolated_distribution = Array{Float64}(undef,size(agedist,2))
     for i=1:size(agedist,2)
-        interpolated_distribution[i] = linterp1s(mdl.Height,agedist[:,i],height)
+        interpolated_distribution[i] = linterp1s(mdl.Height,agedist[:,i],interp_height)
     end
     hdl = histogram(interpolated_distribution, nbins=50, label="")
     plot!(hdl, xlabel="Age ($(smpl.Age_Unit)) at height=$interp_height", ylabel="Likelihood (unnormalized)")
@@ -192,7 +189,7 @@
     dhdt_dist = Array{Float64}(undef, length(ages)-binoverlap, config.nsteps)
     @time for i=1:config.nsteps
         heights = linterp1(reverse(agedist[:,i]), reverse(mdl.Height), ages)
-        dhdt_dist[:,i] = abs.(heights[1:end-spacing] - heights[spacing+1:end]) ./ binwidth
+        dhdt_dist[:,i] .= abs.(heights[1:end-spacing] - heights[spacing+1:end]) ./ binwidth
     end
 
     # # Exact (added precision is below sampling resolution, so not useful) and very slow
@@ -253,7 +250,7 @@
     edges = linsp(0, rateplotmax, length(ages)-spacing+1)
     dhdt_im = Array{Float64}(undef,length(ages)-spacing,length(ages)-spacing)
     for i=1:length(ages)-spacing
-        dhdt_im[:,i] = fit(Histogram, dhdt_dist[i, .~ isnan.(dhdt_dist[i,:])], edges, closed=:left).weights
+        dhdt_im[:,i] .= fit(Histogram, dhdt_dist[i, .~ isnan.(view(dhdt_dist,i,:))], edges, closed=:left).weights
     end
 
     # Rescale image to fit in UInt8 (0-255)
@@ -265,8 +262,9 @@
     A = IndirectArray(floor.(UInt8,imSc) .+ 1, inferno)
 
     # Plot image
-    img = plot(bincenters,cntr(edges),A,yflip=false,xflip=false, colorbar=:right)
-    plot!(img, xlabel="Age ($(smpl.Age_Unit))", ylabel="Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit), $binwidth $(smpl.Age_Unit) Bin)")
+    scale=1e-5
+    img = plot(bincenters,cntr(edges)*scale,A,yflip=false,xflip=false, colorbar=:right)
+    plot!(img, xlabel="Age ($(smpl.Age_Unit))", ylabel="Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) * $scale, $binwidth $(smpl.Age_Unit) Bin)")
     savefig(img,"AccumulationRateModelHeatmap.pdf")
     display(img)
 
@@ -310,8 +308,8 @@
     hiatus.Duration       = [ 0.2,  0.3 ]
     hiatus.Duration_sigma = [ 0.05, 0.05]
 
-    # Run the model
-    @time (mdl, agedist, hiatusdist, lldist) = StratMetropolisDistHiatus(smpl, hiatus, config)
+    # Run the model. Note the additional `hiatus` arguments
+    @time (mdl, agedist, hiatusdist, lldist) = StratMetropolisDist(smpl, hiatus, config)
 
     # Plot results (mean and 95% confidence interval for both model and data)
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(round(Int,minimum(mdl.Height)),0.5,:blue), label="model")

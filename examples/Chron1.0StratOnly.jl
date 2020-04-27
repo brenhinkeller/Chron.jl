@@ -3,12 +3,13 @@
     try
         using Chron
     catch
-        Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
+        using Pkg
+        Pkg.add(PackageSpec(url="https://github.com/brenhinkeller/Chron.jl"))
         using Chron
     end
 
     using Statistics, StatsBase, SpecialFunctions
-    using Plots; gr(); default(fmt = :svg)
+    using Plots; gr();
 
 ## --- Define sample properties
 
@@ -93,7 +94,7 @@
     dhdt_dist = Array{Float64}(undef, length(ages)-binoverlap, config.nsteps)
     @time for i=1:config.nsteps
         heights = linterp1(reverse(agedist[:,i]), reverse(mdl.Height), ages)
-        dhdt_dist[:,i] = abs.(heights[1:end-spacing] - heights[spacing+1:end]) ./ binwidth
+        dhdt_dist[:,i] .= abs.(heights[1:end-spacing] - heights[spacing+1:end]) ./ binwidth
     end
 
     # Find mean and 1-sigma (68%) CI
@@ -139,8 +140,8 @@
     hiatus.Duration       = [ 100.0,   123.0]
     hiatus.Duration_sigma = [  30.5,    20.0]
 
-    # Run the model. Note: we're using `StratMetropolisHiatus` now, instead of just `StratMetropolis`
-    (mdl, agedist, hiatusdist, lldist) = StratMetropolisHiatus(smpl, hiatus, config); sleep(0.5)
+    # Run the model. Note the additional `hiatus` arguments
+    (mdl, agedist, hiatusdist, lldist) = StratMetropolis(smpl, hiatus, config); sleep(0.5)
 
     # Plot results (mean and 95% confidence interval for both model and data)
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")

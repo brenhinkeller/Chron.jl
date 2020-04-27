@@ -1,32 +1,31 @@
 ## -- Functions used for MCMC estimation of mineral eruption / deposition ages from observed crystallization age spectra
 
 
-    # Return the log-likelihood of drawing the dataset 'data' from the distribution 'dist'
-    function check_dist_ll(dist::Array{Float64}, data::Array{Float64}, uncert::Array{Float64}, tmin::Float64, tmax::Float64)
+    function check_dist_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
         # Define some frequently used variables
         loglikelihood = 0.0
-        datarows = length(data)
+        datarows = length(mu)
         distrows = length(dist)
-        dist_xscale = distrows-1.00000000001
         dist_yave = mean(dist)
+        nbins = distrows - 1
         dt = abs(tmax-tmin)
-        # Cycle through each datum in data array
+        # Cycle through each datum in dataset
         for j=1:datarows
+            # Find equivalent index position of mu[j] in the `dist` array
+            ix = (mu[j] - tmin) / dt * nbins + 1
             # If possible, prevent aliasing problems by interpolation
-            if (uncert[j] < dt/dist_xscale) && data[j] > tmin && data[j] < tmax
-                # Find (double) index
-                ix = (data[j] - tmin) / dt * dist_xscale + 1
+            if (sigma[j] < dt/nbins) && ix > 1 && ix < distrows
                 # Interpolate corresponding distribution value
                 f = floor(Int,ix)
                 likelihood = (dist[f+1]*(ix-f) + dist[f]*(1-(ix-f))) / (dt * dist_yave)
                 # Otherwise, sum contributions from Gaussians at each point in distribution
             else
-                likelihood = 0
-                for i=1:distrows
-                    distx = tmin + dt*(i-1)/dist_xscale # time-position of distribution point
+                likelihood = 0.0
+                @avx for i=1:distrows
+                    distx = tmin + dt*(i-1)/nbins # time-position of distribution point
                     # Likelihood curve follows a Gaussian PDF. Note: dt cancels
-                    likelihood += dist[i] / (dist_yave * distrows * uncert[j] * sqrt(2*pi)) *
-                    exp( - (distx-data[j])*(distx-data[j]) / (2*uncert[j]*uncert[j]) )
+                    likelihood += dist[i] / (dist_yave * distrows * sigma[j] * sqrt(2*pi)) *
+                            exp( - (distx-mu[j])*(distx-mu[j]) / (2*sigma[j]*sigma[j]) )
                 end
             end
             loglikelihood += log(likelihood)
@@ -34,44 +33,51 @@
         return loglikelihood
     end
 
-    # Return the log-likelihood of a proposed crystallization distribution, with adjustments to prevent runaway at low N
-    function check_cryst_ll(dist::Array{Float64}, data::Array{Float64}, uncert::Array{Float64}, tmin::Float64, tmax::Float64)
+    """
+    ```julia
+    check_cryst_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
+    ```
+    Return the log-likelihood of a set of mineral ages with means `mu` and
+    uncertianty `sigma` being drawn from a given crystallization distribution
+    `dist`, with terms to prevent runaway at low N.
+    """
+    function check_cryst_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
         # Define some frequently used variables
-        loglikelihood = 0.0
-        datarows = length(data)
+        loglikelihood = zero(float(eltype(dist)))
+        datarows = length(mu)
         distrows = length(dist)
-        dist_xscale = distrows - 1.00000000001
         dist_yave = mean(dist)
+        nbins = distrows - 1
         dt = abs(tmax-tmin)
-        # Cycle through each datum in data array
-        for j=1:datarows
+        # Cycle through each datum in dataset
+        @inbounds for j=1:datarows
+            # Find equivalent index position of mu[j] in the `dist` array
+            ix = (mu[j] - tmin) / dt * nbins + 1
             # If possible, prevent aliasing problems by interpolation
-            if (uncert[j] < dt/dist_xscale) && data[j] > tmin && data[j] < tmax
-                # Find (double) index
-                ix = (data[j] - tmin) / dt * dist_xscale + 1
+            if (sigma[j] < dt/nbins) && ix > 1 && ix < distrows
                 # Interpolate corresponding distribution value
                 f = floor(Int,ix)
                 likelihood = (dist[f+1]*(ix-f) + dist[f]*(1-(ix-f))) / (dt * dist_yave)
                 # Otherwise, sum contributions from Gaussians at each point in distribution
             else
-                likelihood = 0
-                for i=1:distrows
-                    distx = tmin + dt*(i-1)/dist_xscale # time-position of distribution point
+                likelihood = zero(float(eltype(dist)))
+                @avx for i=1:distrows
+                    distx = tmin + dt*(i-1)/nbins # time-position of distribution point
                     # Likelihood curve follows a Gaussian PDF. Note: dt cancels
-                    likelihood += dist[i] / (dist_yave * distrows * uncert[j] * sqrt(2*pi)) *
-                    exp( - (distx-data[j])*(distx-data[j]) / (2*uncert[j]*uncert[j]) )
+                    likelihood += dist[i] / (dist_yave * distrows * sigma[j] * sqrt(2*pi)) *
+                            exp( - (distx-mu[j])*(distx-mu[j]) / (2*sigma[j]*sigma[j]) )
                 end
             end
             loglikelihood += log(likelihood)
         end
         # Calculate a weighted mean and examine our MSWD
-        wm, wsigma, mswd = awmean(data, uncert)
+        (wm, wsigma, mswd) = awmean(mu, sigma)
         if datarows == 1 || mswd < 1
             Zf = 1
         elseif mswd*sqrt(datarows) > 1000
             Zf = 0
         else
-            f = datarows-1.0
+            f = datarows - 1
             # Height of MSWD distribution relative to height at MSWD = 1 (see Wendt and Carl, 1991, Chemical geology)
             Zf = exp((f/2-1)*log(mswd) - f/2*(mswd-1))
         end
@@ -79,49 +85,48 @@
         # favor the weighted mean interpretation at high Zf (MSWD close to 1) and
         # the youngest-zircon interpretation at low Zf (MSWD far from one). The
         # penalty factors used here are determined by training against synthetic datasets.
-        return loglikelihood - (2/log(1+datarows)) * (                  # Scaling factor that decreases with log number of data points (i.e., no penalty at high N)
-        log((abs(tmin - wm)+wsigma)/wsigma)*Zf +                        # Penalty for proposing tmin too far from the weighted mean at low MSWD (High Zf)
-        log((abs(tmax - wm)+wsigma)/wsigma)*Zf +                        # Penalty for proposing tmax too far from the weighted mean at low MSWD (High Zf)
-        log((abs(tmin - data[1])+uncert[1])/uncert[1])*(1-Zf) +         # Penalty for proposing tmin too far from youngest zircon at high MSWD (low Zf)
-        log((abs(tmax - data[end])+uncert[end])/uncert[end])*(1-Zf) );  # Penalty for proposing tmax too far from oldest zircon at high MSWD (low Zf)
+        return loglikelihood - (2/log(1+datarows)) * (              # Scaling factor that decreases with log number of data points (i.e., no penalty at high N)
+        log((abs(tmin - wm)+wsigma)/wsigma)*Zf +                    # Penalty for proposing tmin too far from the weighted mean at low MSWD (High Zf)
+        log((abs(tmax - wm)+wsigma)/wsigma)*Zf +                    # Penalty for proposing tmax too far from the weighted mean at low MSWD (High Zf)
+        log((abs(tmin - mu[1])+sigma[1])/sigma[1])*(1-Zf) +         # Penalty for proposing tmin too far from youngest zircon at high MSWD (low Zf)
+        log((abs(tmax - mu[end])+sigma[end])/sigma[end])*(1-Zf) )   # Penalty for proposing tmax too far from oldest zircon at high MSWD (low Zf)
     end
 
-
-    # Run a Metropolis sampler to estimate the extrema of a finite-range distribution from samples drawn
-    # from that distribution -- e.g., estimate zircon saturation and eruption ages from a distribution of
-    # zircon crystallization ages.
-    function metropolis_minmax_cryst(nsteps::Int,dist::Array{Float64},data::Array{Float64},uncert::Array{Float64})
+    """
+    ```julia
+    (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax_cryst(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
+    ```
+    Run a Metropolis sampler to estimate the extrema of a finite-range distribution
+    using samples drawn from that distribution -- e.g., estimate zircon saturation
+    and eruption ages from a distribution of zircon crystallization ages.
+    """
+    function metropolis_minmax_cryst(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
         # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
         stepfactor = 2.9
-        # Sort the data array from youngest to oldest
-        sI = sortperm(data)
-        data = data[sI] # Sort data
-        uncert = uncert[sI] # Sort uncertainty
+        # Sort the dataset from youngest to oldest
+        sI = sortperm(mu)
+        mu = mu[sI] # Sort means
+        sigma = sigma[sI] # Sort uncertainty
         # These quantities will be used more than once
-        datarows = length(data)
-        tmin_obs = minimum(data)
-        tmax_obs = maximum(data)
+        datarows = length(mu)
+        tmin_obs = minimum(mu)
+        tmax_obs = maximum(mu)
         # Step sigma for Gaussian proposal distributions
-        dt = tmax_obs - tmin_obs + uncert[1] + uncert[end]
+        dt = tmax_obs - tmin_obs + sigma[1] + sigma[end]
         tmin_step = dt / datarows
         tmax_step = dt / datarows
         # Use oldest and youngest zircons for initial proposal
-        tmin = tmin_obs - uncert[1]
-        tmax = tmax_obs + uncert[end]
+        tmin = tmin_obs - sigma[1]
+        tmax = tmax_obs + sigma[end]
         tmin_proposed = tmin
         tmax_proposed = tmax
         # Log likelihood of initial proposal
-        ll =  check_cryst_ll(dist, data, uncert, tmin, tmax)
+        ll = check_cryst_ll(dist, mu, sigma, tmin, tmax)
         ll_proposed = ll
-        # Allocate ouput arrays
-        tminDist = Array{Float64}(undef,nsteps)
-        tmaxDist = Array{Float64}(undef,nsteps)
-        llDist = Array{Float64}(undef,nsteps)
-        acceptanceDist = falses(nsteps)
-        # Step through each of the N steps in the Markov chain
+        # Burnin
         for i=1:nsteps
-            tmin_proposed = copy(tmin)
-            tmax_proposed = copy(tmax)
+            tmin_proposed = tmin
+            tmax_proposed = tmax
             # Adjust either upper or lower bound
             if rand()<0.5
                 tmin_proposed += tmin_step*randn()
@@ -135,9 +140,9 @@
                 tmax_proposed = r
             end
             # Calculate log likelihood for new proposal
-            ll_proposed =  check_cryst_ll(dist, data, uncert, tmin_proposed, tmax_proposed)
+            ll_proposed = check_cryst_ll(dist, mu, sigma, tmin_proposed, tmax_proposed)
             # Decide to accept or reject the proposal
-            if log(rand(Float64)) < (ll_proposed-ll)
+            if log(rand()) < (ll_proposed-ll)
                 if tmin_proposed != tmin
                     tmin_step = abs(tmin_proposed-tmin)*stepfactor
                 end
@@ -145,9 +150,46 @@
                     tmax_step = abs(tmax_proposed-tmax)*stepfactor
                 end
 
-                tmin = copy(tmin_proposed)
-                tmax = copy(tmax_proposed)
-                ll = copy(ll_proposed)
+                ll = ll_proposed
+                tmin = tmin_proposed
+                tmax = tmax_proposed
+            end
+        end
+        # Allocate ouput arrays
+        tminDist = Array{float(eltype(mu))}(undef,nsteps)
+        tmaxDist = Array{float(eltype(mu))}(undef,nsteps)
+        llDist = Array{float(eltype(dist))}(undef,nsteps)
+        acceptanceDist = falses(nsteps)
+        # Step through each of the N steps in the Markov chain
+        for i=1:nsteps
+            tmin_proposed = tmin
+            tmax_proposed = tmax
+            # Adjust either upper or lower bound
+            if rand()<0.5
+                tmin_proposed += tmin_step*randn()
+            else
+                tmax_proposed += tmax_step*randn()
+            end
+            # Flip bounds if reversed
+            if (tmin_proposed>tmax_proposed)
+                r = tmin_proposed
+                tmin_proposed = tmax_proposed
+                tmax_proposed = r
+            end
+            # Calculate log likelihood for new proposal
+            ll_proposed = check_cryst_ll(dist, mu, sigma, tmin_proposed, tmax_proposed)
+            # Decide to accept or reject the proposal
+            if log(rand()) < (ll_proposed-ll)
+                if tmin_proposed != tmin
+                    tmin_step = abs(tmin_proposed-tmin)*stepfactor
+                end
+                if tmax_proposed != tmax
+                    tmax_step = abs(tmax_proposed-tmax)*stepfactor
+                end
+
+                ll = ll_proposed
+                tmin = tmin_proposed
+                tmax = tmax_proposed
                 acceptanceDist[i]=true
             end
             tminDist[i] = tmin
@@ -157,6 +199,106 @@
         return tminDist, tmaxDist, llDist, acceptanceDist
     end
 
+    """
+    ```julia
+    tminDist = metropolis_min_cryst(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
+    ```
+    Run a Metropolis sampler to estimate the minimum of a finite-range distribution
+    using samples drawn from that distribution -- e.g., estimate zircon eruption
+    ages from a distribution of zircon crystallization ages.
+    """
+    function metropolis_min_cryst(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
+        # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
+        stepfactor = 2.9
+        # Sort the dataset from youngest to oldest
+        sI = sortperm(mu)
+        mu = mu[sI] # Sort means
+        sigma = sigma[sI] # Sort uncertainty
+        # These quantities will be used more than once
+        datarows = length(mu)
+        tmin_obs = minimum(mu)
+        tmax_obs = maximum(mu)
+        # Step sigma for Gaussian proposal distributions
+        dt = tmax_obs - tmin_obs + sigma[1] + sigma[end]
+        tmin_step = dt / datarows
+        tmax_step = dt / datarows
+        # Use oldest and youngest zircons for initial proposal
+        tmin = tmin_obs - sigma[1]
+        tmax = tmax_obs + sigma[end]
+        tmin_proposed = tmin
+        tmax_proposed = tmax
+        # Log likelihood of initial proposal
+        ll = check_cryst_ll(dist, mu, sigma, tmin, tmax)
+        ll_proposed = ll
+        # Burnin
+        for i=1:burnin
+            tmin_proposed = tmin
+            tmax_proposed = tmax
+            # Adjust either upper or lower bound
+            if rand()<0.5
+                tmin_proposed += tmin_step*randn()
+            else
+                tmax_proposed += tmax_step*randn()
+            end
+            # Flip bounds if reversed
+            if (tmin_proposed>tmax_proposed)
+                r = tmin_proposed
+                tmin_proposed = tmax_proposed
+                tmax_proposed = r
+            end
+            # Calculate log likelihood for new proposal
+            ll_proposed = check_cryst_ll(dist, mu, sigma, tmin_proposed, tmax_proposed)
+            # Decide to accept or reject the proposal
+            if log(rand()) < (ll_proposed-ll)
+                if tmin_proposed != tmin
+                    tmin_step = abs(tmin_proposed-tmin)*stepfactor
+                end
+                if tmax_proposed != tmax
+                    tmax_step = abs(tmax_proposed-tmax)*stepfactor
+                end
+
+                ll = ll_proposed
+                tmin = tmin_proposed
+                tmax = tmax_proposed
+            end
+        end
+        # Allocate ouput arrays
+        tminDist = Array{float(eltype(mu))}(undef,nsteps)
+        # Step through each of the N steps in the Markov chain
+        for i=1:nsteps
+            tmin_proposed = tmin
+            tmax_proposed = tmax
+            # Adjust either upper or lower bound
+            if rand()<0.5
+                tmin_proposed += tmin_step*randn()
+            else
+                tmax_proposed += tmax_step*randn()
+            end
+            # Flip bounds if reversed
+            if (tmin_proposed>tmax_proposed)
+                r = tmin_proposed
+                tmin_proposed = tmax_proposed
+                tmax_proposed = r
+            end
+            # Calculate log likelihood for new proposal
+            ll_proposed = check_cryst_ll(dist, mu, sigma, tmin_proposed, tmax_proposed)
+            # Decide to accept or reject the proposal
+            if log(rand()) < (ll_proposed-ll)
+                if tmin_proposed != tmin
+                    tmin_step = abs(tmin_proposed-tmin)*stepfactor
+                end
+                if tmax_proposed != tmax
+                    tmax_step = abs(tmax_proposed-tmax)*stepfactor
+                end
+
+                ll = ll_proposed
+                tmin = tmin_proposed
+                tmax = tmax_proposed
+            end
+            tminDist[i] = tmin
+        end
+        return tminDist
+    end
 
 ## --- Some useful distributions
 

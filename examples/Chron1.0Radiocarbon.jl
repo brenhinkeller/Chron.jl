@@ -3,12 +3,13 @@
     try
         using Chron
     catch
-        Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
+        using Pkg
+        Pkg.add(PackageSpec(url="https://github.com/brenhinkeller/Chron.jl"))
         using Chron
     end
 
     using Statistics, StatsBase, SpecialFunctions
-    using Plots; gr(); default(fmt = :svg)
+    using Plots; gr();
 
 ## --- Define sample properties
 
@@ -50,7 +51,7 @@
         smpl.Age_975CI[i] = percentile(samples,97.5)
 
         # Populate smpl.Params with log likelihood for each sample
-        smpl.Params[:,i] = normproduct_LL.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], intcal13["Age_14C"], intcal13["Age_sigma"])
+        smpl.Params[:,i] = normproduct_ll.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], intcal13["Age_14C"], intcal13["Age_sigma"])
 
         # Plot likelihood vector for each sample
         t = (intcal13["Age_Calendar"] .> smpl.Age[i] - 5*smpl.Age_sigma[i]) .& (intcal13["Age_Calendar"] .< smpl.Age[i] + 5*smpl.Age_sigma[i])
@@ -108,7 +109,7 @@
 
     # Set bin width and spacing
     binwidth = round(nanrange(mdl.Age)/10,sigdigits=1) # Can also set manually, commented out below
-    # binwidth = 100 # Same units as smpl.Age    
+    # binwidth = 100 # Same units as smpl.Age
     binoverlap = 10
     ages = collect(minimum(mdl.Age):binwidth/binoverlap:maximum(mdl.Age))
     bincenters = ages[1+Int(binoverlap/2):end-Int(binoverlap/2)]
@@ -118,7 +119,7 @@
     dhdt_dist = Array{Float64}(undef, length(ages)-binoverlap, config.nsteps)
     @time for i=1:config.nsteps
         heights = linterp1(reverse(agedist[:,i]), reverse(mdl.Height), ages)
-        dhdt_dist[:,i] = abs.(heights[1:end-spacing] - heights[spacing+1:end]) ./ binwidth
+        dhdt_dist[:,i] .= abs.(heights[1:end-spacing] - heights[spacing+1:end]) ./ binwidth
     end
 
     # Find mean and 1-sigma (68%) CI
@@ -164,8 +165,8 @@
     hiatus.Duration       = [ 100.0,   123.0]
     hiatus.Duration_sigma = [  30.5,    20.0]
 
-    # Run the model. Note: we're using `StratMetropolis14CHiatus` now, instead of just `StratMetropolis14C`
-    (mdl, agedist, hiatusdist, lldist) = StratMetropolis14CHiatus(smpl, hiatus, config); sleep(0.5)
+    # Run the model. Note the additional `hiatus` arguments
+    (mdl, agedist, hiatusdist, lldist) = StratMetropolis14C(smpl, hiatus, config)
 
     # Plot results (mean and 95% confidence interval for both model and data)
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")

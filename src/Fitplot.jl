@@ -122,28 +122,29 @@
             print(i, ": ", smpl.Name[i], "\n") # Display progress
 
             # Run MCMC to estimate saturation and eruption/deposition age distributions
-            (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax_cryst(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel)
+            # (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax_cryst(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel, burnin=burnin)
+            tminDist = metropolis_min_cryst(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel; burnin=burnin) # Since we don't end up using any of the other distributions
 
             # Fill in the strat sample object with our new results
-            smpl.Age[i] = mean(tminDist[burnin:end])
-            smpl.Age_sigma[i] = std(tminDist[burnin:end])
-            smpl.Age_025CI[i] = percentile(tminDist[burnin:end],2.5)
-            smpl.Age_975CI[i] = percentile(tminDist[burnin:end],97.5)
-            smpl.Age_Distribution[i] = tminDist[burnin:end]
+            smpl.Age[i] = mean(tminDist)
+            smpl.Age_sigma[i] = std(tminDist)
+            smpl.Age_025CI[i] = percentile(tminDist,2.5)
+            smpl.Age_975CI[i] = percentile(tminDist,97.5)
+            smpl.Age_Distribution[i] = tminDist
 
             # Fit custom many-parametric distribution function to histogram
-            edges = linsp(minimum(tminDist[burnin:end]),maximum(tminDist[burnin:end]),101) # Vector of bin edges
-            hobj = fit(Histogram,tminDist[burnin:end],edges,closed=:left) # Fit histogram object
+            edges = linsp(minimum(tminDist),maximum(tminDist),101) # Vector of bin edges
+            hobj = fit(Histogram,tminDist,edges,closed=:left) # Fit histogram object
 
             t = hobj.weights.>0 # Only look at bins with one or more results
-            N = hobj.weights[t] ./ length(tminDist[burnin:end]) .* length(t) # Normalized number of MCMC steps per bin
+            N = hobj.weights[t] ./ length(tminDist) .* length(t) # Normalized number of MCMC steps per bin
             bincenters = cntr(hobj.edges[1])[t] # Vector of bin centers
 
             # Initial guess for parameters
             p = ones(5)
-            p[1] = maximum(N)
-            p[2] = mean(tminDist[burnin:end])
-            p[3] = std(tminDist[burnin:end])
+            p[1] = log(maximum(N))
+            p[2] = mean(tminDist)
+            p[3] = std(tminDist)
 
             # Fit nonlinear model
             fobj = curve_fit(bilinear_exponential,bincenters,N,p)

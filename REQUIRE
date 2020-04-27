@@ -2,6 +2,7 @@ Compat
 StatsBase
 Interpolations
 Distributions
+LoopVectorization
 LsqFit
 KernelDensity
 ProgressMeter

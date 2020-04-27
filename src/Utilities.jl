@@ -112,14 +112,41 @@
 
 ## --- Working with Gaussian distributions
 
-    # Probability density function of the Normal (Gaussian) distribution
+    """
+    ```julia
+    normpdf(mu::Number,sigma::Number,x::Number)
+    ```
+    Probability density function of the Normal (Gaussian) distribution
+
+    ``ℯ^{-(x-μ)^2 / (2σ^2)} / √2πσ``
+
+    with mean `mu` and standard deviation `sigma`, evaluated at `x`
+    """
     function normpdf(mu::Number,sigma::Number,x::Number)
         return exp(-(x-mu)*(x-mu) / (2*sigma*sigma)) / (sqrt(2*pi)*sigma)
     end
 
-    # Fast Log Likelihood corresponding to a Normal (Gaussian) distribution
+    """
+    ```julia
+    normpdf_ll(mu, sigma, x)
+    ```
+    Fast log likelihood corresponding to a Normal (Gaussian) distribution
+    with mean `mu` and standard deviation `sigma`, evaluated at `x`.
+
+    If `x`, `mu`, and `sigma` are given as arrays, the sum of the log likelihood
+    over all `x` will be returned.
+
+    See also `normpdf`
+    """
     function normpdf_ll(mu::Number,sigma::Number,x::Number)
         return -(x-mu)*(x-mu) / (2*sigma*sigma)
+    end
+    function normpdf_ll(mu::AbstractArray,sigma::AbstractArray,x::AbstractArray)
+        ll = 0.0
+        @avx for i=1:length(x)
+            ll -= (x[i]-mu[i])*(x[i]-mu[i]) / (2*sigma[i]*sigma[i])
+        end
+        return ll
     end
     export normpdf_ll
 
@@ -211,70 +238,86 @@
 
 ## --- Fitting non-Gaussian distributions
 
-    # Two-sided linear exponential distribution joined by an atan sigmoid.
-    function bilinear_exponential(x,p)
-        # If to a normal-esque PDF, parameters p roughly correspond to:
-        # p[1] = pre-exponential (normaliation constant)
-        # p[2] = mean (central moment)
-        # p[3] = variance
-        # p[4] = sharpness
-        # p[5] = skew
-        xs = (x .- p[2])./p[3] # X scaled by mean and variance
-        v = 1/2 .- atan.(xs)./pi # Sigmoid (positive on LHS)
-        f = p[1] .* exp.((p[4].^2).*(p[5].^2).*xs.*v .- (p[4].^2)./(p[5].^2).*xs.*(1 .- v))
+    """
+    ```Julia
+    bilinear_exponential(x::Number, p::AbstractVector)
+    ```
+    Evaluate the value of a "bilinear exponential" function defined by the parameters
+    `p` at point `x`. This function, which can be used to approximate various asymmetric
+    probability distributions found in geochronology, is defined by an exponential
+    function with two log-linear segments joined by an `atan` sigmoid:
+    ```math
+    ℯ^{p_1 + v x_s p_4^2 p_5^2 - (1-v) x_s p_4^2/p_5^2}
+    ```
+    where
+    ```math
+    v = 1/2 - atan(x_s)/π
+    ```
+    is a sigmoid, positive on the left-hand side, and
+    ```math
+    x_s = (x - p_2)/p_3^2
+    ```
+    is `x` scaled by mean and variance.
+
+    The elements of the parameter array `p` may be considered to approximately represent\n
+        p[1] # pre-exponential (log normaliation constant)
+        p[2] # mean (central moment)
+        p[3] # standard deviation
+        p[4] # sharpness
+        p[5] # skew
+    """
+    function bilinear_exponential(x::Number, p::AbstractVector)
+        xs = (x - p[2])/p[3]^2 # X scaled by mean and variance
+        v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
+        return exp(p[1] + (p[4]^2)*(p[5]^2)*xs*v - (p[4]^2)/(p[5]^2)*xs*(1-v))
+    end
+    function bilinear_exponential(x::AbstractVector, p::AbstractVector)
+        f = Array{float(eltype(x))}(undef,size(x))
+        @avx for i = 1:length(x)
+            xs = (x[i] - p[2])/p[3]^2 # X scaled by mean and variance
+            v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
+            f[i] = exp(p[1] + (p[4]^2)*(p[5]^2)*xs*v - (p[4]^2)/(p[5]^2)*xs*(1-v))
+        end
         return f
     end
 
-    # Log of two-sided linear exponential distribution joined by an atan sigmoid.
-    function bilinear_exponential_ll(x,p)
-        # If to a normal-esque PDF, parameters p roughly correspond to:
-        # p[1] = pre-exponential (normaliation constant)
-        # p[2] = mean (central moment)
-        # p[3] = variance
-        # p[4] = sharpness
-        # p[5] = skew
-        xs = (x-p[2,:])./p[3,:] # X scaled by mean and variance
-        v = 1/2 .- atan.(xs)./pi # Sigmoid (positive on LHS)
-        f = log.(p[1,:]) + (p[4,:].^2).*(p[5,:].^2).*xs.*v .- (p[4,:].^2)./(p[5,:].^2).*xs.*(1 .- v)
-        return f
-    end
+    """
+    ```Julia
+    bilinear_exponential_ll(x, p)
+    ```
+    Return the log likelihood corresponding to a `bilinear_exponential` distribution defined
+    by the parameters `p` evaluate at point `x`.
 
-    # Interpolate log likelihood from an array
-    function interpolate_ll(x,p)
-        ll = Array{Float64}(undef, size(x))
-        for i = 1:length(x)
-            ll[i] = linterp_at_index(p[:,i], x[i], -Inf)
+    If `x` is provided as a number and `p` as a vector, a single evaluation will
+    be returned; if `x` is provided as a vector and `p` as a matrix, the sum
+    over all i for each distribution `p[:,i]` evaluated at `x[i]` will be returned
+    instead.
+
+    See also `bilinear_exponential`
+    """
+    function bilinear_exponential_ll(x::Number, p::AbstractVector)
+        xs = (x - p[2])/p[3]^2 # X scaled by mean and variance
+        v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
+        return p[1] + (p[4]^2)*(p[5]^2)*xs*v - (p[4]^2)/(p[5]^2)*xs*(1-v)
+    end
+    function bilinear_exponential_ll(x::AbstractVector, p::AbstractMatrix)
+        ll = 0.0
+        @avx for i=1:length(x)
+            xs = (x[i]-p[2,i])/p[3,i]^2 # X scaled by mean and variance
+            v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
+            ll += p[1,i] + (p[4,i]^2)*(p[5,i]^2)*xs*v - (p[4,i]^2)/(p[5,i]^2)*xs*(1 - v)
         end
         return ll
     end
 
-    # # Two-sided linear exponential distribution joined by an atan sigmoid.
-    # function biparabolic_exponential_ll(x,p)
-    #     # If to a normal-esque PDF, parameters p roughly correspond to:
-    #     # p[1] = pre-exponential (normaliation constant)
-    #     # p[2] = mean (central moment)
-    #     # p[3] = standard deviation
-    #     # p[4] = sharpness
-    #     # p[5] = skew
-    #     xs = (x-p[2])./p[3] # X scaled by mean and variance
-    #     v = 1/2-atan.(xs)/pi # Sigmoid (positive on LHS)
-    #     f = p[1] .* exp.(-(p[4].^2).*(p[5].^2).*(xs.^2).*v -(p[4].^2)./(p[5].^2).*(xs.^2).*(1-v))
-    #     return f
-    # end
-    #
-    # # Log of two-sided parabolic exponential distribution joined by an atan sigmoid.
-    # function biparabolic_exponential_ll(x,p)
-    #     # If to a normal-esque PDF, parameters p roughly correspond to:
-    #     # p[1] = pre-exponential (normaliation constant)
-    #     # p[2] = mean (central moment)
-    #     # p[3] = standard deviation
-    #     # p[4] = sharpness
-    #     # p[5] = skew
-    #     xs = (x-p[2,:])./p[3,:] # X scaled by mean and variance
-    #     v = 1/2-atan.(xs)/pi # Sigmoid (positive on LHS)
-    #     f = log.(p[1,:]) + (p[4,:].^2).*(p[5,:].^2).*(xs.^2).*v - (p[4,:].^2)./(p[5,:].^2).*(xs.^2).*(1-v)
-    #     return f
-    # end
+    # Interpolate log likelihood from an array
+    function interpolate_ll(x::AbstractVector,p::AbstractMatrix)
+        ll = 0
+        @inbounds for i = 1:length(x)
+            ll += linterp_at_index(view(p,:,i), x[i], -Inf)
+        end
+        return ll
+    end
 
 ## --- Various other utility functions
 

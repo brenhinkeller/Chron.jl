@@ -35,6 +35,7 @@ module Chron
     using ProgressMeter: @showprogress
     using LsqFit: curve_fit
     using KernelDensity: kde
+    using LoopVectorization
     using Interpolations
 
     # Weighted mean, systematic errors, etc
@@ -62,8 +63,7 @@ module Chron
     export ChronAgeData, HiatusData, StratAgeModelConfiguration, StratAgeModel
 
     # High-level functions
-    export  StratMetropolis, StratMetropolisHiatus,
-        StratMetropolisDist, StratMetropolisDistHiatus,
+    export  StratMetropolis, StratMetropolisDist, StratMetropolis14C,
         tMinDistMetropolis, metropolis_minmax_cryst,
         bilinear_exponential, bilinear_exponential_ll,
         plot_rankorder_errorbar, plot_rankorder_errorbar!,
