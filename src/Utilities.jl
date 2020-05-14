@@ -114,16 +114,16 @@
 
     """
     ```julia
-    normpdf(mu::Number,sigma::Number,x::Number)
+    normpdf(mu,sigma,x)
     ```
     Probability density function of the Normal (Gaussian) distribution
 
-    ``ℯ^{-(x-μ)^2 / (2σ^2)} / √2πσ``
+    ``ℯ^{-(x-μ)^2 / (2σ^2)} / σ√2π``
 
     with mean `mu` and standard deviation `sigma`, evaluated at `x`
     """
-    function normpdf(mu::Number,sigma::Number,x::Number)
-        return exp(-(x-mu)*(x-mu) / (2*sigma*sigma)) / (sqrt(2*pi)*sigma)
+    function normpdf(mu,sigma,x)
+        return @. exp(-(x-mu)*(x-mu) / (2*sigma*sigma)) / (sqrt(2*pi)*sigma)
     end
 
     """
@@ -150,10 +150,26 @@
     end
     export normpdf_ll
 
-    # Cumulative density function of the Normal (Gaussian) distribution
-    # Not precise enough for many uses, unfortunately
-    function normcdf(mu::Number,sigma::Number,x::Number)
-        return 0.5 + erf((x-mu) / (sigma*sqrt(2))) / 2
+    """
+    ```julia
+    normcdf(mu,sigma,x)
+    ```
+    Cumulative density function of the Normal (Gaussian) distribution
+
+    ``1/2 + erf(\frac{x-μ}{σ√2})/2``
+
+    with mean `mu` and standard deviation `sigma`, evaluated at `x`.
+    """
+    function normcdf(mu,sigma,x)
+        return @. 0.5 + erf((x-mu) / (sigma*sqrt(2))) / 2
+    end
+    function normcdf(mu::Number,sigma::Number,x::AbstractArray)
+        result = Array{float(eltype(x))}(undef,length(x))
+        sigma_sqrt = sigma*sqrt(2)
+        @inbounds @simd for i = 1:length(x)
+            result[i] = 0.5 + erf((x[i]-mu) / sigma_sqrt) / 2
+        end
+        return result
     end
 
     # How far away from the mean (in units of sigma) should we expect proportion
