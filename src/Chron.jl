@@ -76,7 +76,7 @@ module Chron
         linsp, linterp1s, linterp1, cntr, gwmean, awmean,
         normpdf, normpdf_ll, normcdf, norm_quantile, norm_width,
         findclosest, findclosestbelow, findclosestabove,
-        draw_from_distribution, fill_from_distribution,
+        draw_from_distribution, draw_from_distribution!,
         linterp_at_index, interpolate_ll, normproduct, normproduct_ll
 
     # Colormaps
