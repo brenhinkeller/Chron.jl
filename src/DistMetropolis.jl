@@ -73,9 +73,9 @@
         # Calculate a weighted mean and examine our MSWD
         (wm, wsigma, mswd) = awmean(mu, sigma)
         if datarows == 1 || mswd < 1
-            Zf = 1
+            Zf = 1.0
         elseif mswd*sqrt(datarows) > 1000
-            Zf = 0
+            Zf = 0.0
         else
             f = datarows - 1
             # Height of MSWD distribution relative to height at MSWD = 1 (see Wendt and Carl, 1991, Chemical geology)
