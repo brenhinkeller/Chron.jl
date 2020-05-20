@@ -53,7 +53,7 @@
     (mdl, agedist, lldist) = StratMetropolis(smpl, config)
 
     # Plot results (mean and 95% confidence interval for both model and data)
-    hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(round(Int,minimum(mdl.Height)),0.5,:blue), label="model")
+    hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="")
     plot!(hdl, smpl.Age, smpl.Height, xerror=smpl.Age_sigma*2, label="data",seriestype=:scatter,color=:black)
     plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
