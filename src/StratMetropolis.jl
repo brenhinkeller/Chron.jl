@@ -16,24 +16,24 @@
         (bottom, top) = extrema(smpl.Height)
         (youngest, oldest) = extrema(smpl.Age)
         dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = mean(smpl.Age_sigma)
+        aveuncert = nanmean(smpl.Age_sigma)::Float64
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
-            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]
-            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]
-            Height = [bottom-offset; smpl.Height; top+offset]
-            Height_sigma = [0; smpl.Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
+            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]::Array{Float64,1}
+            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]::Array{Float64,1}
+            Height = [bottom-offset; smpl.Height; top+offset]::Array{Float64,1}
+            Height_sigma = [0; smpl.Height_sigma; 0]::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;]::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
         else
-            Age = copy(smpl.Age)
-            Age_sigma = copy(smpl.Age_sigma)
-            Height = copy(smpl.Height)
-            Height_sigma = smpl.Height_sigma .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = copy(smpl.Age_Sidedness) # Bottom is a maximum age and top is a minimum age
+            Age = copy(smpl.Age)::Array{Float64,1}
+            Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
+            Height = copy(smpl.Height)::Array{Float64,1}
+            Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
             model_heights = bottom:resolution:top
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
@@ -51,7 +51,7 @@
         closest = findclosest(sample_height, model_heights)
         closest_mages = mages[closest]
         @inbounds for i=1:length(Age)
-            if Age_Sidedness == sign(closest_mages[i] - Age[i])
+            if Age_Sidedness[i] == sign(closest_mages[i] - Age[i])
                 closest_mages[i] = Age[i]
             end
         end
@@ -86,11 +86,18 @@
                 mages_prop[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
-                    conflict_t .= (mages_prop .< mages_prop[chosen_point]) .& (index .< chosen_point) # younger points below
+                    @inbounds for i=1:chosen_point # younger points below
+                        if mages_prop[i] < mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 else # if proposing decreased age
-                    conflict_t .= (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point) # older points above
+                    @inbounds for i=chosen_point:npoints # older points above
+                        if mages_prop[i] > mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 end
-                mages_prop[conflict_t] .= mages_prop[chosen_point]
             end
 
 
@@ -99,7 +106,7 @@
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
-                if Age_Sidedness == sign(closest_mages_prop[i] - Age[i])
+                if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
             end
@@ -139,11 +146,18 @@
                 mages_prop[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
-                    conflict_t .= (mages_prop .< mages_prop[chosen_point]) .& (index .< chosen_point) # younger points below
+                    @inbounds for i=1:chosen_point # younger points below
+                        if mages_prop[i] < mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 else # if proposing decreased age
-                    conflict_t .= (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point) # older points above
+                    @inbounds for i=chosen_point:npoints # older points above
+                        if mages_prop[i] > mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 end
-                mages_prop[conflict_t] .= mages_prop[chosen_point]
             end
 
             # Calculate log likelihood of proposal
@@ -151,7 +165,7 @@
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
-                if Age_Sidedness == sign(closest_mages_prop[i] - Age[i])
+                if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
             end
@@ -206,24 +220,24 @@
         (bottom, top) = extrema(smpl.Height)
         (youngest, oldest) = extrema(smpl.Age)
         dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = mean(smpl.Age_sigma)
+        aveuncert = nanmean(smpl.Age_sigma)::Float64
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
-            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]
-            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]
-            Height = [bottom-offset; smpl.Height; top+offset]
-            Height_sigma = [0; smpl.Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
+            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]::Array{Float64,1}
+            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]::Array{Float64,1}
+            Height = [bottom-offset; smpl.Height; top+offset]::Array{Float64,1}
+            Height_sigma = [0; smpl.Height_sigma; 0]::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;]::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
         else
-            Age = copy(smpl.Age)
-            Age_sigma = copy(smpl.Age_sigma)
-            Height = copy(smpl.Height)
-            Height_sigma = smpl.Height_sigma .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = copy(smpl.Age_Sidedness) # Bottom is a maximum age and top is a minimum age
+            Age = copy(smpl.Age)::Array{Float64,1}
+            Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
+            Height = copy(smpl.Height)::Array{Float64,1}
+            Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
             model_heights = bottom:resolution:top
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
@@ -241,7 +255,7 @@
         closest = findclosest(sample_height, model_heights)
         closest_mages = mages[closest]
         @inbounds for i=1:length(Age)
-            if Age_Sidedness == sign(closest_mages[i] - Age[i])
+            if Age_Sidedness[i] == sign(closest_mages[i] - Age[i])
                 closest_mages[i] = Age[i]
             end
         end
@@ -294,11 +308,18 @@
                 mages_prop[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
-                    conflict_t .= (mages_prop .< mages_prop[chosen_point]) .& (index .< chosen_point) # younger points below
+                    @inbounds for i=1:chosen_point # younger points below
+                        if mages_prop[i] < mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 else # if proposing decreased age
-                    conflict_t .= (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point) # older points above
+                    @inbounds for i=chosen_point:npoints # older points above
+                        if mages_prop[i] > mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 end
-                mages_prop[conflict_t] .= mages_prop[chosen_point]
 
                 # If chosen_point is a hiatus point, let there be a 20 percent chance of
                 # adjusting the point below the hiatus as well
@@ -307,14 +328,22 @@
                     #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
                     # end
                     if any(closest_hiatus_unique.==chosen_point)
-                        mages_prop[chosen_point-1] = mages[chosen_point-1] + r
+                        chosen_point -= 1
+                        mages_prop[chosen_point] = mages[chosen_point] + r
                         #Resolve conflicts
-                        if r>0 # If proposing increased age
-                            conflict_t .= (mages_prop .< mages_prop[chosen_point-1]) .& (index .< (chosen_point-1))
+                        if r > 0 # If proposing increased age
+                            @inbounds for i=1:chosen_point # younger points below
+                                if mages_prop[i] < mages_prop[chosen_point]
+                                    mages_prop[i] = mages_prop[chosen_point]
+                                end
+                            end
                         else # if proposing decreased age
-                            conflict_t .= (mages_prop .> mages_prop[chosen_point-1]) .& (index .> (chosen_point-1))
+                            @inbounds for i=chosen_point:npoints # older points above
+                                if mages_prop[i] > mages_prop[chosen_point]
+                                    mages_prop[i] = mages_prop[chosen_point]
+                                end
+                            end
                         end
-                        mages_prop[conflict_t] .= mages_prop[chosen_point-1]
                     end
                 end
             end
@@ -325,7 +354,7 @@
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
-                if Age_Sidedness == sign(closest_mages_prop[i] - Age[i])
+                if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
             end
@@ -370,11 +399,18 @@
                 mages_prop[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
-                    conflict_t .= (mages_prop .< mages_prop[chosen_point]) .& (index .< chosen_point) # younger points below
+                    @inbounds for i=1:chosen_point # younger points below
+                        if mages_prop[i] < mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 else # if proposing decreased age
-                    conflict_t .= (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point) # older points above
+                    @inbounds for i=chosen_point:npoints # older points above
+                        if mages_prop[i] > mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 end
-                mages_prop[conflict_t] .= mages_prop[chosen_point]
 
                 # If chosen_point is a hiatus point, let there be a 20 percent chance of
                 # adjusting the point below the hiatus as well
@@ -383,14 +419,22 @@
                     #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
                     # end
                     if any(closest_hiatus_unique.==chosen_point)
-                        mages_prop[chosen_point-1] = mages[chosen_point-1] + r
+                        chosen_point -= 1
+                        mages_prop[chosen_point] = mages[chosen_point] + r
                         #Resolve conflicts
-                        if r>0 # If proposing increased age
-                            conflict_t .= (mages_prop .< mages_prop[chosen_point-1]) .& (index .< (chosen_point-1))
+                        if r > 0 # If proposing increased age
+                            @inbounds for i=1:chosen_point # younger points below
+                                if mages_prop[i] < mages_prop[chosen_point]
+                                    mages_prop[i] = mages_prop[chosen_point]
+                                end
+                            end
                         else # if proposing decreased age
-                            conflict_t .= (mages_prop .> mages_prop[chosen_point-1]) .& (index .> (chosen_point-1))
+                            @inbounds for i=chosen_point:npoints # older points above
+                                if mages_prop[i] > mages_prop[chosen_point]
+                                    mages_prop[i] = mages_prop[chosen_point]
+                                end
+                            end
                         end
-                        mages_prop[conflict_t] .= mages_prop[chosen_point-1]
                     end
                 end
             end
@@ -400,7 +444,7 @@
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
-                if Age_Sidedness == sign(closest_mages_prop[i] - Age[i])
+                if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
             end
@@ -447,7 +491,6 @@
 
     function StratMetropolisDist(smpl::ChronAgeData, config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model
-
         print("Generating stratigraphic age-depth model...\n")
 
         # Model configuration -- read from struct
@@ -461,28 +504,28 @@
         (bottom, top) = extrema(smpl.Height)
         (youngest, oldest) = extrema(smpl.Age)
         dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = mean(smpl.Age_sigma)
-        p = copy(smpl.Params)
+        aveuncert = nanmean(smpl.Age_sigma)::Float64
+        p = copy(smpl.Params)::Array{Float64,2}
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
-            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]
-            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]
-            Height = [bottom-offset; smpl.Height; top+offset]
-            Height_sigma = [0; smpl.Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
+            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]::Array{Float64,1}
+            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]::Array{Float64,1}
+            Height = [bottom-offset; smpl.Height; top+offset]::Array{Float64,1}
+            Height_sigma = [0; smpl.Height_sigma; 0]::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;]::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
             pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = mean(smpl.Age_sigma)/10
             pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = mean(smpl.Age_sigma)/10
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
         else
-            Age = copy(smpl.Age)
-            Age_sigma = copy(smpl.Age_sigma)
-            Height = copy(smpl.Height)
-            Height_sigma = smpl.Height_sigma .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = copy(smpl.Age_Sidedness) # Bottom is a maximum age and top is a minimum age
+            Age = copy(smpl.Age)::Array{Float64,1}
+            Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
+            Height = copy(smpl.Height)::Array{Float64,1}
+            Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
             model_heights = bottom:resolution:top
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
@@ -500,7 +543,7 @@
         closest = findclosest(sample_height, model_heights)
         closest_mages = mages[closest]
         @inbounds for i=1:length(Age)
-            if Age_Sidedness == sign(closest_mages[i] - Age[i])
+            if Age_Sidedness[i] == sign(closest_mages[i] - Age[i])
                 closest_mages[i] = Age[i]
             end
         end
@@ -518,7 +561,6 @@
         # Run burnin
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
-        index = collect(1:npoints)
         @showprogress "Burn-in..." for i=1:burnin
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
@@ -526,9 +568,18 @@
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop .+= randn(size(Height)) .* Height_sigma
+                for i=1:length(sample_height_prop)
+                    sample_height_prop[i] += randn() * Height_sigma[i]
+                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
+                    # Check we're still within bounds
+                    if closest_prop[i] < 1
+                        closest_prop[i] = 1
+                    elseif closest_prop[i] > npoints
+                        closest_prop[i] = npoints
+                    end
+                end
+                # sample_height_prop .+= randn(size(Height)) .* Height_sigma
                 # closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
-                closest_prop .= findclosest(sample_height_prop, model_heights)
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
@@ -536,11 +587,20 @@
                 mages_prop[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
-                    conflict_t .= (mages_prop .< mages_prop[chosen_point]) .& (index .< chosen_point) # younger points below
+                    @inbounds for i=1:chosen_point
+                        # younger points below
+                        if mages_prop[i] < mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 else # if proposing decreased age
-                    conflict_t .= (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point) # older points above
+                    @inbounds for i=chosen_point:npoints
+                        # older points above
+                        if mages_prop[i] > mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 end
-                mages_prop[conflict_t] .= mages_prop[chosen_point]
             end
 
 
@@ -549,7 +609,7 @@
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
-                if Age_Sidedness == sign(closest_mages_prop[i] - Age[i])
+                if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
             end
@@ -580,9 +640,18 @@
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop .+= randn(size(Height)) .* Height_sigma
+                for i=1:length(sample_height_prop)
+                    sample_height_prop[i] += randn() * Height_sigma[i]
+                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
+                    # Check we're still within bounds
+                    if closest_prop[i] < 1
+                        closest_prop[i] = 1
+                    elseif closest_prop[i] > npoints
+                        closest_prop[i] = npoints
+                    end
+                end
+                # sample_height_prop .+= randn(size(Height)) .* Height_sigma
                 # closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
-                closest_prop .= findclosest(sample_height_prop, model_heights)
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
@@ -590,11 +659,20 @@
                 mages_prop[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
-                    conflict_t .= (mages_prop .< mages_prop[chosen_point]) .& (index .< chosen_point) # younger points below
+                    @inbounds for i=1:chosen_point
+                        # younger points below
+                        if mages_prop[i] < mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 else # if proposing decreased age
-                    conflict_t .= (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point) # older points above
+                    @inbounds for i=chosen_point:npoints
+                        # older points above
+                        if mages_prop[i] > mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 end
-                mages_prop[conflict_t] .= mages_prop[chosen_point]
             end
 
 
@@ -603,7 +681,7 @@
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
-                if Age_Sidedness == sign(closest_mages_prop[i] - Age[i])
+                if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
             end
@@ -658,28 +736,28 @@
         (bottom, top) = extrema(smpl.Height)
         (youngest, oldest) = extrema(smpl.Age)
         dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = mean(smpl.Age_sigma)
-        p = copy(smpl.Params)
+        aveuncert = nanmean(smpl.Age_sigma)::Float64
+        p = copy(smpl.Params)::Array{Float64,2}
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
-            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]
-            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]
-            Height = [bottom-offset; smpl.Height; top+offset]
-            Height_sigma = [0; smpl.Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
+            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]::Array{Float64,1}
+            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]::Array{Float64,1}
+            Height = [bottom-offset; smpl.Height; top+offset]::Array{Float64,1}
+            Height_sigma = [0; smpl.Height_sigma; 0]::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;]::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
             pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = mean(smpl.Age_sigma)/10
             pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = mean(smpl.Age_sigma)/10
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
         else
-            Age = copy(smpl.Age)
-            Age_sigma = copy(smpl.Age_sigma)
-            Height = copy(smpl.Height)
-            Height_sigma = smpl.Height_sigma .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = copy(smpl.Age_Sidedness) # Bottom is a maximum age and top is a minimum age
+            Age = copy(smpl.Age)::Array{Float64,1}
+            Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
+            Height = copy(smpl.Height)::Array{Float64,1}
+            Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
             model_heights = bottom:resolution:top
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
@@ -697,7 +775,7 @@
         closest = findclosest(sample_height, model_heights)
         closest_mages = mages[closest]
         @inbounds for i=1:length(Age)
-            if Age_Sidedness == sign(closest_mages[i] - Age[i])
+            if Age_Sidedness[i] == sign(closest_mages[i] - Age[i])
                 closest_mages[i] = Age[i]
             end
         end
@@ -750,11 +828,20 @@
                 mages_prop[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
-                    conflict_t .= (mages_prop .< mages_prop[chosen_point]) .& (index .< chosen_point) # younger points below
+                    @inbounds for i=1:chosen_point
+                        # younger points below
+                        if mages_prop[i] < mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 else # if proposing decreased age
-                    conflict_t .= (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point) # older points above
+                    @inbounds for i=chosen_point:npoints
+                        # older points above
+                        if mages_prop[i] > mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 end
-                mages_prop[conflict_t] .= mages_prop[chosen_point]
 
                 # If chosen_point is a hiatus point, let there be a 20 percent chance of
                 # adjusting the point below the hiatus as well
@@ -763,14 +850,22 @@
                     #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
                     # end
                     if any(closest_hiatus_unique.==chosen_point)
-                        mages_prop[chosen_point-1] = mages[chosen_point-1] + r
+                        chosen_point -= 1
+                        mages_prop[chosen_point] = mages[chosen_point] + r
                         #Resolve conflicts
-                        if r>0 # If proposing increased age
-                            conflict_t .= (mages_prop .< mages_prop[chosen_point-1]) .& (index .< (chosen_point-1))
+                        if r > 0 # If proposing increased age
+                            @inbounds for i=1:chosen_point # younger points below
+                                if mages_prop[i] < mages_prop[chosen_point]
+                                    mages_prop[i] = mages_prop[chosen_point]
+                                end
+                            end
                         else # if proposing decreased age
-                            conflict_t .= (mages_prop .> mages_prop[chosen_point-1]) .& (index .> (chosen_point-1))
+                            @inbounds for i=chosen_point:npoints # older points above
+                                if mages_prop[i] > mages_prop[chosen_point]
+                                    mages_prop[i] = mages_prop[chosen_point]
+                                end
+                            end
                         end
-                        mages_prop[conflict_t] .= mages_prop[chosen_point-1]
                     end
                 end
             end
@@ -781,7 +876,7 @@
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
-                if Age_Sidedness == sign(closest_mages_prop[i] - Age[i])
+                if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
             end
@@ -826,11 +921,18 @@
                 mages_prop[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
-                    conflict_t .= (mages_prop .< mages_prop[chosen_point]) .& (index .< chosen_point) # younger points below
+                    @inbounds for i=1:chosen_point # younger points below
+                        if mages_prop[i] < mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 else # if proposing decreased age
-                    conflict_t .= (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point) # older points above
+                    @inbounds for i=chosen_point:npoints # older points above
+                        if mages_prop[i] > mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 end
-                mages_prop[conflict_t] .= mages_prop[chosen_point]
 
                 # If chosen_point is a hiatus point, let there be a 20 percent chance of
                 # adjusting the point below the hiatus as well
@@ -839,14 +941,22 @@
                     #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
                     # end
                     if any(closest_hiatus_unique.==chosen_point)
-                        mages_prop[chosen_point-1] = mages[chosen_point-1] + r
+                        chosen_point -= 1
+                        mages_prop[chosen_point] = mages[chosen_point] + r
                         #Resolve conflicts
-                        if r>0 # If proposing increased age
-                            conflict_t .= (mages_prop .< mages_prop[chosen_point-1]) .& (index .< (chosen_point-1))
+                        if r > 0 # If proposing increased age
+                            @inbounds for i=1:chosen_point # younger points below
+                                if mages_prop[i] < mages_prop[chosen_point]
+                                    mages_prop[i] = mages_prop[chosen_point]
+                                end
+                            end
                         else # if proposing decreased age
-                            conflict_t .= (mages_prop .> mages_prop[chosen_point-1]) .& (index .> (chosen_point-1))
+                            @inbounds for i=chosen_point:npoints # older points above
+                                if mages_prop[i] > mages_prop[chosen_point]
+                                    mages_prop[i] = mages_prop[chosen_point]
+                                end
+                            end
                         end
-                        mages_prop[conflict_t] .= mages_prop[chosen_point-1]
                     end
                 end
             end
@@ -856,7 +966,7 @@
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
-                if Age_Sidedness == sign(closest_mages_prop[i] - Age[i])
+                if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
             end
@@ -917,29 +1027,29 @@
         (bottom, top) = extrema(smpl.Height)
         (youngest, oldest) = extrema(smpl.Age)
         dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = mean(smpl.Age_sigma)
-        p = copy(smpl.Params)
+        aveuncert = nanmean(smpl.Age_sigma)::Float64
+        p = copy(smpl.Params)::Array{Float64,2}
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
-            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]
-            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]
-            Height = [bottom-offset; smpl.Height; top+offset]
-            Height_sigma = [0; smpl.Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
+            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]::Array{Float64,1}
+            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]::Array{Float64,1}
+            Height = [bottom-offset; smpl.Height; top+offset]::Array{Float64,1}
+            Height_sigma = [0; smpl.Height_sigma; 0]::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;]::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
             boundsigma = mean(smpl.Age_sigma)/10
             pl = normpdf_ll.(oldest + offset*dt_dH, boundsigma, 1:50000)
             pu = normpdf_ll.(youngest - offset*dt_dH, boundsigma, 1:50000)
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
         else
-            Age = copy(smpl.Age)
-            Age_sigma = copy(smpl.Age_sigma)
-            Height = copy(smpl.Height)
-            Height_sigma = smpl.Height_sigma .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = copy(smpl.Age_Sidedness) # Bottom is a maximum age and top is a minimum age
+            Age = copy(smpl.Age)::Array{Float64,1}
+            Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
+            Height = copy(smpl.Height)::Array{Float64,1}
+            Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
             model_heights = bottom:resolution:top
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
@@ -957,7 +1067,7 @@
         closest = findclosest(sample_height, model_heights)
         closest_mages = mages[closest]
         @inbounds for i=1:length(Age)
-            if Age_Sidedness == sign(closest_mages[i] - Age[i])
+            if Age_Sidedness[i] == sign(closest_mages[i] - Age[i])
                 closest_mages[i] = Age[i]
             end
         end
@@ -983,8 +1093,18 @@
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop .+= randn(size(Height)) .* Height_sigma
-                closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
+                for i=1:length(sample_height_prop)
+                    sample_height_prop[i] += randn() * Height_sigma[i]
+                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
+                    # Check we're still within bounds
+                    if closest_prop[i] < 1
+                        closest_prop[i] = 1
+                    elseif closest_prop[i] > npoints
+                        closest_prop[i] = npoints
+                    end
+                end
+                # sample_height_prop .+= randn(size(Height)) .* Height_sigma
+                # closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
@@ -992,11 +1112,18 @@
                 mages_prop[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
-                    conflict_t .= (mages_prop .< mages_prop[chosen_point]) .& (index .< chosen_point) # younger points below
+                    @inbounds for i=1:chosen_point # younger points below
+                        if mages_prop[i] < mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 else # if proposing decreased age
-                    conflict_t .= (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point) # older points above
+                    @inbounds for i=chosen_point:npoints # older points above
+                        if mages_prop[i] > mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 end
-                mages_prop[conflict_t] .= mages_prop[chosen_point]
             end
 
 
@@ -1005,7 +1132,7 @@
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
-                if Age_Sidedness == sign(closest_mages_prop[i] - Age[i])
+                if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
             end
@@ -1036,8 +1163,18 @@
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop .+= randn(size(Height)) .* Height_sigma
-                closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
+                for i=1:length(sample_height_prop)
+                    sample_height_prop[i] += randn() * Height_sigma[i]
+                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
+                    # Check we're still within bounds
+                    if closest_prop[i] < 1
+                        closest_prop[i] = 1
+                    elseif closest_prop[i] > npoints
+                        closest_prop[i] = npoints
+                    end
+                end
+                # sample_height_prop .+= randn(size(Height)) .* Height_sigma
+                # closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
@@ -1045,11 +1182,18 @@
                 mages_prop[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
-                    conflict_t .= (mages_prop .< mages_prop[chosen_point]) .& (index .< chosen_point) # younger points below
+                    @inbounds for i=1:chosen_point # younger points below
+                        if mages_prop[i] < mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 else # if proposing decreased age
-                    conflict_t .= (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point) # older points above
+                    @inbounds for i=chosen_point:npoints # older points above
+                        if mages_prop[i] > mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 end
-                mages_prop[conflict_t] .= mages_prop[chosen_point]
             end
 
             # Calculate log likelihood of proposal
@@ -1057,7 +1201,7 @@
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
-                if Age_Sidedness == sign(closest_mages_prop[i] - Age[i])
+                if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
             end
@@ -1111,29 +1255,29 @@
         (bottom, top) = extrema(smpl.Height)
         (youngest, oldest) = extrema(smpl.Age)
         dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = mean(smpl.Age_sigma)
-        p = copy(smpl.Params)
+        aveuncert = nanmean(smpl.Age_sigma)::Float64
+        p = copy(smpl.Params)::Array{Float64,2}
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
-            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]
-            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]
-            Height = [bottom-offset; smpl.Height; top+offset]
-            Height_sigma = [0; smpl.Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
+            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]::Array{Float64,1}
+            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]::Array{Float64,1}
+            Height = [bottom-offset; smpl.Height; top+offset]::Array{Float64,1}
+            Height_sigma = [0; smpl.Height_sigma; 0]::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;]::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
             boundsigma = mean(smpl.Age_sigma)/10
             pl = normpdf_ll.(oldest + offset*dt_dH, boundsigma, 1:50000)
             pu = normpdf_ll.(youngest - offset*dt_dH, boundsigma, 1:50000)
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
         else
-            Age = copy(smpl.Age)
-            Age_sigma = copy(smpl.Age_sigma)
-            Height = copy(smpl.Height)
-            Height_sigma = smpl.Height_sigma .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = copy(smpl.Age_Sidedness) # Bottom is a maximum age and top is a minimum age
+            Age = copy(smpl.Age)::Array{Float64,1}
+            Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
+            Height = copy(smpl.Height)::Array{Float64,1}
+            Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
             model_heights = bottom:resolution:top
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
@@ -1151,7 +1295,7 @@
         closest = findclosest(sample_height, model_heights)
         closest_mages = mages[closest]
         @inbounds for i=1:length(Age)
-            if Age_Sidedness == sign(closest_mages[i] - Age[i])
+            if Age_Sidedness[i] == sign(closest_mages[i] - Age[i])
                 closest_mages[i] = Age[i]
             end
         end
@@ -1204,11 +1348,18 @@
                 mages_prop[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
-                    conflict_t .= (mages_prop .< mages_prop[chosen_point]) .& (index .< chosen_point) # younger points below
+                    @inbounds for i=1:chosen_point # younger points below
+                        if mages_prop[i] < mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 else # if proposing decreased age
-                    conflict_t .= (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point) # older points above
+                    @inbounds for i=chosen_point:npoints # older points above
+                        if mages_prop[i] > mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 end
-                mages_prop[conflict_t] .= mages_prop[chosen_point]
 
                 # If chosen_point is a hiatus point, let there be a 20 percent chance of
                 # adjusting the point below the hiatus as well
@@ -1217,14 +1368,22 @@
                     #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
                     # end
                     if any(closest_hiatus_unique.==chosen_point)
-                        mages_prop[chosen_point-1] = mages[chosen_point-1] + r
+                        chosen_point -= 1
+                        mages_prop[chosen_point] = mages[chosen_point] + r
                         #Resolve conflicts
-                        if r>0 # If proposing increased age
-                            conflict_t .= (mages_prop .< mages_prop[chosen_point-1]) .& (index .< (chosen_point-1))
+                        if r > 0 # If proposing increased age
+                            @inbounds for i=1:chosen_point # younger points below
+                                if mages_prop[i] < mages_prop[chosen_point]
+                                    mages_prop[i] = mages_prop[chosen_point]
+                                end
+                            end
                         else # if proposing decreased age
-                            conflict_t .= (mages_prop .> mages_prop[chosen_point-1]) .& (index .> (chosen_point-1))
+                            @inbounds for i=chosen_point:npoints # older points above
+                                if mages_prop[i] > mages_prop[chosen_point]
+                                    mages_prop[i] = mages_prop[chosen_point]
+                                end
+                            end
                         end
-                        mages_prop[conflict_t] .= mages_prop[chosen_point-1]
                     end
                 end
             end
@@ -1235,7 +1394,7 @@
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
-                if Age_Sidedness == sign(closest_mages_prop[i] - Age[i])
+                if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
             end
@@ -1280,11 +1439,18 @@
                 mages_prop[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
-                    conflict_t .= (mages_prop .< mages_prop[chosen_point]) .& (index .< chosen_point) # younger points below
+                    @inbounds for i=1:chosen_point # younger points below
+                        if mages_prop[i] < mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 else # if proposing decreased age
-                    conflict_t .= (mages_prop .> mages_prop[chosen_point]) .& (index .> chosen_point) # older points above
+                    @inbounds for i=chosen_point:npoints # older points above
+                        if mages_prop[i] > mages_prop[chosen_point]
+                            mages_prop[i] = mages_prop[chosen_point]
+                        end
+                    end
                 end
-                mages_prop[conflict_t] .= mages_prop[chosen_point]
 
                 # If chosen_point is a hiatus point, let there be a 20 percent chance of
                 # adjusting the point below the hiatus as well
@@ -1293,14 +1459,22 @@
                     #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
                     # end
                     if any(closest_hiatus_unique.==chosen_point)
-                        mages_prop[chosen_point-1] = mages[chosen_point-1] + r
+                        chosen_point -= 1
+                        mages_prop[chosen_point] = mages[chosen_point] + r
                         #Resolve conflicts
-                        if r>0 # If proposing increased age
-                            conflict_t .= (mages_prop .< mages_prop[chosen_point-1]) .& (index .< (chosen_point-1))
+                        if r > 0 # If proposing increased age
+                            @inbounds for i=1:chosen_point # younger points below
+                                if mages_prop[i] < mages_prop[chosen_point]
+                                    mages_prop[i] = mages_prop[chosen_point]
+                                end
+                            end
                         else # if proposing decreased age
-                            conflict_t .= (mages_prop .> mages_prop[chosen_point-1]) .& (index .> (chosen_point-1))
+                            @inbounds for i=chosen_point:npoints # older points above
+                                if mages_prop[i] > mages_prop[chosen_point]
+                                    mages_prop[i] = mages_prop[chosen_point]
+                                end
+                            end
                         end
-                        mages_prop[conflict_t] .= mages_prop[chosen_point-1]
                     end
                 end
             end
@@ -1310,7 +1484,7 @@
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
-                if Age_Sidedness == sign(closest_mages_prop[i] - Age[i])
+                if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
             end
