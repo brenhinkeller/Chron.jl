@@ -2,7 +2,6 @@
 
     function StratMetropolis(smpl::ChronAgeData, config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model
-
         print("Generating stratigraphic age-depth model...\n")
 
         # Model configuration -- read from struct
@@ -13,28 +12,27 @@
         bounding = config.bounding
 
         # Stratigraphic age constraints
-        (bottom, top) = extrema(smpl.Height)
-        (youngest, oldest) = extrema(smpl.Age)
+        Age = copy(smpl.Age)::Array{Float64,1}
+        Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
+        Height = copy(smpl.Height)::Array{Float64,1}
+        Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+        Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
+        (bottom, top) = extrema(Height)
+        (youngest, oldest) = extrema(Age)
         dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = nanmean(smpl.Age_sigma)::Float64
+        aveuncert = nanmean(Age_sigma)
+        model_heights = bottom:resolution:top
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
-            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]::Array{Float64,1}
-            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]::Array{Float64,1}
-            Height = [bottom-offset; smpl.Height; top+offset]::Array{Float64,1}
-            Height_sigma = [0; smpl.Height_sigma; 0]::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;]::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
+            Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
+            Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
+            Height = [bottom-offset; Height; top+offset]
+            Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
-        else
-            Age = copy(smpl.Age)::Array{Float64,1}
-            Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
-            Height = copy(smpl.Height)::Array{Float64,1}
-            Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
-            model_heights = bottom:resolution:top
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
         npoints = length(model_heights)
@@ -206,7 +204,6 @@
 
     function StratMetropolis(smpl::ChronAgeData, hiatus::HiatusData, config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model, with hiata
-
         print("Generating stratigraphic age-depth model...\n")
 
         # Model configuration -- read from struct
@@ -216,29 +213,28 @@
         sieve = config.sieve
         bounding = config.bounding
 
-        # Stratigraphic age constraints
-        (bottom, top) = extrema(smpl.Height)
-        (youngest, oldest) = extrema(smpl.Age)
+        # Stratigraphic age constraints. Type assertions for stability
+        Age = copy(smpl.Age)::Array{Float64,1}
+        Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
+        Height = copy(smpl.Height)::Array{Float64,1}
+        Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+        Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
+        (youngest, oldest) = extrema(Age)
+        aveuncert = nanmean(Age_sigma)
+        (bottom, top) = extrema(Height)
         dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = nanmean(smpl.Age_sigma)::Float64
+        model_heights = bottom:resolution:top
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
-            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]::Array{Float64,1}
-            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]::Array{Float64,1}
-            Height = [bottom-offset; smpl.Height; top+offset]::Array{Float64,1}
-            Height_sigma = [0; smpl.Height_sigma; 0]::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;]::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
+            Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
+            Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
+            Height = [bottom-offset; Height; top+offset]
+            Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
-        else
-            Age = copy(smpl.Age)::Array{Float64,1}
-            Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
-            Height = copy(smpl.Height)::Array{Float64,1}
-            Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
-            model_heights = bottom:resolution:top
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
         npoints = length(model_heights)
@@ -263,15 +259,15 @@
         ll += normpdf_ll(Height, Height_sigma, sample_height)
 
         # Ensure there is only one effective hiatus at most for each height node
-        closest_hiatus = findclosestabove(hiatus.Height,model_heights)
+        closest_hiatus = findclosestabove((hiatus.Height::Array{Float64,1}),model_heights)
         closest_hiatus_unique = unique(closest_hiatus)
         Hiatus_height = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
         for i=1:length(closest_hiatus_unique)
-            Hiatus_height[i] = mean(hiatus.Height[closest_hiatus.==closest_hiatus_unique[i]])
-            Hiatus_duration[i] = sum(hiatus.Duration[closest_hiatus.==closest_hiatus_unique[i]])
-            Hiatus_duration_sigma[i] = sqrt(sum(hiatus.Duration_sigma[closest_hiatus.==closest_hiatus_unique[i]].^2))
+            Hiatus_height[i] = mean((hiatus.Height::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]])
+            Hiatus_duration[i] = sum((hiatus.Duration::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]])
+            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]].^2))
         end
 
         # Add log likelihood for hiatus duration
@@ -501,32 +497,32 @@
         bounding = config.bounding
 
         # Stratigraphic age constraints
-        (bottom, top) = extrema(smpl.Height)
-        (youngest, oldest) = extrema(smpl.Age)
-        dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = nanmean(smpl.Age_sigma)::Float64
+        Age = copy(smpl.Age)::Array{Float64,1}
+        Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
+        Height = copy(smpl.Height)::Array{Float64,1}
+        Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+        Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
         p = copy(smpl.Params)::Array{Float64,2}
+        (youngest, oldest) = extrema(Age)
+        aveuncert = nanmean(Age_sigma)
+        (bottom, top) = extrema(Height)
+        dt_dH = (oldest-youngest)/(top-bottom)
+        model_heights = bottom:resolution:top
+
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
-            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]::Array{Float64,1}
-            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]::Array{Float64,1}
-            Height = [bottom-offset; smpl.Height; top+offset]::Array{Float64,1}
-            Height_sigma = [0; smpl.Height_sigma; 0]::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;]::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
+            Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
+            Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
+            Height = [bottom-offset; Height; top+offset]
+            Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
-            pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = mean(smpl.Age_sigma)/10
-            pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = mean(smpl.Age_sigma)/10
+            pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = nanmean(Age_sigma)/10
+            pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = nanmean(Age_sigma)/10
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
-        else
-            Age = copy(smpl.Age)::Array{Float64,1}
-            Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
-            Height = copy(smpl.Height)::Array{Float64,1}
-            Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
-            model_heights = bottom:resolution:top
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
         npoints = length(model_heights)
@@ -722,7 +718,6 @@
 
     function StratMetropolisDist(smpl::ChronAgeData, hiatus::HiatusData, config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model, with hiata
-
         print("Generating stratigraphic age-depth model...\n")
 
         # Model configuration -- read from struct
@@ -733,32 +728,31 @@
         bounding = config.bounding
 
         # Stratigraphic age constraints
-        (bottom, top) = extrema(smpl.Height)
-        (youngest, oldest) = extrema(smpl.Age)
-        dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = nanmean(smpl.Age_sigma)::Float64
+        Age = copy(smpl.Age)::Array{Float64,1}
+        Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
+        Height = copy(smpl.Height)::Array{Float64,1}
+        Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+        Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
         p = copy(smpl.Params)::Array{Float64,2}
+        (bottom, top) = extrema(Height)
+        (youngest, oldest) = extrema(Age)
+        dt_dH = (oldest-youngest)/(top-bottom)
+        aveuncert = nanmean(Age_sigma)
+        model_heights = bottom:resolution:top
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
-            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]::Array{Float64,1}
-            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]::Array{Float64,1}
-            Height = [bottom-offset; smpl.Height; top+offset]::Array{Float64,1}
-            Height_sigma = [0; smpl.Height_sigma; 0]::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;]::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
+            Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
+            Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
+            Height = [bottom-offset; Height; top+offset]
+            Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
-            pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = mean(smpl.Age_sigma)/10
-            pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = mean(smpl.Age_sigma)/10
+            pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = nanmean(Age_sigma)/10
+            pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = nanmean(Age_sigma)/10
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
-        else
-            Age = copy(smpl.Age)::Array{Float64,1}
-            Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
-            Height = copy(smpl.Height)::Array{Float64,1}
-            Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
-            model_heights = bottom:resolution:top
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
         npoints = length(model_heights)
@@ -783,15 +777,15 @@
         ll += normpdf_ll(Height, Height_sigma, sample_height)
 
         # Ensure there is only one effective hiatus at most for each height node
-        closest_hiatus = findclosestabove(hiatus.Height,model_heights)
+        closest_hiatus = findclosestabove((hiatus.Height::Array{Float64,1}),model_heights)
         closest_hiatus_unique = unique(closest_hiatus)
         Hiatus_height = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
         for i=1:length(closest_hiatus_unique)
-            Hiatus_height[i] = mean(hiatus.Height[closest_hiatus.==closest_hiatus_unique[i]])
-            Hiatus_duration[i] = sum(hiatus.Duration[closest_hiatus.==closest_hiatus_unique[i]])
-            Hiatus_duration_sigma[i] = sqrt(sum(hiatus.Duration_sigma[closest_hiatus.==closest_hiatus_unique[i]].^2))
+            Hiatus_height[i] = mean((hiatus.Height::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]])
+            Hiatus_duration[i] = sum((hiatus.Duration::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]])
+            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]].^2))
         end
 
         # Add log likelihood for hiatus duration
@@ -1013,7 +1007,6 @@
 
     function StratMetropolis14C(smpl::ChronAgeData, config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model
-
         print("Generating stratigraphic age-depth model...\n")
 
         # Model configuration -- read from struct
@@ -1024,33 +1017,32 @@
         bounding = config.bounding
 
         # Stratigraphic age constraints
-        (bottom, top) = extrema(smpl.Height)
-        (youngest, oldest) = extrema(smpl.Age)
-        dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = nanmean(smpl.Age_sigma)::Float64
+        Age = copy(smpl.Age)::Array{Float64,1}
+        Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
+        Height = copy(smpl.Height)::Array{Float64,1}
+        Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+        Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
         p = copy(smpl.Params)::Array{Float64,2}
+        (bottom, top) = extrema(Height)
+        (youngest, oldest) = extrema(Age)
+        dt_dH = (oldest-youngest)/(top-bottom)
+        aveuncert = nanmean(Age_sigma)
+        model_heights = bottom:resolution:top
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
-            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]::Array{Float64,1}
-            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]::Array{Float64,1}
-            Height = [bottom-offset; smpl.Height; top+offset]::Array{Float64,1}
-            Height_sigma = [0; smpl.Height_sigma; 0]::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;]::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
+            Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
+            Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
+            Height = [bottom-offset; Height; top+offset]
+            Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
-            boundsigma = mean(smpl.Age_sigma)/10
+            boundsigma = nanmean(Age_sigma)/10
             pl = normpdf_ll.(oldest + offset*dt_dH, boundsigma, 1:50000)
             pu = normpdf_ll.(youngest - offset*dt_dH, boundsigma, 1:50000)
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
-        else
-            Age = copy(smpl.Age)::Array{Float64,1}
-            Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
-            Height = copy(smpl.Height)::Array{Float64,1}
-            Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
-            model_heights = bottom:resolution:top
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
         npoints = length(model_heights)
@@ -1237,11 +1229,11 @@
 
         return mdl, agedist, lldist
     end
+
 ## --- Stratigraphic MCMC model with hiatus, for radiocarbon ages # # # # # #
 
     function StratMetropolis14C(smpl::ChronAgeData, hiatus::HiatusData, config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model, with hiata
-
         print("Generating stratigraphic age-depth model...\n")
 
         # Model configuration -- read from struct
@@ -1252,33 +1244,32 @@
         bounding = config.bounding
 
         # Stratigraphic age constraints
-        (bottom, top) = extrema(smpl.Height)
-        (youngest, oldest) = extrema(smpl.Age)
-        dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = nanmean(smpl.Age_sigma)::Float64
+        Age = copy(smpl.Age)::Array{Float64,1}
+        Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
+        Height = copy(smpl.Height)::Array{Float64,1}
+        Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
+        Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
         p = copy(smpl.Params)::Array{Float64,2}
+        (bottom, top) = extrema(Height)
+        (youngest, oldest) = extrema(Age)
+        dt_dH = (oldest-youngest)/(top-bottom)
+        aveuncert = nanmean(Age_sigma)
+        model_heights = bottom:resolution:top
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             offset = (top-bottom)*bounding
-            Age = [oldest + offset*dt_dH; smpl.Age; youngest - offset*dt_dH]::Array{Float64,1}
-            Age_sigma = [mean(smpl.Age_sigma)/10; smpl.Age_sigma; mean(smpl.Age_sigma)/10]::Array{Float64,1}
-            Height = [bottom-offset; smpl.Height; top+offset]::Array{Float64,1}
-            Height_sigma = [0; smpl.Height_sigma; 0]::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = [-1.0; smpl.Age_Sidedness; 1.0;]::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
+            Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
+            Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
+            Height = [bottom-offset; Height; top+offset]
+            Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
-            boundsigma = mean(smpl.Age_sigma)/10
+            boundsigma = nanmean(Age_sigma)/10
             pl = normpdf_ll.(oldest + offset*dt_dH, boundsigma, 1:50000)
             pu = normpdf_ll.(youngest - offset*dt_dH, boundsigma, 1:50000)
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
-        else
-            Age = copy(smpl.Age)::Array{Float64,1}
-            Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
-            Height = copy(smpl.Height)::Array{Float64,1}
-            Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
-            model_heights = bottom:resolution:top
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
         npoints = length(model_heights)
@@ -1303,15 +1294,15 @@
         ll += normpdf_ll(Height, Height_sigma, sample_height)
 
         # Ensure there is only one effective hiatus at most for each height node
-        closest_hiatus = findclosestabove(hiatus.Height,model_heights)
+        closest_hiatus = findclosestabove((hiatus.Height::Array{Float64,1}),model_heights)
         closest_hiatus_unique = unique(closest_hiatus)
         Hiatus_height = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
         for i=1:length(closest_hiatus_unique)
-            Hiatus_height[i] = mean(hiatus.Height[closest_hiatus.==closest_hiatus_unique[i]])
-            Hiatus_duration[i] = sum(hiatus.Duration[closest_hiatus.==closest_hiatus_unique[i]])
-            Hiatus_duration_sigma[i] = sqrt(sum(hiatus.Duration_sigma[closest_hiatus.==closest_hiatus_unique[i]].^2))
+            Hiatus_height[i] = mean((hiatus.Height::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]])
+            Hiatus_duration[i] = sum((hiatus.Duration::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]])
+            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]].^2))
         end
 
         # Add log likelihood for hiatus duration
