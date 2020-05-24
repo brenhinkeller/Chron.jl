@@ -745,16 +745,21 @@
     If muliple values are equally close, the first one is used
     """
     function findclosest(source, target)
-        # Allocate index and difference arrays
         index = Array{Int64}(undef, size(source))
-        diff_type = promote_type(eltype(source), eltype(target))
-        diff = Array{diff_type}(undef, length(target))
+        return findclosest!(index, source, target)
+    end
+    function findclosest!(index, source, target)
         # Find closest (numerical) match in target for each value in source
         @inbounds for i = 1:length(source)
-            for j = 1:length(diff)
-                diff[j] = abs(target[j] - source[i])
+            d = abs(target[1] - source[i])
+            index[i] = 1
+            for j = 2:length(target)
+                d_prop = abs(target[j] - source[i])
+                if d_prop < d
+                    d = d_prop
+                    index[i] = j
+                end
             end
-            index[i] = argmin(diff)
         end
         return index
     end
@@ -768,32 +773,30 @@
     If no such target values exist in `target`, returns an index of 0.
     """
     function findclosestbelow(source, target)
-        # Allocate output array
         index = Array{Int64}(undef, size(source))
-        diff_type = promote_type(eltype(source), eltype(target))
-        diff = Array{diff_type}(undef, length(target))
-        t = Array{Bool}(undef,length(target))
+        return findclosestbelow!(index, source, target)
+    end
+    function findclosestbelow!(index, source, target)
         @inbounds for i = 1:length(source)
-            j = 0
-            closestbelow = 0
-            while j < length(diff)
+            index[i] = d = j = 0
+            while j < length(target)
                 j += 1
                 if target[j] < source[i]
-                    diff[j] = source[i] - target[j]
-                    closestbelow = j
+                    d = source[i] - target[j]
+                    index[i] = j
                     break
                 end
             end
-            while j < length(diff)
+            while j < length(target)
                 j += 1
                 if target[j] < source[i]
-                    diff[j] = source[i] - target[j]
-                    if diff[j] < diff[closestbelow]
-                        closestbelow = j
+                    d_prop = source[i] - target[j]
+                    if d_prop < d
+                        d = d_prop
+                        index[i] = j
                     end
                 end
             end
-            index[i] = closestbelow
         end
         return index
     end
@@ -807,32 +810,30 @@
     If no such values exist in `target`, returns an index of 0.
     """
     function findclosestabove(source, target)
-        # Allocate output array
         index = Array{Int64}(undef, size(source))
-        diff_type = promote_type(eltype(source), eltype(target))
-        diff = Array{diff_type}(undef, length(target))
-        t = Array{Bool}(undef,length(target))
+        return findclosestabove!(index,source,target)
+    end
+    function findclosestabove!(index, source, target)
         @inbounds for i = 1:length(source)
-            j = 0
-            closestabove = 0
-            while j < length(diff)
+            index[i] = d = j = 0
+            while j < length(target)
                 j += 1
                 if target[j] > source[i]
-                    diff[j] = target[j] - source[i]
-                    closestabove = j
+                    d = target[j] - source[i]
+                    index[i] = j
                     break
                 end
             end
-            while j < length(diff)
+            while j < length(target)
                 j += 1
                 if target[j] > source[i]
-                    diff[j] = target[j] - source[i]
-                    if diff[j] < diff[closestabove]
-                        closestabove = j
+                    d_prop = target[j] - source[i]
+                    if d_prop < d
+                        d = d_prop
+                        index[i] = j
                     end
                 end
             end
-            index[i] = closestabove
         end
         return index
     end
