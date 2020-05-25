@@ -32,7 +32,7 @@ module Chron
 
     # Basic statistics and UI resources
     using StatsBase: fit, Histogram, percentile
-    using ProgressMeter: @showprogress
+    using ProgressMeter: @showprogress, Progress, next!
     using LsqFit: curve_fit
     using KernelDensity: kde
     using LoopVectorization
