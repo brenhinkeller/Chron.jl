@@ -67,7 +67,7 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
-        pgrs_interval = burnin÷1000
+        pgrs_interval = ceil(Int,sqrt(burnin))
         for n=1:burnin
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -131,6 +131,7 @@
             # Update progress meter every `pgrs_interval` steps
             mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
+        update!(pgrs, burnin) # Finalize
 
         # Run Markov Chain Monte Carlo
         print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
@@ -140,7 +141,7 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        pgrs_interval = nsteps*sieve÷1000
+        pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
         for n=1:(nsteps*sieve)
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -208,6 +209,7 @@
             # Update progress meter every `pgrs_interval` steps
             mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
+        update!(pgrs,nsteps*sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -311,7 +313,7 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
-        pgrs_interval = burnin÷1000
+        pgrs_interval = ceil(Int,sqrt(burnin))
         for n=1:burnin
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -406,6 +408,7 @@
             # Update progress meter every `pgrs_interval` steps
             mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
+        update!(pgrs, burnin) # Finalize
 
         # Run Markov Chain Monte Carlo
         print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
@@ -415,7 +418,7 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        pgrs_interval = nsteps*sieve÷1000
+        pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
         for n=1:(nsteps*sieve)
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -515,6 +518,7 @@
             # Update progress meter every `pgrs_interval` steps
             mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
+        update!(pgrs,nsteps*sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -605,7 +609,7 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
-        pgrs_interval = burnin÷1000
+        pgrs_interval = ceil(Int,sqrt(burnin))
         for n=1:burnin
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -671,6 +675,7 @@
             # Update progress meter every `pgrs_interval` steps
             mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
+        update!(pgrs, burnin) # Finalize
 
         # Run Markov Chain Monte Carlo
         print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
@@ -680,7 +685,7 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        pgrs_interval = nsteps*sieve÷1000
+        pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
         for n=1:(nsteps*sieve)
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -751,6 +756,7 @@
             # Update progress meter every `pgrs_interval` steps
             mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
+        update!(pgrs,nsteps*sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -858,7 +864,7 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
-        pgrs_interval = burnin÷1000
+        pgrs_interval = ceil(Int,sqrt(burnin))
         for n=1:burnin
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -954,6 +960,7 @@
             # Update progress meter every `pgrs_interval` steps
             mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
+        update!(pgrs, burnin) # Finalize
 
         # Run Markov Chain Monte Carlo
         print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
@@ -963,7 +970,7 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        pgrs_interval = nsteps*sieve÷1000
+        pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
         for n=1:(nsteps*sieve)
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -1063,6 +1070,7 @@
             # Update progress meter every `pgrs_interval` steps
             mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
+        update!(pgrs,nsteps*sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -1153,7 +1161,7 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
-        pgrs_interval = burnin÷1000
+        pgrs_interval = ceil(Int,sqrt(burnin))
         for n=1:burnin
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
@@ -1216,6 +1224,7 @@
             # Update progress meter every `pgrs_interval` steps
             mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
+        update!(pgrs, burnin) # Finalize
 
         # Run Markov Chain Monte Carlo
         print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
@@ -1225,7 +1234,7 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        pgrs_interval = nsteps*sieve÷1000
+        pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
         for n=1:(nsteps*sieve)
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -1293,6 +1302,7 @@
             # Update progress meter every `pgrs_interval` steps
             mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
+        update!(pgrs,nsteps*sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -1401,7 +1411,7 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
-        pgrs_interval = burnin÷1000
+        pgrs_interval = ceil(Int,sqrt(burnin))
         for n=1:burnin
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -1495,6 +1505,7 @@
             # Update progress meter every `pgrs_interval` steps
             mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
+        update!(pgrs, burnin) # Finalize
 
         # Run Markov Chain Monte Carlo
         print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
@@ -1504,7 +1515,7 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        pgrs_interval = nsteps*sieve÷1000
+        pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
         for n=1:(nsteps*sieve)
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -1604,6 +1615,7 @@
             # Update progress meter every `pgrs_interval` steps
             mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
+        update!(pgrs,nsteps*sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
