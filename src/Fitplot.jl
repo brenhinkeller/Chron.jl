@@ -65,7 +65,7 @@
         # Load all data points and scale from 0 to 1
         allscaled = Array{Float64}([])
         for i=1:length(smpl.Name)
-            data = readdlm("$(smpl.Path)$(smpl.Name[i]).csv",',')
+            data = readdlm("$(smpl.Path)$(smpl.Name[i]).csv",',')::Array{Float64,2}
 
             # Maximum extent of expected analytical tail (beyond eruption/deposition)
             maxTailLength = mean(data[:,2]) ./ smpl.inputSigmaLevel .* norm_quantile(1 - 1/(1+size(data,1)))
@@ -118,7 +118,7 @@
         print("Estimating eruption/deposition age distributions...\n")
         for i=1:length(smpl.Name)
             # Load data for each sample
-            data = readdlm("$(smpl.Path)$(smpl.Name[i]).csv",',')
+            data = readdlm("$(smpl.Path)$(smpl.Name[i]).csv",',',Float64)::Array{Float64,2}
             print(i, ": ", smpl.Name[i], "\n") # Display progress
 
             # Run MCMC to estimate saturation and eruption/deposition age distributions
@@ -171,7 +171,7 @@
         end
 
         # Save results as csv
-        results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(collect(smpl.Name),smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_sigma))
+        results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(collect(smpl.Name),smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_sigma))::Array{Any,2}
         writedlm(joinpath(smpl.Path,"results.csv"), results, ',')
 
         return smpl
