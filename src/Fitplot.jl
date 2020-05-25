@@ -26,11 +26,17 @@
 ## --- Remove outliers
 
     function screen_outliers(smpl::ChronAgeData; maxgap=100)
-        system("mkdir -p $(smpl.Path)screened/")
-        for i=1:length(smpl.Name)
+        # Variables from struct
+        Name = collect(smpl.Name)::Array{String,1}
+        Path = smpl.Path::String
+        Age_Unit = smpl.Age_Unit::String
+
+        # Create and populate directory of screened output
+        system("mkdir -p $(Path)screened/")
+        for i=1:length(Name)
             # With screening
             # Maximum offset before cutoff
-            data = readdlm("$(smpl.Path)$(smpl.Name[i]).csv", ',')
+            data = readdlm("$(Path)$(Name[i]).csv", ',', Float64)::Array{Float64,2}
             data = sortslices(data,dims=1) # Sort ages in ascending order
             nAnalyses = size(data,1)
             maxdt_sigma = maxgap*norm_width(nAnalyses)/nAnalyses
@@ -49,11 +55,11 @@
                     data=data[1:j-1,:]
                 end
             end
-            plot!(hdl, 1:size(data,1),data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:blue,markerstrokecolor=:blue,label="included",xlabel="N",ylabel="Age ($(smpl.Age_Unit))")
-            savefig(hdl,"$(smpl.Path)screened/$(smpl.Name[i])_screening.pdf")
-            writedlm("$(smpl.Path)screened/$(smpl.Name[i]).csv", data, ',')
+            plot!(hdl, 1:size(data,1),data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:blue,markerstrokecolor=:blue,label="included",xlabel="N",ylabel="Age ($(Age_Unit))")
+            savefig(hdl,"$(Path)screened/$(Name[i])_screening.pdf")
+            writedlm("$(Path)screened/$(Name[i]).csv", data, ',')
         end
-        smpl.Path = "$(smpl.Path)screened/"
+        smpl.Path = "$(Path)screened/"
         return smpl
     end
 
@@ -62,10 +68,14 @@
     # Bootstrap a KDE of the pre-eruptive (or pre-deposition) mineral crystallization
     # distribution shape from a 2-d array of sample ages using a KDE of stacked sample data
     function BootstrapCrystDistributionKDEfromStrat(smpl::ChronAgeData; cutoff::Number=-0.05)
+        # Extact variables froms struct
+        Name = collect(smpl.Name)::Array{String,1}
+        Path = smpl.Path::String
+
         # Load all data points and scale from 0 to 1
         allscaled = Array{Float64}([])
-        for i=1:length(smpl.Name)
-            data = readdlm("$(smpl.Path)$(smpl.Name[i]).csv",',')::Array{Float64,2}
+        for i=1:length(Name)
+            data = readdlm("$(Path)$(Name[i]).csv", ',', Float64)::Array{Float64,2}
 
             # Maximum extent of expected analytical tail (beyond eruption/deposition)
             maxTailLength = mean(data[:,2]) ./ smpl.inputSigmaLevel .* norm_quantile(1 - 1/(1+size(data,1)))
@@ -79,7 +89,7 @@
                 if maximum(scaled) > 0
                     scaled = scaled ./ maximum(scaled)
                 end
-                allscaled = [allscaled; scaled]
+                append!(allscaled, scaled)
             end
         end
 
@@ -99,7 +109,7 @@
             if maximum(scaled) > 0
                 scaled = scaled ./ maximum(scaled)
             end
-            allscaled = [allscaled; scaled]
+            append!(allscaled, scaled)
         end
 
         # Calculate kernel density estimate, truncated at 0
@@ -113,13 +123,17 @@
 
     # Process and fit stationary distribution for eruption age
     function tMinDistMetropolis(smpl::ChronAgeData,nsteps::Int,burnin::Int,dist::Array{Float64})
+        # Extract variables from struct
+        Name = collect(smpl.Name)::Array{String,1}
+        Path = smpl.Path::String
+        Age_Unit = smpl.Age_Unit::String
 
-        # Estimate the distribution for each sample
+        # Estimate the eruption/deposition distribution for each sample
         print("Estimating eruption/deposition age distributions...\n")
-        for i=1:length(smpl.Name)
+        for i=1:length(Name)
             # Load data for each sample
-            data = readdlm("$(smpl.Path)$(smpl.Name[i]).csv",',',Float64)::Array{Float64,2}
-            print(i, ": ", smpl.Name[i], "\n") # Display progress
+            data = readdlm("$(Path)$(Name[i]).csv", ',', Float64)::Array{Float64,2}
+            print(i, ": ", Name[i], "\n") # Display progress
 
             # Run MCMC to estimate saturation and eruption/deposition age distributions
             # (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax_cryst(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel, burnin=burnin)
@@ -152,27 +166,27 @@
 
             # Rank-order plot of analyses and eruption/deposition age range
             nAnalyses = length(data[:,1])
-            h1 = plot_rankorder_errorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age ($(smpl.Age_Unit))",label="Data (observed ages)")
+            h1 = plot_rankorder_errorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age ($(Age_Unit))",label="Data (observed ages)")
             m = ones(nAnalyses).*smpl.Age[i]
             l = ones(nAnalyses).*smpl.Age_025CI[i]
             u = ones(nAnalyses).*smpl.Age_975CI[i]
-            plot!(h1,1:nAnalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="Model ($(round(m[1],digits=3)) +$(round(u[1]-m[1],digits=3))/-$(round(m[1]-l[1],digits=3)) $(smpl.Age_Unit))")
+            plot!(h1,1:nAnalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="Model ($(round(m[1],digits=3)) +$(round(u[1]-m[1],digits=3))/-$(round(m[1]-l[1],digits=3)) $(Age_Unit))")
             plot!(h1,1:nAnalyses,m,linecolor=:black,linestyle=:dot,label="",legend=:topleft,fg_color_legend=:white,framestyle=:box)
-            savefig(h1,string(smpl.Path,smpl.Name[i],"_rankorder.pdf"))
-            savefig(h1,string(smpl.Path,smpl.Name[i],"_rankorder.svg"))
+            savefig(h1,string(Path,Name[i],"_rankorder.pdf"))
+            savefig(h1,string(Path,Name[i],"_rankorder.svg"))
 
             # Plot model fit to histogram
             h2 = plot(bincenters,N,label="Histogram",fg_color_legend=:white,framestyle=:box)
             plot!(h2,bincenters, bilinear_exponential(bincenters,smpl.Params[:,i]), label="Curve fit")
-            plot!(h2,legend=:topleft, xlabel="Age ($(smpl.Age_Unit))", ylabel="Probability density")
-            savefig(h2,string(smpl.Path,smpl.Name[i],"_distribution.pdf"))
-            savefig(h2,string(smpl.Path,smpl.Name[i],"_distribution.svg"))
+            plot!(h2,legend=:topleft, xlabel="Age ($(Age_Unit))", ylabel="Probability density")
+            savefig(h2,string(Path,Name[i],"_distribution.pdf"))
+            savefig(h2,string(Path,Name[i],"_distribution.svg"))
 
         end
 
         # Save results as csv
-        results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(collect(smpl.Name),smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_sigma))::Array{Any,2}
-        writedlm(joinpath(smpl.Path,"results.csv"), results, ',')
+        results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(collect(Name),smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_sigma))::Array{Any,2}
+        writedlm(joinpath(Path,"results.csv"), results, ',')
 
         return smpl
     end
