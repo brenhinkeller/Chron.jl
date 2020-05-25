@@ -67,6 +67,7 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
+        pgrs_interval = burnin÷1000
         for n=1:burnin
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -127,8 +128,8 @@
                 # acceptancedist[i] = true
             end
 
-            # Update progress meter every 100 steps
-            mod(n,100)==0 && update!(pgrs, n)
+            # Update progress meter every `pgrs_interval` steps
+            mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
 
         # Run Markov Chain Monte Carlo
@@ -139,6 +140,7 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
+        pgrs_interval = nsteps*sieve÷1000
         for n=1:(nsteps*sieve)
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -203,8 +205,8 @@
                 agedist[:,n÷sieve] .= mages
             end
 
-            # Update progress meter every 100 steps
-            mod(n,100)==0 && update!(pgrs, n)
+            # Update progress meter every `pgrs_interval` steps
+            mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
 
         # Crop the result
@@ -309,6 +311,7 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
+        pgrs_interval = burnin÷1000
         for n=1:burnin
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -400,8 +403,8 @@
                 # acceptancedist[i] = true
             end
 
-            # Update progress meter every 100 steps
-            mod(n,100)==0 && update!(pgrs, n)
+            # Update progress meter every `pgrs_interval` steps
+            mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
 
         # Run Markov Chain Monte Carlo
@@ -412,6 +415,7 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
+        pgrs_interval = nsteps*sieve÷1000
         for n=1:(nsteps*sieve)
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -508,8 +512,8 @@
                 hiatusdist[:,n÷sieve] .= duration
             end
 
-            # Update progress meter every 100 steps
-            mod(n,100)==0 && update!(pgrs, n)
+            # Update progress meter every `pgrs_interval` steps
+            mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
 
         # Crop the result
@@ -601,6 +605,7 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
+        pgrs_interval = burnin÷1000
         for n=1:burnin
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -663,8 +668,8 @@
                 # acceptancedist[i] = true
             end
 
-            # Update progress meter every 100 steps
-            mod(n,100)==0 && update!(pgrs, n)
+            # Update progress meter every `pgrs_interval` steps
+            mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
 
         # Run Markov Chain Monte Carlo
@@ -675,6 +680,7 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
+        pgrs_interval = nsteps*sieve÷1000
         for n=1:(nsteps*sieve)
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -742,8 +748,8 @@
                 agedist[:,n÷sieve] .= mages
             end
 
-            # Update progress meter every 100 steps
-            mod(n,100)==0 && update!(pgrs, n)
+            # Update progress meter every `pgrs_interval` steps
+            mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
 
         # Crop the result
@@ -852,6 +858,7 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
+        pgrs_interval = burnin÷1000
         for n=1:burnin
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -944,8 +951,8 @@
                 # acceptancedist[i] = true
             end
 
-            # Update progress meter every 100 steps
-            mod(n,100)==0 && update!(pgrs, n)
+            # Update progress meter every `pgrs_interval` steps
+            mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
 
         # Run Markov Chain Monte Carlo
@@ -956,6 +963,7 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
+        pgrs_interval = nsteps*sieve÷1000
         for n=1:(nsteps*sieve)
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -1052,8 +1060,8 @@
                 hiatusdist[:,n÷sieve] .= duration
             end
 
-            # Update progress meter every 100 steps
-            mod(n,100)==0 && update!(pgrs, n)
+            # Update progress meter every `pgrs_interval` steps
+            mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
 
         # Crop the result
@@ -1145,6 +1153,7 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
+        pgrs_interval = burnin÷1000
         for n=1:burnin
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
@@ -1204,8 +1213,8 @@
                 # acceptancedist[i] = true
             end
 
-            # Update progress meter every 100 steps
-            mod(n,100)==0 && update!(pgrs, n)
+            # Update progress meter every `pgrs_interval` steps
+            mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
 
         # Run Markov Chain Monte Carlo
@@ -1216,6 +1225,7 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
+        pgrs_interval = nsteps*sieve÷1000
         for n=1:(nsteps*sieve)
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -1280,8 +1290,8 @@
                 agedist[:,n÷sieve] .= mages
             end
 
-            # Update progress meter every 100 steps
-            mod(n,100)==0 && update!(pgrs, n)
+            # Update progress meter every `pgrs_interval` steps
+            mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
 
         # Crop the result
@@ -1391,6 +1401,7 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
+        pgrs_interval = burnin÷1000
         for n=1:burnin
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -1481,8 +1492,8 @@
                 # acceptancedist[i] = true
             end
 
-            # Update progress meter every 100 steps
-            mod(n,100)==0 && update!(pgrs, n)
+            # Update progress meter every `pgrs_interval` steps
+            mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
 
         # Run Markov Chain Monte Carlo
@@ -1493,6 +1504,7 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
+        pgrs_interval = nsteps*sieve÷1000
         for n=1:(nsteps*sieve)
             # Prepare proposal
             copyto!(mages_prop, mages)
@@ -1589,8 +1601,8 @@
                 hiatusdist[:,n÷sieve] .= duration
             end
 
-            # Update progress meter every 100 steps
-            mod(n,100)==0 && update!(pgrs, n)
+            # Update progress meter every `pgrs_interval` steps
+            mod(n,pgrs_interval)==0 && update!(pgrs, n)
         end
 
         # Crop the result
