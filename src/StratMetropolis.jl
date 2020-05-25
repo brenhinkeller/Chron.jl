@@ -62,21 +62,28 @@
         closest_prop = copy(closest)
         sample_height_prop = copy(sample_height)
         closest_mages_prop = copy(closest_mages)
-        conflict_t = Array{Bool}(undef,length(mages))
 
         # Run burnin
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
-        index = collect(1:npoints)
-        @showprogress "Burn-in..." for i=1:burnin
+        pgrs = Progress(burnin, desc="Burn-in...")
+        for i=1:burnin
+            next!(pgrs)
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop .+= randn(size(Height)) .* Height_sigma
-                closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
+                for i=1:length(sample_height_prop)
+                    sample_height_prop[i] += randn() * Height_sigma[i]
+                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
+                    if closest_prop[i] < 1 # Check we're still within bounds
+                        closest_prop[i] = 1
+                    elseif closest_prop[i] > npoints
+                        closest_prop[i] = npoints
+                    end
+                end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
@@ -128,15 +135,24 @@
 
 
         # Run the model
-        @showprogress "Collecting..." for i=1:(nsteps*sieve)
+        pgrs = Progress(nsteps*sieve, desc="Collecting...")
+        for i=1:(nsteps*sieve)
+            next!(pgrs)
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop .+= randn(size(Height)) .* Height_sigma
-                closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
+                for i=1:length(sample_height_prop)
+                    sample_height_prop[i] += randn() * Height_sigma[i]
+                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
+                    if closest_prop[i] < 1 # Check we're still within bounds
+                        closest_prop[i] = 1
+                    elseif closest_prop[i] > npoints
+                        closest_prop[i] = npoints
+                    end
+                end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
@@ -282,21 +298,28 @@
         duration_prop = copy(duration)
         sample_height_prop = copy(sample_height)
         closest_mages_prop = copy(closest_mages)
-        conflict_t = Array{Bool}(undef,length(mages))
 
         # Run burnin
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
-        index = collect(1:npoints)
-        @showprogress "Burn-in..." for i=1:burnin
+        pgrs = Progress(burnin, desc="Burn-in...")
+        for i=1:burnin
+            next!(pgrs)
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop .+= randn(size(Height)) .* Height_sigma
-                closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
+                for i=1:length(sample_height_prop)
+                    sample_height_prop[i] += randn() * Height_sigma[i]
+                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
+                    if closest_prop[i] < 1 # Check we're still within bounds
+                        closest_prop[i] = 1
+                    elseif closest_prop[i] > npoints
+                        closest_prop[i] = npoints
+                    end
+                end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
@@ -375,19 +398,28 @@
         # Run Markov Chain Monte Carlo
         print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
         agedist = Array{Float64}(undef,npoints,nsteps)
-        hiatusdist = Array{Float64}(undef,length(duration),nsteps)
         lldist = Array{Float64}(undef,nsteps)
+        hiatusdist = Array{Float64}(undef,length(duration),nsteps)
 
         # Run the model
-        @showprogress "Collecting..." for i=1:(nsteps*sieve)
+        pgrs = Progress(nsteps*sieve, desc="Collecting...")
+        for i=1:(nsteps*sieve)
+            next!(pgrs)
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop .+= randn(size(Height)) .* Height_sigma
-                closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
+                for i=1:length(sample_height_prop)
+                    sample_height_prop[i] += randn() * Height_sigma[i]
+                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
+                    if closest_prop[i] < 1 # Check we're still within bounds
+                        closest_prop[i] = 1
+                    elseif closest_prop[i] > npoints
+                        closest_prop[i] = npoints
+                    end
+                end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
@@ -552,12 +584,13 @@
         closest_prop = copy(closest)
         sample_height_prop = copy(sample_height)
         closest_mages_prop = copy(closest_mages)
-        conflict_t = Array{Bool}(undef,length(mages))
 
         # Run burnin
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
-        @showprogress "Burn-in..." for i=1:burnin
+        pgrs = Progress(burnin, desc="Burn-in...")
+        for i=1:burnin
+            next!(pgrs)
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
@@ -567,15 +600,12 @@
                 for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    # Check we're still within bounds
-                    if closest_prop[i] < 1
+                    if closest_prop[i] < 1 # Check we're still within bounds
                         closest_prop[i] = 1
                     elseif closest_prop[i] > npoints
                         closest_prop[i] = npoints
                     end
                 end
-                # sample_height_prop .+= randn(size(Height)) .* Height_sigma
-                # closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
@@ -629,7 +659,9 @@
 
 
         # Run the model
-        @showprogress "Collecting..." for i=1:(nsteps*sieve)
+        pgrs = Progress(nsteps*sieve, desc="Collecting...")
+        for i=1:(nsteps*sieve)
+            next!(pgrs)
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
@@ -639,15 +671,12 @@
                 for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    # Check we're still within bounds
-                    if closest_prop[i] < 1
+                    if closest_prop[i] < 1 # Check we're still within bounds
                         closest_prop[i] = 1
                     elseif closest_prop[i] > npoints
                         closest_prop[i] = npoints
                     end
                 end
-                # sample_height_prop .+= randn(size(Height)) .* Height_sigma
-                # closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
@@ -800,21 +829,28 @@
         duration_prop = copy(duration)
         sample_height_prop = copy(sample_height)
         closest_mages_prop = copy(closest_mages)
-        conflict_t = Array{Bool}(undef,length(mages))
 
         # Run burnin
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
-        index = collect(1:npoints)
-        @showprogress "Burn-in..." for i=1:burnin
+        pgrs = Progress(burnin, desc="Burn-in...")
+        for i=1:burnin
+            next!(pgrs)
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop .+= randn(size(Height)) .* Height_sigma
-                closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
+                for i=1:length(sample_height_prop)
+                    sample_height_prop[i] += randn() * Height_sigma[i]
+                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
+                    if closest_prop[i] < 1 # Check we're still within bounds
+                        closest_prop[i] = 1
+                    elseif closest_prop[i] > npoints
+                        closest_prop[i] = npoints
+                    end
+                end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
@@ -894,20 +930,28 @@
         # Run Markov Chain Monte Carlo
         print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
         agedist = Array{Float64}(undef,npoints,nsteps)
-        hiatusdist = Array{Float64}(undef,length(duration),nsteps)
         lldist = Array{Float64}(undef,nsteps)
-
+        hiatusdist = Array{Float64}(undef,length(duration),nsteps)
 
         # Run the model
-        @showprogress "Collecting..." for i=1:(nsteps*sieve)
+        pgrs = Progress(nsteps*sieve, desc="Collecting...")
+        for i=1:(nsteps*sieve)
+            next!(pgrs)
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop .+= randn(size(Height)) .* Height_sigma
-                closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
+                for i=1:length(sample_height_prop)
+                    sample_height_prop[i] += randn() * Height_sigma[i]
+                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
+                    if closest_prop[i] < 1 # Check we're still within bounds
+                        closest_prop[i] = 1
+                    elseif closest_prop[i] > npoints
+                        closest_prop[i] = npoints
+                    end
+                end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
@@ -1072,13 +1116,13 @@
         closest_prop = copy(closest)
         sample_height_prop = copy(sample_height)
         closest_mages_prop = copy(closest_mages)
-        conflict_t = Array{Bool}(undef,length(mages))
 
         # Run burnin
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
-        index = collect(1:npoints)
-        @showprogress "Burn-in..." for i=1:burnin
+        pgrs = Progress(burnin, desc="Burn-in...")
+        for i=1:burnin
+            next!(pgrs)
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
@@ -1088,15 +1132,12 @@
                 for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    # Check we're still within bounds
-                    if closest_prop[i] < 1
+                    if closest_prop[i] < 1 # Check we're still within bounds
                         closest_prop[i] = 1
                     elseif closest_prop[i] > npoints
                         closest_prop[i] = npoints
                     end
                 end
-                # sample_height_prop .+= randn(size(Height)) .* Height_sigma
-                # closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
@@ -1148,7 +1189,9 @@
 
 
         # Run the model
-        @showprogress "Collecting..." for i=1:(nsteps*sieve)
+        pgrs = Progress(nsteps*sieve, desc="Collecting...")
+        for i=1:(nsteps*sieve)
+            next!(pgrs)
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
@@ -1158,15 +1201,12 @@
                 for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    # Check we're still within bounds
-                    if closest_prop[i] < 1
+                    if closest_prop[i] < 1 # Check we're still within bounds
                         closest_prop[i] = 1
                     elseif closest_prop[i] > npoints
                         closest_prop[i] = npoints
                     end
                 end
-                # sample_height_prop .+= randn(size(Height)) .* Height_sigma
-                # closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
@@ -1317,21 +1357,28 @@
         duration_prop = copy(duration)
         sample_height_prop = copy(sample_height)
         closest_mages_prop = copy(closest_mages)
-        conflict_t = Array{Bool}(undef,length(mages))
 
         # Run burnin
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
-        index = collect(1:npoints)
-        @showprogress "Burn-in..." for i=1:burnin
+        pgrs = Progress(burnin, desc="Burn-in...")
+        for i=1:burnin
+            next!(pgrs)
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop .+= randn(size(Height)) .* Height_sigma
-                closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
+                for i=1:length(sample_height_prop)
+                    sample_height_prop[i] += randn() * Height_sigma[i]
+                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
+                    if closest_prop[i] < 1 # Check we're still within bounds
+                        closest_prop[i] = 1
+                    elseif closest_prop[i] > npoints
+                        closest_prop[i] = npoints
+                    end
+                end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
@@ -1409,20 +1456,28 @@
         # Run Markov Chain Monte Carlo
         print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
         agedist = Array{Float64}(undef,npoints,nsteps)
-        hiatusdist = Array{Float64}(undef,length(duration),nsteps)
         lldist = Array{Float64}(undef,nsteps)
-
+        hiatusdist = Array{Float64}(undef,length(duration),nsteps)
 
         # Run the model
-        @showprogress "Collecting..." for i=1:(nsteps*sieve)
+        pgrs = Progress(nsteps*sieve, desc="Collecting...")
+        for i=1:(nsteps*sieve)
+            next!(pgrs)
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                sample_height_prop .+= randn(size(Height)) .* Height_sigma
-                closest_prop .= max.(min.(round.(Int,(sample_height_prop.-model_heights[1])/resolution).+1, npoints), 1)
+                for i=1:length(sample_height_prop)
+                    sample_height_prop[i] += randn() * Height_sigma[i]
+                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
+                    if closest_prop[i] < 1 # Check we're still within bounds
+                        closest_prop[i] = 1
+                    elseif closest_prop[i] > npoints
+                        closest_prop[i] = npoints
+                    end
+                end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
