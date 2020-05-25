@@ -67,15 +67,15 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
-        for i=1:burnin
-            next!(pgrs)
+        for n=1:burnin
+            # Prepare proposal
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                for i=1:length(sample_height_prop)
+                @inbounds for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
                     if closest_prop[i] < 1 # Check we're still within bounds
@@ -109,8 +109,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
+                closest_mages_prop[i] = mages_prop[closest_prop[i]]
                 if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
@@ -126,6 +126,9 @@
                 copyto!(sample_height, sample_height_prop)
                 # acceptancedist[i] = true
             end
+
+            # Update progress meter every 100 steps
+            mod(n,100)==0 && update!(pgrs, n)
         end
 
         # Run Markov Chain Monte Carlo
@@ -136,15 +139,15 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        for i=1:(nsteps*sieve)
-            next!(pgrs)
+        for n=1:(nsteps*sieve)
+            # Prepare proposal
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                for i=1:length(sample_height_prop)
+                @inbounds for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
                     if closest_prop[i] < 1 # Check we're still within bounds
@@ -177,8 +180,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
+                closest_mages_prop[i] = mages_prop[closest_prop[i]]
                 if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
@@ -195,10 +198,13 @@
             end
 
             # Record sieved results
-            if mod(i,sieve) == 0
-                lldist[i÷sieve] = ll
-                agedist[:,i÷sieve] .= mages
+            if mod(n,sieve) == 0
+                lldist[n÷sieve] = ll
+                agedist[:,n÷sieve] .= mages
             end
+
+            # Update progress meter every 100 steps
+            mod(n,100)==0 && update!(pgrs, n)
         end
 
         # Crop the result
@@ -303,15 +309,15 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
-        for i=1:burnin
-            next!(pgrs)
+        for n=1:burnin
+            # Prepare proposal
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                for i=1:length(sample_height_prop)
+                @inbounds for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
                     if closest_prop[i] < 1 # Check we're still within bounds
@@ -371,8 +377,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
+                closest_mages_prop[i] = mages_prop[closest_prop[i]]
                 if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
@@ -393,6 +399,9 @@
                 copyto!(sample_height, sample_height_prop)
                 # acceptancedist[i] = true
             end
+
+            # Update progress meter every 100 steps
+            mod(n,100)==0 && update!(pgrs, n)
         end
 
         # Run Markov Chain Monte Carlo
@@ -403,15 +412,15 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        for i=1:(nsteps*sieve)
-            next!(pgrs)
+        for n=1:(nsteps*sieve)
+            # Prepare proposal
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                for i=1:length(sample_height_prop)
+                @inbounds for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
                     if closest_prop[i] < 1 # Check we're still within bounds
@@ -470,8 +479,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
+                closest_mages_prop[i] = mages_prop[closest_prop[i]]
                 if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
@@ -493,11 +502,14 @@
             end
 
             # Record sieved results
-            if mod(i,sieve) == 0
-                lldist[i÷sieve] = ll
-                agedist[:,i÷sieve] .= mages
-                hiatusdist[:,i÷sieve] .= duration
+            if mod(n,sieve) == 0
+                lldist[n÷sieve] = ll
+                agedist[:,n÷sieve] .= mages
+                hiatusdist[:,n÷sieve] .= duration
             end
+
+            # Update progress meter every 100 steps
+            mod(n,100)==0 && update!(pgrs, n)
         end
 
         # Crop the result
@@ -589,15 +601,15 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
-        for i=1:burnin
-            next!(pgrs)
+        for n=1:burnin
+            # Prepare proposal
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                for i=1:length(sample_height_prop)
+                @inbounds for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
                     if closest_prop[i] < 1 # Check we're still within bounds
@@ -633,8 +645,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
+                closest_mages_prop[i] = mages_prop[closest_prop[i]]
                 if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
@@ -650,6 +662,9 @@
                 copyto!(sample_height, sample_height_prop)
                 # acceptancedist[i] = true
             end
+
+            # Update progress meter every 100 steps
+            mod(n,100)==0 && update!(pgrs, n)
         end
 
         # Run Markov Chain Monte Carlo
@@ -660,15 +675,15 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        for i=1:(nsteps*sieve)
-            next!(pgrs)
+        for n=1:(nsteps*sieve)
+            # Prepare proposal
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                for i=1:length(sample_height_prop)
+                @inbounds for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
                     if closest_prop[i] < 1 # Check we're still within bounds
@@ -704,8 +719,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
+                closest_mages_prop[i] = mages_prop[closest_prop[i]]
                 if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
@@ -722,10 +737,13 @@
             end
 
             # Record sieved results
-            if mod(i,sieve) == 0
-                lldist[i÷sieve] = ll
-                agedist[:,i÷sieve] .= mages
+            if mod(n,sieve) == 0
+                lldist[n÷sieve] = ll
+                agedist[:,n÷sieve] .= mages
             end
+
+            # Update progress meter every 100 steps
+            mod(n,100)==0 && update!(pgrs, n)
         end
 
         # Crop the result
@@ -834,15 +852,15 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
-        for i=1:burnin
-            next!(pgrs)
+        for n=1:burnin
+            # Prepare proposal
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                for i=1:length(sample_height_prop)
+                @inbounds for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
                     if closest_prop[i] < 1 # Check we're still within bounds
@@ -904,8 +922,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
+                closest_mages_prop[i] = mages_prop[closest_prop[i]]
                 if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
@@ -925,6 +943,9 @@
                 copyto!(sample_height, sample_height_prop)
                 # acceptancedist[i] = true
             end
+
+            # Update progress meter every 100 steps
+            mod(n,100)==0 && update!(pgrs, n)
         end
 
         # Run Markov Chain Monte Carlo
@@ -935,15 +956,15 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        for i=1:(nsteps*sieve)
-            next!(pgrs)
+        for n=1:(nsteps*sieve)
+            # Prepare proposal
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                for i=1:length(sample_height_prop)
+                @inbounds for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
                     if closest_prop[i] < 1 # Check we're still within bounds
@@ -1002,8 +1023,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
+                closest_mages_prop[i] = mages_prop[closest_prop[i]]
                 if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
@@ -1025,11 +1046,14 @@
             end
 
             # Record sieved results
-            if mod(i,sieve) == 0
-                lldist[i÷sieve] = ll
-                agedist[:,i÷sieve] .= mages
-                hiatusdist[:,i÷sieve] .= duration
+            if mod(n,sieve) == 0
+                lldist[n÷sieve] = ll
+                agedist[:,n÷sieve] .= mages
+                hiatusdist[:,n÷sieve] .= duration
             end
+
+            # Update progress meter every 100 steps
+            mod(n,100)==0 && update!(pgrs, n)
         end
 
         # Crop the result
@@ -1121,15 +1145,14 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
-        for i=1:burnin
-            next!(pgrs)
+        for n=1:burnin
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                for i=1:length(sample_height_prop)
+                @inbounds for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
                     if closest_prop[i] < 1 # Check we're still within bounds
@@ -1163,8 +1186,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
+                closest_mages_prop[i] = mages_prop[closest_prop[i]]
                 if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
@@ -1180,6 +1203,9 @@
                 copyto!(sample_height, sample_height_prop)
                 # acceptancedist[i] = true
             end
+
+            # Update progress meter every 100 steps
+            mod(n,100)==0 && update!(pgrs, n)
         end
 
         # Run Markov Chain Monte Carlo
@@ -1190,15 +1216,15 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        for i=1:(nsteps*sieve)
-            next!(pgrs)
+        for n=1:(nsteps*sieve)
+            # Prepare proposal
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                for i=1:length(sample_height_prop)
+                @inbounds for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
                     if closest_prop[i] < 1 # Check we're still within bounds
@@ -1231,8 +1257,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
+                closest_mages_prop[i] = mages_prop[closest_prop[i]]
                 if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
@@ -1249,10 +1275,13 @@
             end
 
             # Record sieved results
-            if mod(i,sieve) == 0
-                lldist[i÷sieve] = ll
-                agedist[:,i÷sieve] .= mages
+            if mod(n,sieve) == 0
+                lldist[n÷sieve] = ll
+                agedist[:,n÷sieve] .= mages
             end
+
+            # Update progress meter every 100 steps
+            mod(n,100)==0 && update!(pgrs, n)
         end
 
         # Crop the result
@@ -1362,15 +1391,15 @@
         # acceptancedist = fill(false,burnin)
         print("Burn-in: ", burnin, " steps\n")
         pgrs = Progress(burnin, desc="Burn-in...")
-        for i=1:burnin
-            next!(pgrs)
+        for n=1:burnin
+            # Prepare proposal
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                for i=1:length(sample_height_prop)
+                @inbounds for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
                     if closest_prop[i] < 1 # Check we're still within bounds
@@ -1430,8 +1459,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
+                closest_mages_prop[i] = mages_prop[closest_prop[i]]
                 if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
@@ -1451,6 +1480,9 @@
                 copyto!(sample_height, sample_height_prop)
                 # acceptancedist[i] = true
             end
+
+            # Update progress meter every 100 steps
+            mod(n,100)==0 && update!(pgrs, n)
         end
 
         # Run Markov Chain Monte Carlo
@@ -1461,15 +1493,15 @@
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        for i=1:(nsteps*sieve)
-            next!(pgrs)
+        for n=1:(nsteps*sieve)
+            # Prepare proposal
             copyto!(mages_prop, mages)
             copyto!(closest_prop, closest)
             copyto!(sample_height_prop, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                for i=1:length(sample_height_prop)
+                @inbounds for i=1:length(sample_height_prop)
                     sample_height_prop[i] += randn() * Height_sigma[i]
                     closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
                     if closest_prop[i] < 1 # Check we're still within bounds
@@ -1528,8 +1560,8 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            closest_mages_prop .= mages_prop[closest_prop]
             @inbounds for i=1:length(Age)
+                closest_mages_prop[i] = mages_prop[closest_prop[i]]
                 if Age_Sidedness[i] == sign(closest_mages_prop[i] - Age[i])
                     closest_mages_prop[i] = Age[i]
                 end
@@ -1551,11 +1583,14 @@
             end
 
             # Record sieved results
-            if mod(i,sieve) == 0
-                lldist[i÷sieve] = ll
-                agedist[:,i÷sieve] .= mages
-                hiatusdist[:,i÷sieve] .= duration
+            if mod(n,sieve) == 0
+                lldist[n÷sieve] = ll
+                agedist[:,n÷sieve] .= mages
+                hiatusdist[:,n÷sieve] .= duration
             end
+
+            # Update progress meter every 100 steps
+            mod(n,100)==0 && update!(pgrs, n)
         end
 
         # Crop the result
