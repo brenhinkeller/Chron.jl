@@ -1,47 +1,15 @@
 ## -- Functions used for MCMC estimation of mineral eruption / deposition ages from observed crystallization age spectra
 
 
-    function check_dist_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
-        # Define some frequently used variables
-        loglikelihood = 0.0
-        datarows = length(mu)
-        distrows = length(dist)
-        dist_yave = mean(dist)
-        nbins = distrows - 1
-        dt = abs(tmax-tmin)
-        # Cycle through each datum in dataset
-        for j=1:datarows
-            # Find equivalent index position of mu[j] in the `dist` array
-            ix = (mu[j] - tmin) / dt * nbins + 1
-            # If possible, prevent aliasing problems by interpolation
-            if (sigma[j] < dt/nbins) && ix > 1 && ix < distrows
-                # Interpolate corresponding distribution value
-                f = floor(Int,ix)
-                likelihood = (dist[f+1]*(ix-f) + dist[f]*(1-(ix-f))) / (dt * dist_yave)
-                # Otherwise, sum contributions from Gaussians at each point in distribution
-            else
-                likelihood = 0.0
-                @avx for i=1:distrows
-                    distx = tmin + dt*(i-1)/nbins # time-position of distribution point
-                    # Likelihood curve follows a Gaussian PDF. Note: dt cancels
-                    likelihood += dist[i] / (dist_yave * distrows * sigma[j] * sqrt(2*pi)) *
-                            exp( - (distx-mu[j])*(distx-mu[j]) / (2*sigma[j]*sigma[j]) )
-                end
-            end
-            loglikelihood += log(likelihood)
-        end
-        return loglikelihood
-    end
-
     """
     ```julia
-    check_cryst_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
+    check_dist_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
     ```
     Return the log-likelihood of a set of mineral ages with means `mu` and
     uncertianty `sigma` being drawn from a given crystallization distribution
     `dist`, with terms to prevent runaway at low N.
     """
-    function check_cryst_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
+    function check_dist_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
         # Define some frequently used variables
         loglikelihood = zero(float(eltype(dist)))
         datarows = length(mu)
@@ -85,6 +53,7 @@
         # favor the weighted mean interpretation at high Zf (MSWD close to 1) and
         # the youngest-zircon interpretation at low Zf (MSWD far from one). The
         # penalty factors used here are determined by training against synthetic datasets.
+        # In other words, these are just context-dependent prior distributions on tmax and tmin
         return loglikelihood - (2/log(1+datarows)) * (              # Scaling factor that decreases with log number of data points (i.e., no penalty at high N)
         log((abs(tmin - wm)+wsigma)/wsigma)*Zf +                    # Penalty for proposing tmin too far from the weighted mean at low MSWD (High Zf)
         log((abs(tmax - wm)+wsigma)/wsigma)*Zf +                    # Penalty for proposing tmax too far from the weighted mean at low MSWD (High Zf)
@@ -94,13 +63,13 @@
 
     """
     ```julia
-    (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax_cryst(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
+    (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
     ```
     Run a Metropolis sampler to estimate the extrema of a finite-range distribution
     using samples drawn from that distribution -- e.g., estimate zircon saturation
     and eruption ages from a distribution of zircon crystallization ages.
     """
-    function metropolis_minmax_cryst(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
+    function metropolis_minmax(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
         # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
         stepfactor = 2.9
         # Sort the dataset from youngest to oldest
@@ -121,7 +90,7 @@
         tmin_proposed = tmin
         tmax_proposed = tmax
         # Log likelihood of initial proposal
-        ll = check_cryst_ll(dist, mu_sorted, sigma_sorted, tmin, tmax)
+        ll = check_dist_ll(dist, mu_sorted, sigma_sorted, tmin, tmax)
         ll_proposed = ll
         # Burnin
         for i=1:nsteps
@@ -138,7 +107,7 @@
                 tmin_proposed, tmax_proposed = tmax_proposed, tmin_proposed
             end
             # Calculate log likelihood for new proposal
-            ll_proposed = check_cryst_ll(dist, mu_sorted, sigma_sorted, tmin_proposed, tmax_proposed)
+            ll_proposed = check_dist_ll(dist, mu_sorted, sigma_sorted, tmin_proposed, tmax_proposed)
             # Decide to accept or reject the proposal
             if log(rand()) < (ll_proposed-ll)
                 if tmin_proposed != tmin
@@ -173,7 +142,7 @@
                 tmin_proposed, tmax_proposed = tmax_proposed, tmin_proposed
             end
             # Calculate log likelihood for new proposal
-            ll_proposed = check_cryst_ll(dist, mu_sorted, sigma_sorted, tmin_proposed, tmax_proposed)
+            ll_proposed = check_dist_ll(dist, mu_sorted, sigma_sorted, tmin_proposed, tmax_proposed)
             # Decide to accept or reject the proposal
             if log(rand()) < (ll_proposed-ll)
                 if tmin_proposed != tmin
@@ -197,13 +166,13 @@
 
     """
     ```julia
-    tminDist = metropolis_min_cryst(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
+    tminDist = metropolis_min(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
     ```
     Run a Metropolis sampler to estimate the minimum of a finite-range distribution
     using samples drawn from that distribution -- e.g., estimate zircon eruption
     ages from a distribution of zircon crystallization ages.
     """
-    function metropolis_min_cryst(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
+    function metropolis_min(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
         # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
         stepfactor = 2.9
         # Sort the dataset from youngest to oldest
@@ -224,7 +193,7 @@
         tmin_proposed = tmin
         tmax_proposed = tmax
         # Log likelihood of initial proposal
-        ll = check_cryst_ll(dist, mu_sorted, sigma_sorted, tmin, tmax)
+        ll = check_dist_ll(dist, mu_sorted, sigma_sorted, tmin, tmax)
         ll_proposed = ll
         # Burnin
         for i=1:burnin
@@ -241,7 +210,7 @@
                 tmin_proposed, tmax_proposed = tmax_proposed, tmin_proposed
             end
             # Calculate log likelihood for new proposal
-            ll_proposed = check_cryst_ll(dist, mu_sorted, sigma_sorted, tmin_proposed, tmax_proposed)
+            ll_proposed = check_dist_ll(dist, mu_sorted, sigma_sorted, tmin_proposed, tmax_proposed)
             # Decide to accept or reject the proposal
             if log(rand()) < (ll_proposed-ll)
                 if tmin_proposed != tmin
@@ -273,7 +242,7 @@
                 tmin_proposed, tmax_proposed = tmax_proposed, tmin_proposed
             end
             # Calculate log likelihood for new proposal
-            ll_proposed = check_cryst_ll(dist, mu_sorted, sigma_sorted, tmin_proposed, tmax_proposed)
+            ll_proposed = check_dist_ll(dist, mu_sorted, sigma_sorted, tmin_proposed, tmax_proposed)
             # Decide to accept or reject the proposal
             if log(rand()) < (ll_proposed-ll)
                 if tmin_proposed != tmin

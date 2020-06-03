@@ -73,7 +73,7 @@
 
     # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution
     # shape from individual sample datafiles using a KDE of stacked sample data
-    BootstrappedDistribution = BootstrapCrystDistributionKDEfromStrat(smpl)
+    BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl)
     h = plot(BootstrappedDistribution, xlabel="Time (arbitrary units)", ylabel="Probability Density", label="Bootstrapped distribution", fg_color_legend=:white)
     savefig(h, joinpath(smpl.Path,"BootstrappedDistribution.pdf"))
 

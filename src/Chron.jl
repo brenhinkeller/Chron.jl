@@ -64,7 +64,7 @@ module Chron
 
     # High-level functions
     export  StratMetropolis, StratMetropolisDist, StratMetropolis14C,
-        tMinDistMetropolis, metropolis_minmax_cryst,
+        tMinDistMetropolis, metropolis_min, metropolis_minmax,
         bilinear_exponential, bilinear_exponential_ll,
         plot_rankorder_errorbar, plot_rankorder_errorbar!,
         screen_outliers, BootstrapCrystDistributionKDE,

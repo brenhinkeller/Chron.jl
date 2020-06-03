@@ -65,9 +65,15 @@
 
 ## --- Bootstrap prior distribution shape
 
-    # Bootstrap a KDE of the pre-eruptive (or pre-deposition) mineral crystallization
-    # distribution shape from a 2-d array of sample ages using a KDE of stacked sample data
-    function BootstrapCrystDistributionKDEfromStrat(smpl::ChronAgeData; cutoff::Number=-0.05)
+    """
+    ```julia
+    BootstrapCrystDistributionKDE(smpl::ChronAgeData)
+    ```
+    Bootstrap an estimate of the pre-eruptive (or pre-deposition) mineral
+    crystallization distribution shape from a Chron.ChronAgeData object containing
+    data for several samples, using a kernel density estimate of stacked sample data.
+    """
+    function BootstrapCrystDistributionKDE(smpl::ChronAgeData; cutoff::Number=-0.05)
         # Extact variables froms struct
         Name = collect(smpl.Name)::Array{String,1}
         Path = smpl.Path::String
@@ -99,17 +105,55 @@
         return kd.density[t]
     end
 
-    # Bootstrap a KDE of the pre-eruptive (or pre-deposition) mineral crystallization
-    # distribution shape from a 2-d array of sample ages using a KDE of stacked sample data
-    function BootstrapCrystDistributionKDE(data::Array{Float64}; cutoff::Number=-0.05)
+
+    """
+    ```julia
+    BootstrapCrystDistributionKDE(data::AbstractArray, [sigma::AbstractArray])
+    ```
+    Bootstrap an estimate of thq;e pre-eruptive (or pre-deposition) mineral
+    crystallization distribution shape from a 2-d array of sample ages (one row per
+    sample, one column per datum, padded with NaNs as needed) and an equivalent-size
+    array of one-sigma uncertainties,
+    using a kernel density estimate of stacked sample data.
+    """
+    function BootstrapCrystDistributionKDE(data::AbstractArray{<:Number}; cutoff::Number=-0.05)
         # Load all data points and scale from 0 to 1
-        allscaled = Array{Float64,1}([])
+        allscaled = Array{float(eltype(data)),1}([])
         for i=1:size(data,2)
             scaled = data[:,i] .- minimum(data[:,i])
             if maximum(scaled) > 0
                 scaled = scaled ./ maximum(scaled)
             end
             append!(allscaled, scaled)
+        end
+
+        # Calculate kernel density estimate, truncated at 0
+        kd = kde(allscaled,npoints=2^7)
+        t = kd.x .> cutoff
+        return kd.density[t]
+    end
+
+    function BootstrapCrystDistributionKDE(data::AbstractArray{<:Number}, sigma::AbstractArray{<:Number}; cutoff::Number=-0.05)
+        # Array to hold stacked, scaled data
+        allscaled = Array{float(eltype(data)),1}([])
+
+        # For each row of data
+        for i=1:size(data,2)
+
+            # Maximum extent of expected analytical tail (beyond eruption/deposition/cutoff)
+            maxTailLength = nanmean(sigma[:,i]) .* norm_quantile(1 - 1/(1+count(.!isnan.(data[:,i]))))
+            included = (data[:,i] .- nanminimum(data[:,i])) .>= maxTailLength
+            included .|= data[:,i] .> nanmedian(data[:,i]) # Don't exclude more than half (could only happen in underdispersed datasets)
+            included .&= .~isnan.(data[:,i]) # Exclude NaNs
+
+            # Include and scale only those data not within the expected analytical tail
+            if sum(included)>0
+                scaled = data[included,i] .- minimum(data[included,i])
+                if maximum(scaled) > 0
+                    scaled = scaled ./ maximum(scaled)
+                end
+                append!(allscaled, scaled)
+            end
         end
 
         # Calculate kernel density estimate, truncated at 0
@@ -136,8 +180,8 @@
             print(i, ": ", Name[i], "\n") # Display progress
 
             # Run MCMC to estimate saturation and eruption/deposition age distributions
-            # (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax_cryst(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel, burnin=burnin)
-            tminDist = metropolis_min_cryst(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel; burnin=burnin) # Since we don't end up using any of the other distributions
+            tminDist = metropolis_min(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel; burnin=burnin) # Since we don't end up using any of the other distributions
+            # (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel, burnin=burnin)
 
             # Fill in the strat sample object with our new results
             smpl.Age[i] = mean(tminDist)
@@ -185,7 +229,7 @@
         end
 
         # Save results as csv
-        results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(collect(Name),smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_sigma))::Array{Any,2}
+        results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(Name,smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_sigma))::Array{Any,2}
         writedlm(joinpath(Path,"results.csv"), results, ',')
 
         return smpl
