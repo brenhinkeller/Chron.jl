@@ -19,11 +19,11 @@
     # Make an instance of a ChronSection object for nSamples
     smpl = NewChronAgeData(nSamples)
     smpl.Name          = ("Sample 1", "Sample 2", "Sample 3", "Sample 4") # Et cetera
-    smpl.Age           = [ 6991,  7088,  7230,  7540,] # Measured ages
-    smpl.Age_sigma     = [   30,    70,    50,    50,] # Measured 1-σ uncertainties
-    smpl.Height[:]     = [ -355,  -380,-397.0,-411.5,] # Depths below surface should be negative
-    smpl.Height_sigma[:]  = fill(0.01, nSamples) # Usually assume little or no sample height uncertainty
-    smpl.Age_Sidedness[:] = zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+    smpl.Age          .= [ 6991,  7088,  7230,  7540,] # Measured ages
+    smpl.Age_sigma    .= [   30,    70,    50,    50,] # Measured 1-σ uncertainties
+    smpl.Height       .= [ -355,  -380,-397.0,-411.5,] # Depths below surface should be negative
+    smpl.Height_sigma .= fill(0.01, nSamples) # Usually assume little or no sample height uncertainty
+    smpl.Age_Sidedness .= zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
     smpl.Age_Unit = "Years BP" # Unit of measurement for ages
     smpl.Height_Unit = "m" # Unit of measurement for Height and Height_sigma
 
@@ -50,7 +50,7 @@
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     # Run the stratigraphic MCMC model
-    (mdl, agedist, lldist) = StratMetropolis(smpl, config)
+    @time (mdl, agedist, lldist) = StratMetropolis(smpl, config)
 
     # Plot results (mean and 95% confidence interval for both model and data)
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
@@ -141,7 +141,7 @@
     hiatus.Duration_sigma = [  30.5,    20.0]
 
     # Run the model. Note the additional `hiatus` arguments
-    (mdl, agedist, hiatusdist, lldist) = StratMetropolis(smpl, hiatus, config); sleep(0.5)
+    @time (mdl, agedist, hiatusdist, lldist) = StratMetropolis(smpl, hiatus, config); sleep(0.5)
 
     # Plot results (mean and 95% confidence interval for both model and data)
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
