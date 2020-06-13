@@ -9,8 +9,7 @@
 #  alt-shift-enter.                                                             #
 #                                                                               #
 #      You may have to adjust the path below which specifies the location of    #
-#  the CSV data files for each sample (from examples/DenverUPbExampleData/      #
-#  in the Chron.jl repository).                                                 #
+#  the CSV data files for each sample, depending on what you want to run.       #
 #                                                                               #
 #   Last modified by C. Brenhin Keller 2020-05-25                               #
 #                                                                               #
@@ -69,12 +68,13 @@
     #   65.97,0.12
 
 
-## --- (Optional) Calculate bootstrapped distribution - - - - - - - - - - - - -
+## --- Bootstrap pre-eruptive distribution - - - - - - - - - - - - - - - - - - -
 
-    # Bootstrap a KDE of the pre-eruptive (or pre-deposition) zircon distribution
-    # shape from individual sample datafiles using a KDE of stacked sample data
+    # Bootstrap a KDE of the pre-eruptive (or pre-depositional) mineral age
+    # distribution using a KDE of stacked sample data from each data file
     BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl)
-    h = plot(BootstrappedDistribution, xlabel="Time (arbitrary units)", ylabel="Probability Density", label="Bootstrapped distribution", fg_color_legend=:white)
+    h = plot(BootstrappedDistribution, label="Bootstrapped distribution",
+         xlabel="Time (arbitrary units)", ylabel="Probability Density", fg_color_legend=:white)
     savefig(h, joinpath(smpl.Path,"BootstrappedDistribution.pdf"))
 
 ## --- Estimate the eruption age distributions for each sample  - - - - - - - -
@@ -84,11 +84,10 @@
     distBurnin = floor(Int,distSteps/2) # Number to discard
 
     # Choose the form of the prior distribution to use
-    # A variety of potentially useful distributions are provided in DistMetropolis.jl
-    # Options include UniformDisribution, TriangularDistribution,
-    # BootstrappedDistribution, and MeltsVolcanicZirconDistribution
-    # or you can define your own.
-    dist = TriangularDistribution
+    # Some pre-defined possiblilities include UniformDisribution,
+    # TriangularDistribution, and MeltsVolcanicZirconDistribution
+    # or you can define your own as with BootstrappedDistribution above
+    dist = BootstrappedDistribution
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
