@@ -30,12 +30,16 @@ module Chron
         round(x; digits=n::Number) = round(x,digits)
     end
 
+    # AVX vectorziation tools
+    using LoopVectorization
+    using SIMDPirates: vifelse
+    using VectorizationBase: SVec
+
     # Basic statistics and UI resources
     using StatsBase: fit, Histogram, percentile
     using ProgressMeter: @showprogress, Progress, update!
     using LsqFit: curve_fit
     using KernelDensity: kde
-    using LoopVectorization
     using Interpolations
 
     # Weighted mean, systematic errors, etc

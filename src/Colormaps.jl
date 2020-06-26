@@ -35,15 +35,11 @@ inferno = RGB{N0f8}.(inferno_data[:,1],inferno_data[:,2],inferno_data[:,3])
 ## --- Resize and interpolate colormaps
 
     # Linearly interpolate cmap at positions xq
-    function linterp_colormap(x,cmap,xq)
-        # Extract red, green, and blue vectors
-        cmap_r = cmap .|> c -> c.r
-        cmap_g = cmap .|> c -> c.g
-        cmap_b = cmap .|> c -> c.b
-        # Interpolate
-        r_interp = linterp1(x,cmap_r,xq)
-        g_interp = linterp1(x,cmap_g,xq)
-        b_interp = linterp1(x,cmap_b,xq)
+    function linterp1(x::AbstractArray, cmap::AbstractArray{<:Colorant}, xq)
+        # Interpolate red, green, and blue vectors separately
+        r_interp = linterp1(x, cmap .|> c -> c.r, xq)
+        g_interp = linterp1(x, cmap .|> c -> c.g, xq)
+        b_interp = linterp1(x, cmap .|> c -> c.b, xq)
         # Convert back to a color
         return RGB.(r_interp,g_interp,b_interp)
     end
