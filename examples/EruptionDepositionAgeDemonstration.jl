@@ -38,8 +38,8 @@
     dist ./= mean(dist) # Normalize
 
     # Plot bootstrapped distribution
-    plot(linspace(0,1.3,length(dist)),dist, label="bootstrapped", ylabel="Probability Density", xlabel="Time before eruption (scaled)", legend=:bottomleft, fg_color_legend=:white)
-    plot!(linspace(0,1,100),MeltsVolcanicZirconDistribution,label="original")
+    plot(range(0,1.3,length=length(dist)),dist, label="bootstrapped", ylabel="Probability Density", xlabel="Time before eruption (scaled)", legend=:bottomleft, fg_color_legend=:white)
+    plot!(range(0,1,length=100),MeltsVolcanicZirconDistribution,label="original")
 
 ## ---  Run MCMC to estimate eruption/deposition age distribution of synthetic dataset
     # Configure model
@@ -78,7 +78,7 @@
     dist ./= mean(dist) # Normalize
 
     # Plot bootstrapped distribution
-    plot(linspace(0,1,length(dist)),dist, label="bootstrapped f_xtal", ylabel="Probability Density", xlabel="Time before eruption (unitless)", fg_color_legend=:white)
+    plot(range(0,1,length=length(dist)),dist, label="bootstrapped f_xtal", ylabel="Probability Density", xlabel="Time before eruption (unitless)", fg_color_legend=:white)
 
 ## --  Run MCMC to estimate eruption age
     # Configure model

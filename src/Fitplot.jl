@@ -191,7 +191,7 @@
             smpl.Age_Distribution[i] = tminDist
 
             # Fit custom many-parametric distribution function to histogram
-            edges = linsp(minimum(tminDist),maximum(tminDist),101) # Vector of bin edges
+            edges = range(minimum(tminDist),maximum(tminDist),length=101) # Vector of bin edges
             hobj = fit(Histogram,tminDist,edges,closed=:left) # Fit histogram object
 
             t = hobj.weights.>0 # Only look at bins with one or more results

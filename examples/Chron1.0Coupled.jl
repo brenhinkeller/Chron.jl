@@ -246,7 +246,7 @@
 
     rateplotmax = 3*maximum(dhdt) # May want to adjust this -- this is just a guess
     using StatsBase: fit, Histogram
-    edges = linsp(0, rateplotmax, length(ages)-spacing+1)
+    edges = range(0, rateplotmax, length=length(ages)-spacing+1)
     dhdt_im = Array{Float64}(undef,length(ages)-spacing,length(ages)-spacing)
     for i=1:length(ages)-spacing
         dhdt_im[:,i] .= fit(Histogram, dhdt_dist[i, .~ isnan.(view(dhdt_dist,i,:))], edges, closed=:left).weights
