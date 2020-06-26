@@ -76,7 +76,7 @@ module Chron
 
 
     # Utility functions
-    export nanminimum, nanmaximum, nanrange, pctile, nanmedian, nanmean, nanstd,
+    export nanminimum, nanmaximum, nanrange, nanextrema, pctile, nanmedian, nanmean, nanstd,
         linsp, linterp1s, linterp1, cntr, gwmean, awmean,
         normpdf, normpdf_ll, normcdf, norm_quantile, norm_width,
         findclosest, findclosestbelow, findclosestabove,
