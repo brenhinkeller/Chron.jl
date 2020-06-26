@@ -57,7 +57,7 @@ module Chron
     include("StratMetropolis.jl")
 
     # Higher-level functions for fitting and plotting
-    using Colors: RGB, N0f8
+    using Colors: Colorant, ColorTypes, RGBX, RGB, N0f8
     include("Colormaps.jl")
 
     using Plots; gr();
