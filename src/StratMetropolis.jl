@@ -57,11 +57,11 @@
         ll += normpdf_ll(Height, Height_sigma, sample_height)
 
         # Preallocate variables for MCMC proposals
-        ll_prop = ll
-        model_ages_prop = copy(model_ages)
-        closest_prop = copy(closest)
-        sample_height_prop = copy(sample_height)
-        closest_model_ages_prop = copy(closest_model_ages)
+        llₚ = ll
+        model_agesₚ = copy(model_ages)
+        closestₚ = copy(closest)
+        sample_heightₚ = copy(sample_height)
+        closest_model_agesₚ = copy(closest_model_ages)
 
         # Run burnin
         # acceptancedist = fill(false,burnin)
@@ -70,37 +70,37 @@
         pgrs_interval = ceil(Int,sqrt(burnin))
         for n=1:burnin
             # Prepare proposal
-            copyto!(model_ages_prop, model_ages)
-            copyto!(closest_prop, closest)
-            copyto!(sample_height_prop, sample_height)
+            copyto!(model_agesₚ, model_ages)
+            copyto!(closestₚ, closest)
+            copyto!(sample_heightₚ, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_height_prop)
-                    sample_height_prop[i] += randn() * Height_sigma[i]
-                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    if closest_prop[i] < 1 # Check we're still within bounds
-                        closest_prop[i] = 1
-                    elseif closest_prop[i] > npoints
-                        closest_prop[i] = npoints
+                @inbounds for i=1:length(sample_heightₚ)
+                    sample_heightₚ[i] += randn() * Height_sigma[i]
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
+                    if closestₚ[i] < 1 # Check we're still within bounds
+                        closestₚ[i] = 1
+                    elseif closestₚ[i] > npoints
+                        closestₚ[i] = npoints
                     end
                 end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_ages_prop[chosen_point] += r
+                model_agesₚ[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
                     @inbounds for i=1:chosen_point # younger points below
-                        if model_ages_prop[i] < model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] < model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 else # if proposing decreased age
                     @inbounds for i=chosen_point:npoints # older points above
-                        if model_ages_prop[i] > model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] > model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 end
@@ -111,20 +111,20 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             @inbounds for i=1:length(Age)
-                closest_model_ages_prop[i] = model_ages_prop[closest_prop[i]]
-                if Age_Sidedness[i] == sign(closest_model_ages_prop[i] - Age[i])
-                    closest_model_ages_prop[i] = Age[i]
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
+                    closest_model_agesₚ[i] = Age[i]
                 end
             end
-            ll_prop = normpdf_ll(Age, Age_sigma, closest_model_ages_prop)
-            ll_prop += normpdf_ll(Height, Height_sigma, sample_height_prop)
+            llₚ = normpdf_ll(Age, Age_sigma, closest_model_agesₚ)
+            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (ll_prop - ll)
-                ll = ll_prop
-                copyto!(model_ages, model_ages_prop)
-                copyto!(closest, closest_prop)
-                copyto!(sample_height, sample_height_prop)
+            if log(rand(Float64)) < (llₚ - ll)
+                ll = llₚ
+                copyto!(model_ages, model_agesₚ)
+                copyto!(closest, closestₚ)
+                copyto!(sample_height, sample_heightₚ)
                 # acceptancedist[i] = true
             end
 
@@ -144,37 +144,37 @@
         pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
         for n=1:(nsteps*sieve)
             # Prepare proposal
-            copyto!(model_ages_prop, model_ages)
-            copyto!(closest_prop, closest)
-            copyto!(sample_height_prop, sample_height)
+            copyto!(model_agesₚ, model_ages)
+            copyto!(closestₚ, closest)
+            copyto!(sample_heightₚ, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_height_prop)
-                    sample_height_prop[i] += randn() * Height_sigma[i]
-                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    if closest_prop[i] < 1 # Check we're still within bounds
-                        closest_prop[i] = 1
-                    elseif closest_prop[i] > npoints
-                        closest_prop[i] = npoints
+                @inbounds for i=1:length(sample_heightₚ)
+                    sample_heightₚ[i] += randn() * Height_sigma[i]
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
+                    if closestₚ[i] < 1 # Check we're still within bounds
+                        closestₚ[i] = 1
+                    elseif closestₚ[i] > npoints
+                        closestₚ[i] = npoints
                     end
                 end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_ages_prop[chosen_point] += r
+                model_agesₚ[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
                     @inbounds for i=1:chosen_point # younger points below
-                        if model_ages_prop[i] < model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] < model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 else # if proposing decreased age
                     @inbounds for i=chosen_point:npoints # older points above
-                        if model_ages_prop[i] > model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] > model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 end
@@ -184,20 +184,20 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             @inbounds for i=1:length(Age)
-                closest_model_ages_prop[i] = model_ages_prop[closest_prop[i]]
-                if Age_Sidedness[i] == sign(closest_model_ages_prop[i] - Age[i])
-                    closest_model_ages_prop[i] = Age[i]
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
+                    closest_model_agesₚ[i] = Age[i]
                 end
             end
-            ll_prop = normpdf_ll(Age, Age_sigma, closest_model_ages_prop)
-            ll_prop += normpdf_ll(Height, Height_sigma, sample_height_prop)
+            llₚ = normpdf_ll(Age, Age_sigma, closest_model_agesₚ)
+            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (ll_prop - ll)
-                ll = ll_prop
-                copyto!(model_ages, model_ages_prop)
-                copyto!(closest, closest_prop)
-                copyto!(sample_height, sample_height_prop)
+            if log(rand(Float64)) < (llₚ - ll)
+                ll = llₚ
+                copyto!(model_ages, model_agesₚ)
+                copyto!(closest, closestₚ)
+                copyto!(sample_height, sample_heightₚ)
             end
 
             # Record sieved results
@@ -301,13 +301,13 @@
         ll += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, duration)
 
         # Preallocate variables for MCMC proposals
-        ll_prop=ll
+        llₚ=ll
         chosen_point=0
-        model_ages_prop = copy(model_ages)
-        closest_prop = copy(closest)
-        duration_prop = copy(duration)
-        sample_height_prop = copy(sample_height)
-        closest_model_ages_prop = copy(closest_model_ages)
+        model_agesₚ = copy(model_ages)
+        closestₚ = copy(closest)
+        durationₚ = copy(duration)
+        sample_heightₚ = copy(sample_height)
+        closest_model_agesₚ = copy(closest_model_ages)
 
         # Run burnin
         # acceptancedist = fill(false,burnin)
@@ -316,37 +316,37 @@
         pgrs_interval = ceil(Int,sqrt(burnin))
         for n=1:burnin
             # Prepare proposal
-            copyto!(model_ages_prop, model_ages)
-            copyto!(closest_prop, closest)
-            copyto!(sample_height_prop, sample_height)
+            copyto!(model_agesₚ, model_ages)
+            copyto!(closestₚ, closest)
+            copyto!(sample_heightₚ, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_height_prop)
-                    sample_height_prop[i] += randn() * Height_sigma[i]
-                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    if closest_prop[i] < 1 # Check we're still within bounds
-                        closest_prop[i] = 1
-                    elseif closest_prop[i] > npoints
-                        closest_prop[i] = npoints
+                @inbounds for i=1:length(sample_heightₚ)
+                    sample_heightₚ[i] += randn() * Height_sigma[i]
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
+                    if closestₚ[i] < 1 # Check we're still within bounds
+                        closestₚ[i] = 1
+                    elseif closestₚ[i] > npoints
+                        closestₚ[i] = npoints
                     end
                 end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_ages_prop[chosen_point] += r
+                model_agesₚ[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
                     @inbounds for i=1:chosen_point # younger points below
-                        if model_ages_prop[i] < model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] < model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 else # if proposing decreased age
                     @inbounds for i=chosen_point:npoints # older points above
-                        if model_ages_prop[i] > model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] > model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 end
@@ -359,18 +359,18 @@
                     # end
                     if any(closest_hiatus_unique.==chosen_point)
                         chosen_point -= 1
-                        model_ages_prop[chosen_point] = model_ages[chosen_point] + r
+                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
                         #Resolve conflicts
                         if r > 0 # If proposing increased age
                             @inbounds for i=1:chosen_point # younger points below
-                                if model_ages_prop[i] < model_ages_prop[chosen_point]
-                                    model_ages_prop[i] = model_ages_prop[chosen_point]
+                                if model_agesₚ[i] < model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
                                 end
                             end
                         else # if proposing decreased age
                             @inbounds for i=chosen_point:npoints # older points above
-                                if model_ages_prop[i] > model_ages_prop[chosen_point]
-                                    model_ages_prop[i] = model_ages_prop[chosen_point]
+                                if model_agesₚ[i] > model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
                                 end
                             end
                         end
@@ -383,25 +383,25 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             @inbounds for i=1:length(Age)
-                closest_model_ages_prop[i] = model_ages_prop[closest_prop[i]]
-                if Age_Sidedness[i] == sign(closest_model_ages_prop[i] - Age[i])
-                    closest_model_ages_prop[i] = Age[i]
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
+                    closest_model_agesₚ[i] = Age[i]
                 end
             end
-            ll_prop = normpdf_ll(Age, Age_sigma, closest_model_ages_prop)
-            ll_prop += normpdf_ll(Height, Height_sigma, sample_height_prop)
+            llₚ = normpdf_ll(Age, Age_sigma, closest_model_agesₚ)
+            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
-            @. duration_prop = min(model_ages_prop[closest_hiatus_unique - 1] - model_ages_prop[closest_hiatus_unique], Hiatus_duration)
-            ll_prop += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, duration_prop)
+            @. durationₚ = min(model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique], Hiatus_duration)
+            llₚ += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (ll_prop - ll)
-                ll = ll_prop
-                copyto!(model_ages, model_ages_prop)
-                copyto!(closest, closest_prop)
-                copyto!(duration, duration_prop)
-                copyto!(sample_height, sample_height_prop)
+            if log(rand(Float64)) < (llₚ - ll)
+                ll = llₚ
+                copyto!(model_ages, model_agesₚ)
+                copyto!(closest, closestₚ)
+                copyto!(duration, durationₚ)
+                copyto!(sample_height, sample_heightₚ)
                 # acceptancedist[i] = true
             end
 
@@ -421,37 +421,37 @@
         pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
         for n=1:(nsteps*sieve)
             # Prepare proposal
-            copyto!(model_ages_prop, model_ages)
-            copyto!(closest_prop, closest)
-            copyto!(sample_height_prop, sample_height)
+            copyto!(model_agesₚ, model_ages)
+            copyto!(closestₚ, closest)
+            copyto!(sample_heightₚ, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_height_prop)
-                    sample_height_prop[i] += randn() * Height_sigma[i]
-                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    if closest_prop[i] < 1 # Check we're still within bounds
-                        closest_prop[i] = 1
-                    elseif closest_prop[i] > npoints
-                        closest_prop[i] = npoints
+                @inbounds for i=1:length(sample_heightₚ)
+                    sample_heightₚ[i] += randn() * Height_sigma[i]
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
+                    if closestₚ[i] < 1 # Check we're still within bounds
+                        closestₚ[i] = 1
+                    elseif closestₚ[i] > npoints
+                        closestₚ[i] = npoints
                     end
                 end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_ages_prop[chosen_point] += r
+                model_agesₚ[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
                     @inbounds for i=1:chosen_point # younger points below
-                        if model_ages_prop[i] < model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] < model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 else # if proposing decreased age
                     @inbounds for i=chosen_point:npoints # older points above
-                        if model_ages_prop[i] > model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] > model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 end
@@ -464,18 +464,18 @@
                     # end
                     if any(closest_hiatus_unique.==chosen_point)
                         chosen_point -= 1
-                        model_ages_prop[chosen_point] = model_ages[chosen_point] + r
+                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
                         #Resolve conflicts
                         if r > 0 # If proposing increased age
                             @inbounds for i=1:chosen_point # younger points below
-                                if model_ages_prop[i] < model_ages_prop[chosen_point]
-                                    model_ages_prop[i] = model_ages_prop[chosen_point]
+                                if model_agesₚ[i] < model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
                                 end
                             end
                         else # if proposing decreased age
                             @inbounds for i=chosen_point:npoints # older points above
-                                if model_ages_prop[i] > model_ages_prop[chosen_point]
-                                    model_ages_prop[i] = model_ages_prop[chosen_point]
+                                if model_agesₚ[i] > model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
                                 end
                             end
                         end
@@ -487,25 +487,25 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             @inbounds for i=1:length(Age)
-                closest_model_ages_prop[i] = model_ages_prop[closest_prop[i]]
-                if Age_Sidedness[i] == sign(closest_model_ages_prop[i] - Age[i])
-                    closest_model_ages_prop[i] = Age[i]
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
+                    closest_model_agesₚ[i] = Age[i]
                 end
             end
-            ll_prop = normpdf_ll(Age, Age_sigma, closest_model_ages_prop)
-            ll_prop += normpdf_ll(Height, Height_sigma, sample_height_prop)
+            llₚ = normpdf_ll(Age, Age_sigma, closest_model_agesₚ)
+            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
-            @. duration_prop = min(model_ages_prop[closest_hiatus_unique - 1] - model_ages_prop[closest_hiatus_unique], Hiatus_duration)
-            ll_prop += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, duration_prop)
+            @. durationₚ = min(model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique], Hiatus_duration)
+            llₚ += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (ll_prop - ll)
-                ll = ll_prop
-                copyto!(model_ages, model_ages_prop)
-                copyto!(closest, closest_prop)
-                copyto!(duration, duration_prop)
-                copyto!(sample_height, sample_height_prop)
+            if log(rand(Float64)) < (llₚ - ll)
+                ll = llₚ
+                copyto!(model_ages, model_agesₚ)
+                copyto!(closest, closestₚ)
+                copyto!(duration, durationₚ)
+                copyto!(sample_height, sample_heightₚ)
             end
 
             # Record sieved results
@@ -599,11 +599,11 @@
         ll += normpdf_ll(Height, Height_sigma, sample_height)
 
         # Preallocate variables for MCMC proposals
-        ll_prop = ll
-        model_ages_prop = copy(model_ages)
-        closest_prop = copy(closest)
-        sample_height_prop = copy(sample_height)
-        closest_model_ages_prop = copy(closest_model_ages)
+        llₚ = ll
+        model_agesₚ = copy(model_ages)
+        closestₚ = copy(closest)
+        sample_heightₚ = copy(sample_height)
+        closest_model_agesₚ = copy(closest_model_ages)
 
         # Run burnin
         # acceptancedist = fill(false,burnin)
@@ -612,39 +612,39 @@
         pgrs_interval = ceil(Int,sqrt(burnin))
         for n=1:burnin
             # Prepare proposal
-            copyto!(model_ages_prop, model_ages)
-            copyto!(closest_prop, closest)
-            copyto!(sample_height_prop, sample_height)
+            copyto!(model_agesₚ, model_ages)
+            copyto!(closestₚ, closest)
+            copyto!(sample_heightₚ, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_height_prop)
-                    sample_height_prop[i] += randn() * Height_sigma[i]
-                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    if closest_prop[i] < 1 # Check we're still within bounds
-                        closest_prop[i] = 1
-                    elseif closest_prop[i] > npoints
-                        closest_prop[i] = npoints
+                @inbounds for i=1:length(sample_heightₚ)
+                    sample_heightₚ[i] += randn() * Height_sigma[i]
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
+                    if closestₚ[i] < 1 # Check we're still within bounds
+                        closestₚ[i] = 1
+                    elseif closestₚ[i] > npoints
+                        closestₚ[i] = npoints
                     end
                 end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_ages_prop[chosen_point] += r
+                model_agesₚ[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
                     @inbounds for i=1:chosen_point
                         # younger points below
-                        if model_ages_prop[i] < model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] < model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 else # if proposing decreased age
                     @inbounds for i=chosen_point:npoints
                         # older points above
-                        if model_ages_prop[i] > model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] > model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 end
@@ -655,20 +655,20 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             @inbounds for i=1:length(Age)
-                closest_model_ages_prop[i] = model_ages_prop[closest_prop[i]]
-                if Age_Sidedness[i] == sign(closest_model_ages_prop[i] - Age[i])
-                    closest_model_ages_prop[i] = Age[i]
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
+                    closest_model_agesₚ[i] = Age[i]
                 end
             end
-            ll_prop = bilinear_exponential_ll(closest_model_ages_prop, p)
-            ll_prop += normpdf_ll(Height, Height_sigma, sample_height_prop)
+            llₚ = bilinear_exponential_ll(closest_model_agesₚ, p)
+            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (ll_prop - ll)
-                ll = ll_prop
-                copyto!(model_ages, model_ages_prop)
-                copyto!(closest, closest_prop)
-                copyto!(sample_height, sample_height_prop)
+            if log(rand(Float64)) < (llₚ - ll)
+                ll = llₚ
+                copyto!(model_ages, model_agesₚ)
+                copyto!(closest, closestₚ)
+                copyto!(sample_height, sample_heightₚ)
                 # acceptancedist[i] = true
             end
 
@@ -688,39 +688,39 @@
         pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
         for n=1:(nsteps*sieve)
             # Prepare proposal
-            copyto!(model_ages_prop, model_ages)
-            copyto!(closest_prop, closest)
-            copyto!(sample_height_prop, sample_height)
+            copyto!(model_agesₚ, model_ages)
+            copyto!(closestₚ, closest)
+            copyto!(sample_heightₚ, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_height_prop)
-                    sample_height_prop[i] += randn() * Height_sigma[i]
-                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    if closest_prop[i] < 1 # Check we're still within bounds
-                        closest_prop[i] = 1
-                    elseif closest_prop[i] > npoints
-                        closest_prop[i] = npoints
+                @inbounds for i=1:length(sample_heightₚ)
+                    sample_heightₚ[i] += randn() * Height_sigma[i]
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
+                    if closestₚ[i] < 1 # Check we're still within bounds
+                        closestₚ[i] = 1
+                    elseif closestₚ[i] > npoints
+                        closestₚ[i] = npoints
                     end
                 end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_ages_prop[chosen_point] += r
+                model_agesₚ[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
                     @inbounds for i=1:chosen_point
                         # younger points below
-                        if model_ages_prop[i] < model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] < model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 else # if proposing decreased age
                     @inbounds for i=chosen_point:npoints
                         # older points above
-                        if model_ages_prop[i] > model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] > model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 end
@@ -731,20 +731,20 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             @inbounds for i=1:length(Age)
-                closest_model_ages_prop[i] = model_ages_prop[closest_prop[i]]
-                if Age_Sidedness[i] == sign(closest_model_ages_prop[i] - Age[i])
-                    closest_model_ages_prop[i] = Age[i]
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
+                    closest_model_agesₚ[i] = Age[i]
                 end
             end
-            ll_prop = bilinear_exponential_ll(closest_model_ages_prop, p)
-            ll_prop += normpdf_ll(Height, Height_sigma, sample_height_prop)
+            llₚ = bilinear_exponential_ll(closest_model_agesₚ, p)
+            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (ll_prop - ll)
-                ll = ll_prop
-                copyto!(model_ages, model_ages_prop)
-                copyto!(closest, closest_prop)
-                copyto!(sample_height, sample_height_prop)
+            if log(rand(Float64)) < (llₚ - ll)
+                ll = llₚ
+                copyto!(model_ages, model_agesₚ)
+                copyto!(closest, closestₚ)
+                copyto!(sample_height, sample_heightₚ)
             end
 
             # Record sieved results
@@ -852,13 +852,13 @@
         ll += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, duration)
 
         # Preallocate variables for MCMC proposals
-        ll_prop = ll
+        llₚ = ll
         chosen_point = 0
-        model_ages_prop = copy(model_ages)
-        closest_prop = copy(closest)
-        duration_prop = copy(duration)
-        sample_height_prop = copy(sample_height)
-        closest_model_ages_prop = copy(closest_model_ages)
+        model_agesₚ = copy(model_ages)
+        closestₚ = copy(closest)
+        durationₚ = copy(duration)
+        sample_heightₚ = copy(sample_height)
+        closest_model_agesₚ = copy(closest_model_ages)
 
         # Run burnin
         # acceptancedist = fill(false,burnin)
@@ -867,39 +867,39 @@
         pgrs_interval = ceil(Int,sqrt(burnin))
         for n=1:burnin
             # Prepare proposal
-            copyto!(model_ages_prop, model_ages)
-            copyto!(closest_prop, closest)
-            copyto!(sample_height_prop, sample_height)
+            copyto!(model_agesₚ, model_ages)
+            copyto!(closestₚ, closest)
+            copyto!(sample_heightₚ, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_height_prop)
-                    sample_height_prop[i] += randn() * Height_sigma[i]
-                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    if closest_prop[i] < 1 # Check we're still within bounds
-                        closest_prop[i] = 1
-                    elseif closest_prop[i] > npoints
-                        closest_prop[i] = npoints
+                @inbounds for i=1:length(sample_heightₚ)
+                    sample_heightₚ[i] += randn() * Height_sigma[i]
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
+                    if closestₚ[i] < 1 # Check we're still within bounds
+                        closestₚ[i] = 1
+                    elseif closestₚ[i] > npoints
+                        closestₚ[i] = npoints
                     end
                 end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_ages_prop[chosen_point] += r
+                model_agesₚ[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
                     @inbounds for i=1:chosen_point
                         # younger points below
-                        if model_ages_prop[i] < model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] < model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 else # if proposing decreased age
                     @inbounds for i=chosen_point:npoints
                         # older points above
-                        if model_ages_prop[i] > model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] > model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 end
@@ -912,18 +912,18 @@
                     # end
                     if any(closest_hiatus_unique.==chosen_point)
                         chosen_point -= 1
-                        model_ages_prop[chosen_point] = model_ages[chosen_point] + r
+                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
                         #Resolve conflicts
                         if r > 0 # If proposing increased age
                             @inbounds for i=1:chosen_point # younger points below
-                                if model_ages_prop[i] < model_ages_prop[chosen_point]
-                                    model_ages_prop[i] = model_ages_prop[chosen_point]
+                                if model_agesₚ[i] < model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
                                 end
                             end
                         else # if proposing decreased age
                             @inbounds for i=chosen_point:npoints # older points above
-                                if model_ages_prop[i] > model_ages_prop[chosen_point]
-                                    model_ages_prop[i] = model_ages_prop[chosen_point]
+                                if model_agesₚ[i] > model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
                                 end
                             end
                         end
@@ -936,24 +936,24 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             @inbounds for i=1:length(Age)
-                closest_model_ages_prop[i] = model_ages_prop[closest_prop[i]]
-                if Age_Sidedness[i] == sign(closest_model_ages_prop[i] - Age[i])
-                    closest_model_ages_prop[i] = Age[i]
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
+                    closest_model_agesₚ[i] = Age[i]
                 end
             end
-            ll_prop = bilinear_exponential_ll(closest_model_ages_prop, p)
-            ll_prop += normpdf_ll(Height, Height_sigma, sample_height_prop)
+            llₚ = bilinear_exponential_ll(closest_model_agesₚ, p)
+            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
-            @. duration_prop = min(model_ages_prop[closest_hiatus_unique - 1] - model_ages_prop[closest_hiatus_unique], Hiatus_duration)
-            ll_prop += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, duration_prop)
+            @. durationₚ = min(model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique], Hiatus_duration)
+            llₚ += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (ll_prop - ll)
-                ll = ll_prop
-                copyto!(model_ages, model_ages_prop)
-                copyto!(closest, closest_prop)
-                copyto!(sample_height, sample_height_prop)
+            if log(rand(Float64)) < (llₚ - ll)
+                ll = llₚ
+                copyto!(model_ages, model_agesₚ)
+                copyto!(closest, closestₚ)
+                copyto!(sample_height, sample_heightₚ)
                 # acceptancedist[i] = true
             end
 
@@ -973,37 +973,37 @@
         pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
         for n=1:(nsteps*sieve)
             # Prepare proposal
-            copyto!(model_ages_prop, model_ages)
-            copyto!(closest_prop, closest)
-            copyto!(sample_height_prop, sample_height)
+            copyto!(model_agesₚ, model_ages)
+            copyto!(closestₚ, closest)
+            copyto!(sample_heightₚ, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_height_prop)
-                    sample_height_prop[i] += randn() * Height_sigma[i]
-                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    if closest_prop[i] < 1 # Check we're still within bounds
-                        closest_prop[i] = 1
-                    elseif closest_prop[i] > npoints
-                        closest_prop[i] = npoints
+                @inbounds for i=1:length(sample_heightₚ)
+                    sample_heightₚ[i] += randn() * Height_sigma[i]
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
+                    if closestₚ[i] < 1 # Check we're still within bounds
+                        closestₚ[i] = 1
+                    elseif closestₚ[i] > npoints
+                        closestₚ[i] = npoints
                     end
                 end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_ages_prop[chosen_point] += r
+                model_agesₚ[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
                     @inbounds for i=1:chosen_point # younger points below
-                        if model_ages_prop[i] < model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] < model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 else # if proposing decreased age
                     @inbounds for i=chosen_point:npoints # older points above
-                        if model_ages_prop[i] > model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] > model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 end
@@ -1016,18 +1016,18 @@
                     # end
                     if any(closest_hiatus_unique.==chosen_point)
                         chosen_point -= 1
-                        model_ages_prop[chosen_point] = model_ages[chosen_point] + r
+                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
                         #Resolve conflicts
                         if r > 0 # If proposing increased age
                             @inbounds for i=1:chosen_point # younger points below
-                                if model_ages_prop[i] < model_ages_prop[chosen_point]
-                                    model_ages_prop[i] = model_ages_prop[chosen_point]
+                                if model_agesₚ[i] < model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
                                 end
                             end
                         else # if proposing decreased age
                             @inbounds for i=chosen_point:npoints # older points above
-                                if model_ages_prop[i] > model_ages_prop[chosen_point]
-                                    model_ages_prop[i] = model_ages_prop[chosen_point]
+                                if model_agesₚ[i] > model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
                                 end
                             end
                         end
@@ -1039,25 +1039,25 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             @inbounds for i=1:length(Age)
-                closest_model_ages_prop[i] = model_ages_prop[closest_prop[i]]
-                if Age_Sidedness[i] == sign(closest_model_ages_prop[i] - Age[i])
-                    closest_model_ages_prop[i] = Age[i]
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
+                    closest_model_agesₚ[i] = Age[i]
                 end
             end
-            ll_prop = bilinear_exponential_ll(closest_model_ages_prop, p)
-            ll_prop += normpdf_ll(Height, Height_sigma, sample_height_prop)
+            llₚ = bilinear_exponential_ll(closest_model_agesₚ, p)
+            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
-            @. duration_prop = min(model_ages_prop[closest_hiatus_unique - 1] - model_ages_prop[closest_hiatus_unique], Hiatus_duration)
-            ll_prop += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, duration_prop)
+            @. durationₚ = min(model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique], Hiatus_duration)
+            llₚ += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (ll_prop - ll)
-                ll = ll_prop
-                copyto!(model_ages, model_ages_prop)
-                copyto!(closest, closest_prop)
-                copyto!(duration, duration_prop)
-                copyto!(sample_height, sample_height_prop)
+            if log(rand(Float64)) < (llₚ - ll)
+                ll = llₚ
+                copyto!(model_ages, model_agesₚ)
+                copyto!(closest, closestₚ)
+                copyto!(duration, durationₚ)
+                copyto!(sample_height, sample_heightₚ)
             end
 
             # Record sieved results
@@ -1151,11 +1151,11 @@
         ll += normpdf_ll(Height, Height_sigma, sample_height)
 
         # Preallocate variables for MCMC proposals
-        ll_prop = ll
-        model_ages_prop = copy(model_ages)
-        closest_prop = copy(closest)
-        sample_height_prop = copy(sample_height)
-        closest_model_ages_prop = copy(closest_model_ages)
+        llₚ = ll
+        model_agesₚ = copy(model_ages)
+        closestₚ = copy(closest)
+        sample_heightₚ = copy(sample_height)
+        closest_model_agesₚ = copy(closest_model_ages)
 
         # Run burnin
         # acceptancedist = fill(false,burnin)
@@ -1163,37 +1163,37 @@
         pgrs = Progress(burnin, desc="Burn-in...")
         pgrs_interval = ceil(Int,sqrt(burnin))
         for n=1:burnin
-            copyto!(model_ages_prop, model_ages)
-            copyto!(closest_prop, closest)
-            copyto!(sample_height_prop, sample_height)
+            copyto!(model_agesₚ, model_ages)
+            copyto!(closestₚ, closest)
+            copyto!(sample_heightₚ, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_height_prop)
-                    sample_height_prop[i] += randn() * Height_sigma[i]
-                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    if closest_prop[i] < 1 # Check we're still within bounds
-                        closest_prop[i] = 1
-                    elseif closest_prop[i] > npoints
-                        closest_prop[i] = npoints
+                @inbounds for i=1:length(sample_heightₚ)
+                    sample_heightₚ[i] += randn() * Height_sigma[i]
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
+                    if closestₚ[i] < 1 # Check we're still within bounds
+                        closestₚ[i] = 1
+                    elseif closestₚ[i] > npoints
+                        closestₚ[i] = npoints
                     end
                 end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_ages_prop[chosen_point] += r
+                model_agesₚ[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
                     @inbounds for i=1:chosen_point # younger points below
-                        if model_ages_prop[i] < model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] < model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 else # if proposing decreased age
                     @inbounds for i=chosen_point:npoints # older points above
-                        if model_ages_prop[i] > model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] > model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 end
@@ -1204,20 +1204,20 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             @inbounds for i=1:length(Age)
-                closest_model_ages_prop[i] = model_ages_prop[closest_prop[i]]
-                if Age_Sidedness[i] == sign(closest_model_ages_prop[i] - Age[i])
-                    closest_model_ages_prop[i] = Age[i]
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
+                    closest_model_agesₚ[i] = Age[i]
                 end
             end
-            ll_prop = interpolate_ll(closest_model_ages_prop, p)
-            ll_prop += normpdf_ll(Height, Height_sigma, sample_height_prop)
+            llₚ = interpolate_ll(closest_model_agesₚ, p)
+            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (ll_prop - ll)
-                ll = ll_prop
-                copyto!(model_ages, model_ages_prop)
-                copyto!(closest, closest_prop)
-                copyto!(sample_height, sample_height_prop)
+            if log(rand(Float64)) < (llₚ - ll)
+                ll = llₚ
+                copyto!(model_ages, model_agesₚ)
+                copyto!(closest, closestₚ)
+                copyto!(sample_height, sample_heightₚ)
                 # acceptancedist[i] = true
             end
 
@@ -1237,37 +1237,37 @@
         pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
         for n=1:(nsteps*sieve)
             # Prepare proposal
-            copyto!(model_ages_prop, model_ages)
-            copyto!(closest_prop, closest)
-            copyto!(sample_height_prop, sample_height)
+            copyto!(model_agesₚ, model_ages)
+            copyto!(closestₚ, closest)
+            copyto!(sample_heightₚ, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_height_prop)
-                    sample_height_prop[i] += randn() * Height_sigma[i]
-                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    if closest_prop[i] < 1 # Check we're still within bounds
-                        closest_prop[i] = 1
-                    elseif closest_prop[i] > npoints
-                        closest_prop[i] = npoints
+                @inbounds for i=1:length(sample_heightₚ)
+                    sample_heightₚ[i] += randn() * Height_sigma[i]
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
+                    if closestₚ[i] < 1 # Check we're still within bounds
+                        closestₚ[i] = 1
+                    elseif closestₚ[i] > npoints
+                        closestₚ[i] = npoints
                     end
                 end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_ages_prop[chosen_point] += r
+                model_agesₚ[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
                     @inbounds for i=1:chosen_point # younger points below
-                        if model_ages_prop[i] < model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] < model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 else # if proposing decreased age
                     @inbounds for i=chosen_point:npoints # older points above
-                        if model_ages_prop[i] > model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] > model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 end
@@ -1277,20 +1277,20 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             @inbounds for i=1:length(Age)
-                closest_model_ages_prop[i] = model_ages_prop[closest_prop[i]]
-                if Age_Sidedness[i] == sign(closest_model_ages_prop[i] - Age[i])
-                    closest_model_ages_prop[i] = Age[i]
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
+                    closest_model_agesₚ[i] = Age[i]
                 end
             end
-            ll_prop = interpolate_ll(closest_model_ages_prop, p)
-            ll_prop += normpdf_ll(Height, Height_sigma, sample_height_prop)
+            llₚ = interpolate_ll(closest_model_agesₚ, p)
+            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (ll_prop - ll)
-                ll = ll_prop
-                copyto!(model_ages, model_ages_prop)
-                copyto!(closest, closest_prop)
-                copyto!(sample_height, sample_height_prop)
+            if log(rand(Float64)) < (llₚ - ll)
+                ll = llₚ
+                copyto!(model_ages, model_agesₚ)
+                copyto!(closest, closestₚ)
+                copyto!(sample_height, sample_heightₚ)
             end
 
             # Record sieved results
@@ -1399,13 +1399,13 @@
         ll += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, duration)
 
         # Preallocate variables for MCMC proposals
-        ll_prop = ll
+        llₚ = ll
         chosen_point = 0
-        model_ages_prop = copy(model_ages)
-        closest_prop = copy(closest)
-        duration_prop = copy(duration)
-        sample_height_prop = copy(sample_height)
-        closest_model_ages_prop = copy(closest_model_ages)
+        model_agesₚ = copy(model_ages)
+        closestₚ = copy(closest)
+        durationₚ = copy(duration)
+        sample_heightₚ = copy(sample_height)
+        closest_model_agesₚ = copy(closest_model_ages)
 
         # Run burnin
         # acceptancedist = fill(false,burnin)
@@ -1414,37 +1414,37 @@
         pgrs_interval = ceil(Int,sqrt(burnin))
         for n=1:burnin
             # Prepare proposal
-            copyto!(model_ages_prop, model_ages)
-            copyto!(closest_prop, closest)
-            copyto!(sample_height_prop, sample_height)
+            copyto!(model_agesₚ, model_ages)
+            copyto!(closestₚ, closest)
+            copyto!(sample_heightₚ, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_height_prop)
-                    sample_height_prop[i] += randn() * Height_sigma[i]
-                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    if closest_prop[i] < 1 # Check we're still within bounds
-                        closest_prop[i] = 1
-                    elseif closest_prop[i] > npoints
-                        closest_prop[i] = npoints
+                @inbounds for i=1:length(sample_heightₚ)
+                    sample_heightₚ[i] += randn() * Height_sigma[i]
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
+                    if closestₚ[i] < 1 # Check we're still within bounds
+                        closestₚ[i] = 1
+                    elseif closestₚ[i] > npoints
+                        closestₚ[i] = npoints
                     end
                 end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_ages_prop[chosen_point] += r
+                model_agesₚ[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
                     @inbounds for i=1:chosen_point # younger points below
-                        if model_ages_prop[i] < model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] < model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 else # if proposing decreased age
                     @inbounds for i=chosen_point:npoints # older points above
-                        if model_ages_prop[i] > model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] > model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 end
@@ -1457,18 +1457,18 @@
                     # end
                     if any(closest_hiatus_unique.==chosen_point)
                         chosen_point -= 1
-                        model_ages_prop[chosen_point] = model_ages[chosen_point] + r
+                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
                         #Resolve conflicts
                         if r > 0 # If proposing increased age
                             @inbounds for i=1:chosen_point # younger points below
-                                if model_ages_prop[i] < model_ages_prop[chosen_point]
-                                    model_ages_prop[i] = model_ages_prop[chosen_point]
+                                if model_agesₚ[i] < model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
                                 end
                             end
                         else # if proposing decreased age
                             @inbounds for i=chosen_point:npoints # older points above
-                                if model_ages_prop[i] > model_ages_prop[chosen_point]
-                                    model_ages_prop[i] = model_ages_prop[chosen_point]
+                                if model_agesₚ[i] > model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
                                 end
                             end
                         end
@@ -1481,24 +1481,24 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             @inbounds for i=1:length(Age)
-                closest_model_ages_prop[i] = model_ages_prop[closest_prop[i]]
-                if Age_Sidedness[i] == sign(closest_model_ages_prop[i] - Age[i])
-                    closest_model_ages_prop[i] = Age[i]
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
+                    closest_model_agesₚ[i] = Age[i]
                 end
             end
-            ll_prop = interpolate_ll(closest_model_ages_prop, p)
-            ll_prop += normpdf_ll(Height, Height_sigma, sample_height_prop)
+            llₚ = interpolate_ll(closest_model_agesₚ, p)
+            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
-            @. duration_prop = min(model_ages_prop[closest_hiatus_unique - 1] - model_ages_prop[closest_hiatus_unique], Hiatus_duration)
-            ll_prop += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, duration_prop)
+            @. durationₚ = min(model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique], Hiatus_duration)
+            llₚ += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (ll_prop - ll)
-                ll = ll_prop
-                copyto!(model_ages, model_ages_prop)
-                copyto!(closest, closest_prop)
-                copyto!(sample_height, sample_height_prop)
+            if log(rand(Float64)) < (llₚ - ll)
+                ll = llₚ
+                copyto!(model_ages, model_agesₚ)
+                copyto!(closest, closestₚ)
+                copyto!(sample_height, sample_heightₚ)
                 # acceptancedist[i] = true
             end
 
@@ -1518,37 +1518,37 @@
         pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
         for n=1:(nsteps*sieve)
             # Prepare proposal
-            copyto!(model_ages_prop, model_ages)
-            copyto!(closest_prop, closest)
-            copyto!(sample_height_prop, sample_height)
+            copyto!(model_agesₚ, model_ages)
+            copyto!(closestₚ, closest)
+            copyto!(sample_heightₚ, sample_height)
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_height_prop)
-                    sample_height_prop[i] += randn() * Height_sigma[i]
-                    closest_prop[i] = round(Int,(sample_height_prop[i] - model_heights[1])/resolution)+1
-                    if closest_prop[i] < 1 # Check we're still within bounds
-                        closest_prop[i] = 1
-                    elseif closest_prop[i] > npoints
-                        closest_prop[i] = npoints
+                @inbounds for i=1:length(sample_heightₚ)
+                    sample_heightₚ[i] += randn() * Height_sigma[i]
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
+                    if closestₚ[i] < 1 # Check we're still within bounds
+                        closestₚ[i] = 1
+                    elseif closestₚ[i] > npoints
+                        closestₚ[i] = npoints
                     end
                 end
             else
                 # Adjust one point at a time then resolve conflicts
                 r = randn() * aveuncert # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_ages_prop[chosen_point] += r
+                model_agesₚ[chosen_point] += r
                 #Resolve conflicts
                 if r > 0 # If proposing increased age
                     @inbounds for i=1:chosen_point # younger points below
-                        if model_ages_prop[i] < model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] < model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 else # if proposing decreased age
                     @inbounds for i=chosen_point:npoints # older points above
-                        if model_ages_prop[i] > model_ages_prop[chosen_point]
-                            model_ages_prop[i] = model_ages_prop[chosen_point]
+                        if model_agesₚ[i] > model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
                         end
                     end
                 end
@@ -1561,18 +1561,18 @@
                     # end
                     if any(closest_hiatus_unique.==chosen_point)
                         chosen_point -= 1
-                        model_ages_prop[chosen_point] = model_ages[chosen_point] + r
+                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
                         #Resolve conflicts
                         if r > 0 # If proposing increased age
                             @inbounds for i=1:chosen_point # younger points below
-                                if model_ages_prop[i] < model_ages_prop[chosen_point]
-                                    model_ages_prop[i] = model_ages_prop[chosen_point]
+                                if model_agesₚ[i] < model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
                                 end
                             end
                         else # if proposing decreased age
                             @inbounds for i=chosen_point:npoints # older points above
-                                if model_ages_prop[i] > model_ages_prop[chosen_point]
-                                    model_ages_prop[i] = model_ages_prop[chosen_point]
+                                if model_agesₚ[i] > model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
                                 end
                             end
                         end
@@ -1584,25 +1584,25 @@
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
             @inbounds for i=1:length(Age)
-                closest_model_ages_prop[i] = model_ages_prop[closest_prop[i]]
-                if Age_Sidedness[i] == sign(closest_model_ages_prop[i] - Age[i])
-                    closest_model_ages_prop[i] = Age[i]
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
+                    closest_model_agesₚ[i] = Age[i]
                 end
             end
-            ll_prop = interpolate_ll(closest_model_ages_prop, p)
-            ll_prop += normpdf_ll(Height, Height_sigma, sample_height_prop)
+            llₚ = interpolate_ll(closest_model_agesₚ, p)
+            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
-            @. duration_prop = min(model_ages_prop[closest_hiatus_unique - 1] - model_ages_prop[closest_hiatus_unique], Hiatus_duration)
-            ll_prop += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, duration_prop)
+            @. durationₚ = min(model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique], Hiatus_duration)
+            llₚ += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (ll_prop - ll)
-                ll = ll_prop
-                copyto!(model_ages, model_ages_prop)
-                copyto!(closest, closest_prop)
-                copyto!(duration, duration_prop)
-                copyto!(sample_height, sample_height_prop)
+            if log(rand(Float64)) < (llₚ - ll)
+                ll = llₚ
+                copyto!(model_ages, model_agesₚ)
+                copyto!(closest, closestₚ)
+                copyto!(duration, durationₚ)
+                copyto!(sample_height, sample_heightₚ)
             end
 
             # Record sieved results

@@ -87,39 +87,39 @@
         # Use oldest and youngest zircons for initial proposal
         tmin = tmin_obs - sigma_sorted[1]
         tmax = tmax_obs + sigma_sorted[end]
-        tmin_proposed = tmin
-        tmax_proposed = tmax
+        tminₚ = tmin
+        tmaxₚ = tmax
         # Log likelihood of initial proposal
         ll = check_dist_ll(dist, mu_sorted, sigma_sorted, tmin, tmax)
-        ll_proposed = ll
+        llₚ = ll
         # Burnin
         for i=1:nsteps
-            tmin_proposed = tmin
-            tmax_proposed = tmax
+            tminₚ = tmin
+            tmaxₚ = tmax
             # Adjust either upper or lower bound
             if rand()<0.5
-                tmin_proposed += tmin_step*randn()
+                tminₚ += tmin_step*randn()
             else
-                tmax_proposed += tmax_step*randn()
+                tmaxₚ += tmax_step*randn()
             end
             # Flip bounds if reversed
-            if (tmin_proposed>tmax_proposed)
-                tmin_proposed, tmax_proposed = tmax_proposed, tmin_proposed
+            if (tminₚ>tmaxₚ)
+                tminₚ, tmaxₚ = tmaxₚ, tminₚ
             end
             # Calculate log likelihood for new proposal
-            ll_proposed = check_dist_ll(dist, mu_sorted, sigma_sorted, tmin_proposed, tmax_proposed)
+            llₚ = check_dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
             # Decide to accept or reject the proposal
-            if log(rand()) < (ll_proposed-ll)
-                if tmin_proposed != tmin
-                    tmin_step = abs(tmin_proposed-tmin)*stepfactor
+            if log(rand()) < (llₚ-ll)
+                if tminₚ != tmin
+                    tmin_step = abs(tminₚ-tmin)*stepfactor
                 end
-                if tmax_proposed != tmax
-                    tmax_step = abs(tmax_proposed-tmax)*stepfactor
+                if tmaxₚ != tmax
+                    tmax_step = abs(tmaxₚ-tmax)*stepfactor
                 end
 
-                ll = ll_proposed
-                tmin = tmin_proposed
-                tmax = tmax_proposed
+                ll = llₚ
+                tmin = tminₚ
+                tmax = tmaxₚ
             end
         end
         # Allocate ouput arrays
@@ -129,32 +129,32 @@
         acceptanceDist = falses(nsteps)
         # Step through each of the N steps in the Markov chain
         @inbounds for i=1:nsteps
-            tmin_proposed = tmin
-            tmax_proposed = tmax
+            tminₚ = tmin
+            tmaxₚ = tmax
             # Adjust either upper or lower bound
             if rand()<0.5
-                tmin_proposed += tmin_step*randn()
+                tminₚ += tmin_step*randn()
             else
-                tmax_proposed += tmax_step*randn()
+                tmaxₚ += tmax_step*randn()
             end
             # Flip bounds if reversed
-            if (tmin_proposed>tmax_proposed)
-                tmin_proposed, tmax_proposed = tmax_proposed, tmin_proposed
+            if (tminₚ>tmaxₚ)
+                tminₚ, tmaxₚ = tmaxₚ, tminₚ
             end
             # Calculate log likelihood for new proposal
-            ll_proposed = check_dist_ll(dist, mu_sorted, sigma_sorted, tmin_proposed, tmax_proposed)
+            llₚ = check_dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
             # Decide to accept or reject the proposal
-            if log(rand()) < (ll_proposed-ll)
-                if tmin_proposed != tmin
-                    tmin_step = abs(tmin_proposed-tmin)*stepfactor
+            if log(rand()) < (llₚ-ll)
+                if tminₚ != tmin
+                    tmin_step = abs(tminₚ-tmin)*stepfactor
                 end
-                if tmax_proposed != tmax
-                    tmax_step = abs(tmax_proposed-tmax)*stepfactor
+                if tmaxₚ != tmax
+                    tmax_step = abs(tmaxₚ-tmax)*stepfactor
                 end
 
-                ll = ll_proposed
-                tmin = tmin_proposed
-                tmax = tmax_proposed
+                ll = llₚ
+                tmin = tminₚ
+                tmax = tmaxₚ
                 acceptanceDist[i]=true
             end
             tminDist[i] = tmin
@@ -190,71 +190,71 @@
         # Use oldest and youngest zircons for initial proposal
         tmin = tmin_obs - sigma_sorted[1]
         tmax = tmax_obs + sigma_sorted[end]
-        tmin_proposed = tmin
-        tmax_proposed = tmax
+        tminₚ = tmin
+        tmaxₚ = tmax
         # Log likelihood of initial proposal
         ll = check_dist_ll(dist, mu_sorted, sigma_sorted, tmin, tmax)
-        ll_proposed = ll
+        llₚ = ll
         # Burnin
         for i=1:burnin
-            tmin_proposed = tmin
-            tmax_proposed = tmax
+            tminₚ = tmin
+            tmaxₚ = tmax
             # Adjust either upper or lower bound
             if rand()<0.5
-                tmin_proposed += tmin_step*randn()
+                tminₚ += tmin_step*randn()
             else
-                tmax_proposed += tmax_step*randn()
+                tmaxₚ += tmax_step*randn()
             end
             # Flip bounds if reversed
-            if (tmin_proposed>tmax_proposed)
-                tmin_proposed, tmax_proposed = tmax_proposed, tmin_proposed
+            if (tminₚ>tmaxₚ)
+                tminₚ, tmaxₚ = tmaxₚ, tminₚ
             end
             # Calculate log likelihood for new proposal
-            ll_proposed = check_dist_ll(dist, mu_sorted, sigma_sorted, tmin_proposed, tmax_proposed)
+            llₚ = check_dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
             # Decide to accept or reject the proposal
-            if log(rand()) < (ll_proposed-ll)
-                if tmin_proposed != tmin
-                    tmin_step = abs(tmin_proposed-tmin)*stepfactor
+            if log(rand()) < (llₚ-ll)
+                if tminₚ != tmin
+                    tmin_step = abs(tminₚ-tmin)*stepfactor
                 end
-                if tmax_proposed != tmax
-                    tmax_step = abs(tmax_proposed-tmax)*stepfactor
+                if tmaxₚ != tmax
+                    tmax_step = abs(tmaxₚ-tmax)*stepfactor
                 end
 
-                ll = ll_proposed
-                tmin = tmin_proposed
-                tmax = tmax_proposed
+                ll = llₚ
+                tmin = tminₚ
+                tmax = tmaxₚ
             end
         end
         # Allocate ouput arrays
         tminDist = Array{float(eltype(mu_sorted))}(undef,nsteps)
         # Step through each of the N steps in the Markov chain
         @inbounds for i=1:nsteps
-            tmin_proposed = tmin
-            tmax_proposed = tmax
+            tminₚ = tmin
+            tmaxₚ = tmax
             # Adjust either upper or lower bound
             if rand()<0.5
-                tmin_proposed += tmin_step*randn()
+                tminₚ += tmin_step*randn()
             else
-                tmax_proposed += tmax_step*randn()
+                tmaxₚ += tmax_step*randn()
             end
             # Flip bounds if reversed
-            if (tmin_proposed>tmax_proposed)
-                tmin_proposed, tmax_proposed = tmax_proposed, tmin_proposed
+            if (tminₚ>tmaxₚ)
+                tminₚ, tmaxₚ = tmaxₚ, tminₚ
             end
             # Calculate log likelihood for new proposal
-            ll_proposed = check_dist_ll(dist, mu_sorted, sigma_sorted, tmin_proposed, tmax_proposed)
+            llₚ = check_dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
             # Decide to accept or reject the proposal
-            if log(rand()) < (ll_proposed-ll)
-                if tmin_proposed != tmin
-                    tmin_step = abs(tmin_proposed-tmin)*stepfactor
+            if log(rand()) < (llₚ-ll)
+                if tminₚ != tmin
+                    tmin_step = abs(tminₚ-tmin)*stepfactor
                 end
-                if tmax_proposed != tmax
-                    tmax_step = abs(tmax_proposed-tmax)*stepfactor
+                if tmaxₚ != tmax
+                    tmax_step = abs(tmaxₚ-tmax)*stepfactor
                 end
 
-                ll = ll_proposed
-                tmin = tmin_proposed
-                tmax = tmax_proposed
+                ll = llₚ
+                tmin = tminₚ
+                tmax = tmaxₚ
             end
             tminDist[i] = tmin
         end
