@@ -22,13 +22,10 @@ __precompile__()
 
 module Chron
 
-    if VERSION>=v"0.7" # Forwards compatibility
-        using Statistics, StatsBase, DelimitedFiles, SpecialFunctions
-    else # Backwards compatibility
-        using Compat
-        import Base.round
-        round(x; digits=n::Number) = round(x,digits)
-    end
+    # Backwards compatibility
+    using Compat
+    # Forwards compatibility
+    VERSION >= v"0.7" && using Statistics, DelimitedFiles, SpecialFunctions
 
     # AVX vectorziation tools
     using LoopVectorization
