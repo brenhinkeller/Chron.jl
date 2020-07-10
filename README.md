@@ -33,10 +33,15 @@ julia> notebook()
 
 ### Standalone age-depth modelling
 If you want to use Chron.jl for for age-depth modelling without the eruption/deposition age estimation step, there are also example notebooks standalone age-depth modelling using either
-* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0StratOnly.ipynb) [simple Gaussian age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0StratOnly.ipynb) or
-* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0Radiocarbon.ipynb) [non-Gaussian radiocarbon age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0Radiocarbon.ipynb)
+* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0StratOnly.ipynb) [Age-depth modelling with simple Gaussian age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0StratOnly.ipynb) or
+* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0Radiocarbon.ipynb) [Age-depth modelling with radiocarbon age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0Radiocarbon.ipynb)
 
 with or without hiatuses.
+
+### Standalone eruption/deposition age modelling
+
+To run an eruption/deposition age estimate, without any age-depth modelling, try the notebook for
+* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/EruptionDepositionAgeDemonstration.ipynb) [Standalone eruption/deposition age modelling](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/EruptionDepositionAgeDemonstration.ipynb)
 
 ## Standard Usage
 After installing [Julia](https://julialang.org/downloads/) with or without [Juno](http://junolab.org/), and Chron.jl (above), run [examples/Chron1.0Coupled.jl](examples/Chron1.0Coupled.jl) to see how the code works. It should look something like this:
