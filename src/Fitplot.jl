@@ -165,7 +165,15 @@
 
 ## --- Fit and plot results from stationary distribution of depostion/eruption age distribution model
 
-    # Process and fit stationary distribution for eruption age
+    """
+    ```julia
+    smpl = tMinDistMetropolis(smpl::ChronAgeData,nsteps::Int,burnin::Int,dist::Array{Float64})
+    ```
+    Calculate the minimum limiting (eruption/deposition) age of each sample in `smpl`
+    using the `metropolis_min` function, assuming mineral ages for each sample are
+    drawn from the source distribution `dist`. Fits a `bilinearexponential` function
+    to the resulting stationary distribution for each sample.
+    """
     function tMinDistMetropolis(smpl::ChronAgeData,nsteps::Int,burnin::Int,dist::Array{Float64})
         # Extract variables from struct
         Name = collect(smpl.Name)::Array{String,1}

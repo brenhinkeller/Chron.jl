@@ -6,8 +6,8 @@
     check_dist_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
     ```
     Return the log-likelihood of a set of mineral ages with means `mu` and
-    uncertianty `sigma` being drawn from a given crystallization distribution
-    `dist`, with terms to prevent runaway at low N.
+    uncertianty `sigma` being drawn from a given source (i.e., crystallization / closure)
+    distribution `dist`, with terms to prevent runaway at low N.
     """
     function check_dist_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
         # Define some frequently used variables
@@ -65,9 +65,10 @@
     ```julia
     (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
     ```
-    Run a Metropolis sampler to estimate the extrema of a finite-range distribution
-    using samples drawn from that distribution -- e.g., estimate zircon saturation
-    and eruption ages from a distribution of zircon crystallization ages.
+    Run a Metropolis sampler to estimate the extrema of a finite-range source
+    distribution `dist` using samples drawn from that distribution -- e.g.,
+    estimate zircon saturation and eruption ages from a distribution of zircon
+    crystallization ages.
     """
     function metropolis_minmax(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
         # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
@@ -168,9 +169,9 @@
     ```julia
     tminDist = metropolis_min(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
     ```
-    Run a Metropolis sampler to estimate the minimum of a finite-range distribution
-    using samples drawn from that distribution -- e.g., estimate zircon eruption
-    ages from a distribution of zircon crystallization ages.
+    Run a Metropolis sampler to estimate the minimum of a finite-range source
+    distribution `dist` using samples drawn from that distribution -- e.g., estimate
+    zircon eruption ages from a distribution of zircon crystallization ages.
     """
     function metropolis_min(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
         # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
