@@ -43,11 +43,11 @@
 
 ## ---  Run MCMC to estimate eruption/deposition age distribution of synthetic dataset
     # Configure model
-    nsteps = 200000; # Length of Markov chain
-    burnin = 100000; # Number of steps to discard at beginning of Markov chain
+    nsteps = 200000 # Length of Markov chain
+    burnin = 100000 # Number of steps to discard at beginning of Markov chain
 
     # Run MCMC
-    tminDist = metropolis_min(nsteps,dist,ages,uncert);
+    tminDist = metropolis_min(nsteps,dist,ages,uncert)
 
     # Print results
     AgeEst = mean(tminDist[burnin:end]);
