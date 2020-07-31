@@ -63,7 +63,7 @@
 
     """
     ```julia
-    metropolis_minmax!(tminDist::Array, tmaxDist::Array, llDist::Array, acceptanceDist::Array, nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
+    metropolis_minmax!(tminDist, tmaxDist, llDist, acceptanceDist, nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
     ```
     In-place (non-allocating) version of `metropolis_minmax`, filling existing arrays
 
@@ -72,7 +72,7 @@
     estimate zircon saturation and eruption ages from a distribution of zircon
     crystallization ages.
     """
-    function metropolis_minmax!(tminDist::Array, tmaxDist::Array, llDist::Array, acceptanceDist::Array, nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
+    function metropolis_minmax!(tminDist::AbstractArray, tmaxDist::AbstractArray, llDist::AbstractArray, acceptanceDist::AbstractArray, nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
         # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
         stepfactor = 2.9
         # Sort the dataset from youngest to oldest
@@ -191,7 +191,7 @@
     distribution `dist` using samples drawn from that distribution -- e.g., estimate
     zircon eruption ages from a distribution of zircon crystallization ages.
     """
-    function metropolis_min!(tminDist::Array, nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
+    function metropolis_min!(tminDist::AbstractArray, nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
         # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
         stepfactor = 2.9
         # Sort the dataset from youngest to oldest
