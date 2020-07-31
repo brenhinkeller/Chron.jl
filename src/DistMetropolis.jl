@@ -165,15 +165,18 @@
         return tminDist, tmaxDist, llDist, acceptanceDist
     end
 
+
     """
     ```julia
-    tminDist = metropolis_min(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
+    metropolis_min!(tminDist::Array, nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
     ```
+    Non-allocating version of `metropolis_min`, fills existing array `tminDist`.
+
     Run a Metropolis sampler to estimate the minimum of a finite-range source
     distribution `dist` using samples drawn from that distribution -- e.g., estimate
     zircon eruption ages from a distribution of zircon crystallization ages.
     """
-    function metropolis_min(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
+    function metropolis_min!(tminDist::Array, nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
         # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
         stepfactor = 2.9
         # Sort the dataset from youngest to oldest
@@ -226,8 +229,6 @@
                 tmax = tmaxₚ
             end
         end
-        # Allocate ouput arrays
-        tminDist = Array{float(eltype(mu_sorted))}(undef,nsteps)
         # Step through each of the N steps in the Markov chain
         @inbounds for i=1:nsteps
             tminₚ = tmin
@@ -260,6 +261,20 @@
             tminDist[i] = tmin
         end
         return tminDist
+    end
+
+    """
+    ```julia
+    tminDist = metropolis_min(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
+    ```
+    Run a Metropolis sampler to estimate the minimum of a finite-range source
+    distribution `dist` using samples drawn from that distribution -- e.g., estimate
+    zircon eruption ages from a distribution of zircon crystallization ages.
+    """
+    function metropolis_min(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
+        # Allocate ouput array
+        tminDist = Array{float(eltype(mu_sorted))}(undef,nsteps)
+        return metropolis_min!(tminDist, nsteps, dist, mu, sigma; burnin=burnin)
     end
 
 ## --- Some useful distributions
