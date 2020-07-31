@@ -63,14 +63,16 @@
 
     """
     ```julia
-    (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
+    metropolis_minmax!(tminDist::Array, tmaxDist::Array, llDist::Array, acceptanceDist::Array, nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
     ```
+    In-place (non-allocating) version of `metropolis_minmax`, filling existing arrays
+
     Run a Metropolis sampler to estimate the extrema of a finite-range source
     distribution `dist` using samples drawn from that distribution -- e.g.,
     estimate zircon saturation and eruption ages from a distribution of zircon
     crystallization ages.
     """
-    function metropolis_minmax(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
+    function metropolis_minmax!(tminDist::Array, tmaxDist::Array, llDist::Array, acceptanceDist::Array, nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
         # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
         stepfactor = 2.9
         # Sort the dataset from youngest to oldest
@@ -123,11 +125,6 @@
                 tmax = tmaxₚ
             end
         end
-        # Allocate ouput arrays
-        tminDist = Array{float(eltype(mu_sorted))}(undef,nsteps)
-        tmaxDist = Array{float(eltype(mu_sorted))}(undef,nsteps)
-        llDist = Array{float(eltype(dist))}(undef,nsteps)
-        acceptanceDist = falses(nsteps)
         # Step through each of the N steps in the Markov chain
         @inbounds for i=1:nsteps
             tminₚ = tmin
@@ -165,12 +162,30 @@
         return tminDist, tmaxDist, llDist, acceptanceDist
     end
 
+    """
+    ```julia
+    (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
+    ```
+    Run a Metropolis sampler to estimate the extrema of a finite-range source
+    distribution `dist` using samples drawn from that distribution -- e.g.,
+    estimate zircon saturation and eruption ages from a distribution of zircon
+    crystallization ages.
+    """
+    function metropolis_minmax(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
+        # Allocate ouput arrays
+        acceptanceDist = falses(nsteps)
+        llDist = Array{float(eltype(dist))}(undef,nsteps)
+        tmaxDist = Array{float(eltype(mu_sorted))}(undef,nsteps)
+        tminDist = Array{float(eltype(mu_sorted))}(undef,nsteps)
+        # Run metropolis sampler
+        return metropolis_minmax!(tminDist, tmaxDist, llDist, acceptanceDist, nsteps, dist, mu, sigma; burnin=burnin)
+    end
 
     """
     ```julia
     metropolis_min!(tminDist::Array, nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
     ```
-    Non-allocating version of `metropolis_min`, fills existing array `tminDist`.
+    In-place (non-allocating) version of `metropolis_min`, fills existing array `tminDist`.
 
     Run a Metropolis sampler to estimate the minimum of a finite-range source
     distribution `dist` using samples drawn from that distribution -- e.g., estimate
@@ -274,6 +289,7 @@
     function metropolis_min(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
         # Allocate ouput array
         tminDist = Array{float(eltype(mu_sorted))}(undef,nsteps)
+        # Run Metropolis sampler
         return metropolis_min!(tminDist, nsteps, dist, mu, sigma; burnin=burnin)
     end
 
