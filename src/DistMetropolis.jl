@@ -175,8 +175,8 @@
         # Allocate ouput arrays
         acceptanceDist = falses(nsteps)
         llDist = Array{float(eltype(dist))}(undef,nsteps)
-        tmaxDist = Array{float(eltype(mu_sorted))}(undef,nsteps)
-        tminDist = Array{float(eltype(mu_sorted))}(undef,nsteps)
+        tmaxDist = Array{float(eltype(mu))}(undef,nsteps)
+        tminDist = Array{float(eltype(mu))}(undef,nsteps)
         # Run metropolis sampler
         return metropolis_minmax!(tminDist, tmaxDist, llDist, acceptanceDist, nsteps, dist, mu, sigma; burnin=burnin)
     end
@@ -288,7 +288,7 @@
     """
     function metropolis_min(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
         # Allocate ouput array
-        tminDist = Array{float(eltype(mu_sorted))}(undef,nsteps)
+        tminDist = Array{float(eltype(mu))}(undef,nsteps)
         # Run Metropolis sampler
         return metropolis_min!(tminDist, nsteps, dist, mu, sigma; burnin=burnin)
     end
