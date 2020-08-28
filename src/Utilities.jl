@@ -3,13 +3,9 @@
     # Construct linearly spaced array with n points between l and u
     # (linspace replacement )
     if VERSION>=v"0.7"
-        function linsp(l::Number,u::Number,n::Number)
-            return range(l,stop=u,length=n)
-        end
+        linsp(l::Number,u::Number,n::Number) = range(l,stop=u,length=n)
     else
-        function linsp(l::Number,u::Number,n::Number)
-            return linspace(l,u,n)
-        end
+        linsp(l::Number,u::Number,n::Number) = linspace(l,u,n)
     end
 
 ## --- Weighted means
@@ -934,9 +930,7 @@
     `run()` function. This allows pipelining, etc. in shell commands. Returns
     0 on success.
     """
-    function system(cmdstr::AbstractString)
-        return ccall((:system,), Int, (Cstring,), cmdstr)
-    end
+    system(cmdstr::AbstractString) = ccall((:system,), Int, (Cstring,), cmdstr)
     export system
 
 ## --- Retain deprecated functions with matlab-like syntax, to avoid breakages in user scripts that may depend on them
@@ -950,9 +944,7 @@
         Returns a linearly spaced array with `n` points between the starting
         bound `l` and ending bound `u`
         """
-        function linspace(l::Number,u::Number,n::Number)
-            return range(l,stop=u,length=n)
-        end
+        linspace(l::Number,u::Number,n::Number) = range(l,stop=u,length=n)
         export linspace
     end
 
