@@ -193,7 +193,8 @@
 
     with mean `mu` and standard deviation `sigma`, evaluated at `x`
     """
-    normpdf(mu,sigma,x) = @. exp(-(x-mu)*(x-mu) / (2*sigma*sigma)) / (sqrt(2*pi)*sigma)
+    const SQRT2PI = sqrt(2*pi)
+    @inline normpdf(mu,sigma,x) = exp(-(x-mu)*(x-mu) / (2*sigma*sigma)) / (SQRT2PI*sigma)
 
     """
     ```julia
