@@ -235,30 +235,24 @@
 
     with mean `mu` and standard deviation `sigma`, evaluated at `x`.
     """
-    function normcdf(mu,sigma,x)
-        return @. 0.5 + erf((x-mu) / (sigma*sqrt(2))) / 2
-    end
+    const SQRT2 = sqrt(2)
+    @inline normcdf(mu,sigma,x) = 0.5 + 0.5 * erf((x-mu) / (sigma*SQRT2))
     function normcdf(mu::Number,sigma::Number,x::AbstractArray)
         result = Array{float(eltype(x))}(undef,length(x))
-        sigma_sqrt = sigma*sqrt(2)
+        inv_sigma_sqrt2 = 1/(sigma*SQRT2)
         @inbounds @simd for i = 1:length(x)
-            result[i] = 0.5 + erf((x[i]-mu) / sigma_sqrt) / 2
+            result[i] = 0.5 + 0.5 * erf((x[i]-mu) * inv_sigma_sqrt2)
         end
         return result
     end
 
     # How far away from the mean (in units of sigma) should we expect proportion
     # F of the samples to fall in a Normal (Gaussian) distribution
-    function norm_quantile(F::Number)
-        return sqrt(2)*erfinv(2*F-1)
-    end
+    @inline norm_quantile(F) = SQRT2*erfinv(2*F-1)
 
     # How dispersed (in units of sigma) should we expect a sample of N numbers
     # drawn from a Normal (Gaussian) distribution to be?
-    function norm_width(N)
-        F = 1 - 1/(N+1)
-        return 2*norm_quantile(F)
-    end
+    @inline norm_width(N) = 2*norm_quantile(1 - 1/(N+1))
 
     # Integral of the product of two normal distributions N(μ1,σ1) * N(μ2,σ2)
     function normproduct(μ1::Number, σ1::Number, μ2::Number, σ2::Number)
