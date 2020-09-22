@@ -181,6 +181,12 @@
         end
     end
 
+## --- Some mathematical constants
+
+    const SQRT2 = sqrt(2)
+    const SQRT2PI = sqrt(2*pi)
+    const AN = Union{AbstractArray{<:Number},Number}
+
 ## --- Working with Gaussian distributions
 
     """
@@ -193,8 +199,10 @@
 
     with mean `mu` and standard deviation `sigma`, evaluated at `x`
     """
-    const SQRT2PI = sqrt(2*pi)
     @inline normpdf(mu,sigma,x) = exp(-(x-mu)*(x-mu) / (2*sigma*sigma)) / (SQRT2PI*sigma)
+    @inline normpdf(mu::AN,sigma::AN,x::AN) = @avx @. exp(-(x-mu)*(x-mu) / (2*sigma*sigma)) / (SQRT2PI*sigma)
+    @inline normpdf(mu::Number,sigma::Number,x::Number) = exp(-(x-mu)*(x-mu) / (2*sigma*sigma)) / (SQRT2PI*sigma)
+
 
     """
     ```julia
@@ -203,22 +211,38 @@
     Fast log likelihood corresponding to a Normal (Gaussian) distribution
     with mean `mu` and standard deviation `sigma`, evaluated at `x`.
 
-    If `x`, `mu`, and `sigma` are given as arrays, the sum of the log likelihood
+    If `x`, [`mu`, and `sigma`] are given as arrays, the sum of the log likelihood
     over all `x` will be returned.
 
     See also `normpdf`
     """
-    normpdf_ll(mu::Number,sigma::Number,x::Number) = -(x-mu)*(x-mu) / (2*sigma*sigma)
+    @inline normpdf_ll(mu,sigma,x) = -(x-mu)*(x-mu) / (2*sigma*sigma)
+    @inline normpdf_ll(mu::Number,sigma::Number,x::Number) = -(x-mu)*(x-mu) / (2*sigma*sigma)
     function normpdf_ll(mu::Number,sigma::Number,x::AbstractArray)
-        ll = 0.0
         inv_s2 = 1/(2*sigma*sigma)
+        ll = zero(typeof(inv_s2))
         @avx for i=1:length(x)
             ll -= (x[i]-mu)*(x[i]-mu) * inv_s2
         end
         return ll
     end
+    function normpdf_ll(mu::AbstractArray,sigma::Number,x::AbstractArray)
+        inv_s2 = 1/(2*sigma*sigma)
+        ll = zero(typeof(inv_s2))
+        @avx for i=1:length(x)
+            ll -= (x[i]-mu[i])*(x[i]-mu[i]) * inv_s2
+        end
+        return ll
+    end
+    function normpdf_ll(mu::Number,sigma::AbstractArray,x::AbstractArray)
+        ll = zero(float(eltype(sigma)))
+        @avx for i=1:length(x)
+            ll -= (x[i]-mu)*(x[i]-mu) / (2*sigma[i]*sigma[i])
+        end
+        return ll
+    end
     function normpdf_ll(mu::AbstractArray,sigma::AbstractArray,x::AbstractArray)
-        ll = 0.0
+        ll = zero(float(eltype(sigma)))
         @avx for i=1:length(x)
             ll -= (x[i]-mu[i])*(x[i]-mu[i]) / (2*sigma[i]*sigma[i])
         end
@@ -235,37 +259,47 @@
 
     with mean `mu` and standard deviation `sigma`, evaluated at `x`.
     """
-    const SQRT2 = sqrt(2)
     @inline normcdf(mu,sigma,x) = 0.5 + 0.5 * erf((x-mu) / (sigma*SQRT2))
-    function normcdf(mu::Number,sigma::Number,x::AbstractArray)
-        result = Array{float(eltype(x))}(undef,length(x))
-        inv_sigma_sqrt2 = 1/(sigma*SQRT2)
-        @inbounds @simd for i = 1:length(x)
-            result[i] = 0.5 + 0.5 * erf((x[i]-mu) * inv_sigma_sqrt2)
-        end
-        return result
-    end
+    @inline normcdf(mu::AN,sigma::AN,x::AN) = @avx @. 0.5 + 0.5 * erf((x-mu) / (sigma*SQRT2))
+    @inline normcdf(mu::Number,sigma::Number,x::Number) = 0.5 + 0.5 * erf((x-mu) / (sigma*SQRT2))
 
-    # How far away from the mean (in units of sigma) should we expect proportion
-    # F of the samples to fall in a Normal (Gaussian) distribution
+
+    """
+    ```julia
+    norm_quantile(F::Number)
+    ```
+    How far away from the mean (in units of sigma) should we expect proportion
+    F of the samples to fall in a standard Gaussian (Normal[0,1]) distribution
+    """
     @inline norm_quantile(F) = SQRT2*erfinv(2*F-1)
 
-    # How dispersed (in units of sigma) should we expect a sample of N numbers
-    # drawn from a Normal (Gaussian) distribution to be?
+    """
+    ```julia
+    norm_width(N::Number)
+    ```
+    How dispersed (in units of sigma) should we expect a sample of N numbers
+    drawn from a standard Gaussian (Normal[0,1]) distribution to be?
+    """
     @inline norm_width(N) = 2*norm_quantile(1 - 1/(N+1))
 
-    # Integral of the product of two normal distributions N(μ1,σ1) * N(μ2,σ2)
-    function normproduct(μ1::Number, σ1::Number, μ2::Number, σ2::Number)
-        # The integral of the product of two normal distributions is itself just
-        # another Normal distribution! Specifically, one with variance σ1^2 + σ2^2
-        normpdf(μ1, sqrt(σ1^2 + σ2^2), μ2)
-    end
+    """
+    ```julia
+    normproduct(μ1, σ1, μ2, σ2)
+    ```
+    The integral of the product of two normal distributions N[μ1,σ1] * N[μ2,σ2].
+    This is itself just another Normal distribution! Specifically, one with
+    variance σ1^2 + σ2^2, evaluated at distance |μ1-μ2| from the mean
+    """
+    normproduct(μ1, σ1, μ2, σ2) = normpdf(μ1, sqrt.(σ1.*σ1 + σ2.*σ2), μ2)
 
-    # Log likelihood corresponding to the integral of N(μ1,σ1) * N(μ2,σ2)
-    function normproduct_ll(μ1::Number, σ1::Number, μ2::Number, σ2::Number)
-        # As above, but using the fast log likelihood of a Normal distribution
-        normpdf_ll(μ1, sqrt(σ1^2 + σ2^2), μ2)
-    end
+    """
+    ```julia
+    normproduct_ll(μ1, σ1, μ2, σ2)
+    ```
+    Log likelihood corresponding to the integral of N[μ1,σ1] * N[μ2,σ2]
+    As `normproduct`, but using the fast log likelihood of a Normal distribution
+    """
+    normproduct_ll(μ1, σ1, μ2, σ2) = normpdf_ll(μ1, sqrt.(σ1.*σ1 + σ2.*σ2), μ2)
 
 
 ## --- Drawing from distributions

@@ -29,8 +29,10 @@ module Chron
 
     # AVX vectorziation tools
     using LoopVectorization
-    using SIMDPirates: vifelse
+    using SIMDPirates: vifelse, verf
     using VectorizationBase: SVec
+    import SpecialFunctions.erf
+    erf(x::SVec) = verf(x)
 
     # Basic statistics and UI resources
     using StatsBase: fit, Histogram, percentile
