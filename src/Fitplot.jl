@@ -268,7 +268,7 @@
 
         # Save results as csv
         results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(Name,smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_sigma))::Array{Any,2}
-        writedlm(joinpath(Path,"results.csv"), results, ',')
+        writedlm(joinpath(Path,"distresults.csv"), results, ',')
 
         return smpl
     end
