@@ -13,6 +13,7 @@
         Age_14C::Array{Float64,1}
         Age_14C_sigma::Array{Float64,1}
         Age_Sidedness::Array{Float64,1}
+        Age_DistType::Array{Float64,1}
         Age_Distribution::Array{<:Array,1}
         Params::Array{Float64,2}
         Path::String
@@ -33,6 +34,7 @@
             fill(NaN,nSamples),  # Sample 14C ages
             fill(NaN,nSamples),  # Sample 14C uncertainties
             zeros(nSamples), # Sidedness (zeros by default, geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+            zeros(nSamples), # DistType (for Distribution-fitting only: 0=distribution to be fit, 1=single Gaussian)
             Array{Array}(undef,nSamples), # Stationary distribution of eruption age
             fill(NaN,5,nSamples), # Sample age distribution parameters
             "./", # Relative path where we can find .csv data files
