@@ -73,9 +73,11 @@
     # Bootstrap a KDE of the pre-eruptive (or pre-depositional) mineral age
     # distribution using a KDE of stacked sample data from each data file
     BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl)
-    h = plot(BootstrappedDistribution, label="Bootstrapped distribution",
+    x = range(0,1,length=length(BootstrappedDistribution))
+    h = plot(x, BootstrappedDistribution, label="Bootstrapped distribution",
          xlabel="Time (arbitrary units)", ylabel="Probability Density", fg_color_legend=:white)
     savefig(h, joinpath(smpl.Path,"BootstrappedDistribution.pdf"))
+    display(h)
 
 ## --- Estimate the eruption age distributions for each sample  - - - - - - - -
 
@@ -147,9 +149,16 @@
 ## --- Plot stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - -
 
     # Plot results (mean and 95% confidence interval for both model and data)
-    hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
-    plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white)
-    plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
+    hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(round(Int,minimum(mdl.Height)),0.5,:blue), label="model")
+    plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white) # Center line
+    t = smpl.Age_Sidedness .== 0 # Two-sided constraints (plot in black)
+    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(smpl.Age[t]-smpl.Age_025CI[t],smpl.Age_975CI[t]-smpl.Age[t]),label="data",seriestype=:scatter,color=:black)
+    t = smpl.Age_Sidedness .== 1 # Minimum ages (plot in cyan)
+    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(smpl.Age[t]-smpl.Age_025CI[t],zeros(count(t))),label="",seriestype=:scatter,color=:cyan,msc=:cyan)
+    any(t) && zip(smpl.Age[t], smpl.Age[t].+nanmean(smpl.Age_sigma[t])*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:cyan)
+    t = smpl.Age_Sidedness .== -1 # Maximum ages (plot in orange)
+    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(zeros(count(t)),smpl.Age_975CI[t]-smpl.Age[t]),label="",seriestype=:scatter,color=:orange,msc=:orange)
+    any(t) && zip(smpl.Age[t], smpl.Age[t].-nanmean(smpl.Age_sigma[t])*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:orange)
     plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
     savefig(hdl,"AgeDepthModel.pdf")
     display(hdl)
