@@ -946,6 +946,44 @@
         return index
     end
 
+## --- Numerically integrate a 1-d distribution
+
+    """
+    ```julia
+    trapz(edges, values)
+    ```
+    Add up the area under a curve with y positions specified by a vector of `values`
+    and x positions specfied by a vector of `edges` using trapezoidal integration.
+    Bins need not be evenly spaced, though it helps.
+    """
+    function trapz(edges::AbstractRange, values::AbstractArray)
+        result = zero(eltype(values))
+        @avx for i=2:length(edges)
+            result += values[i-1]+values[i]
+        end
+        dx = (edges[end]-edges[1])/(length(edges) - 1)
+        return result * dx / 2
+    end
+    function trapz(edges::AbstractArray, values::AbstractArray)
+        result = zero(promote_type(eltype(edges), eltype(values)))
+        @avx for i=2:length(edges)
+            result += (values[i-1] + values[i]) * (edges[i] - edges[i-1])
+        end
+        return result / 2
+    end
+    export trapz
+
+    """
+    ```julia
+    midpointintegrate(bincenters, values)
+    ```
+    Add up the area under a curve with y positions specified by a vector of `values`
+    and x positions specfied by a vector of `bincenters` using midpoint integration.
+    """
+    function midpointintegrate(bincenters::AbstractRange, values::AbstractArray)
+        sum(values) * (bincenters[end]-bincenters[1]) / (length(bincenters) - 1)
+    end
+    export midpointintegrate
 
 ## --- Other
 
