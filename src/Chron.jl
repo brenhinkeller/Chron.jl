@@ -71,8 +71,7 @@ module Chron
         metropolis_minmax!, metropolis_minmax,
         bilinear_exponential, bilinear_exponential_ll,
         plot_rankorder_errorbar, plot_rankorder_errorbar!,
-        screen_outliers, BootstrapCrystDistributionKDE,
-        BootstrapCrystDistributionKDEfromStrat
+        screen_outliers, BootstrapCrystDistributionKDE
 
 
     # Utility functions
