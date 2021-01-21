@@ -13,11 +13,12 @@ Chron.jl is written in the [Julia programming language](https://julialang.org/).
 
 In the Julia package manager (type `]` in the REPL)
 ```Julia
-(v1.0) pkg> add "https://github.com/brenhinkeller/Chron.jl"
+pkg> add https://github.com/brenhinkeller/Chron.j
 ```
-or for previous versions of Julia, in the REPL
+or equivalently in the normal REPL
 ```Julia
-julia> Pkg.clone("https://github.com/brenhinkeller/Chron.jl")
+julia> using Pkg
+julia> Pkg.add(PackageSpec(url="https://github.com/brenhinkeller/Chron.jl"))
 ```
 
 ## Online / Notebook Usage
