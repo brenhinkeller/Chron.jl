@@ -15,12 +15,11 @@
         plot_rankorder_errorbar!(h,data,uncert,i0;
                 scale=scale,
                 seriestype=seriestype,
-                markerstrokecolor=color,
-                color=color,
                 label=label,
                 ylabel=ylabel,
                 xlabel=xlabel,
                 xticks=xticks,
+                color=color,
                 markersize=markersize
         )
         return h
@@ -29,10 +28,10 @@
     function plot_rankorder_errorbar!(h::Plots.Plot,data,uncert,i0;
             scale=1,
             seriestype=:scatter,
-            ylabel="",
             label="",
-            xticks=[],
+            ylabel="",
             xlabel="",
+            xticks=[],
             color=:auto,
             markersize=2
         )
