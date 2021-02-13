@@ -37,7 +37,7 @@ config.resolution = 5 # Same units as sample height. Smaller is slower!
 config.bounding = 0.5 # how far away do we place runaway bounds, as a fraction of total section height
 (bottom, top) = extrema(smpl.Height)
 npoints_approx = round(Int,length(bottom:config.resolution:top) * (1 + 2*config.bounding))
-config.nsteps = 150000 # Number of steps to run in distribution MCMC
+config.nsteps = 100000 # Number of steps to run in distribution MCMC
 config.burnin = 100000*npoints_approx # Number to discard
 config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -62,10 +62,10 @@ hiatus.Duration       = [ 100.0,  123.0 ]
 hiatus.Duration_sigma = [  30.5,   20.0 ]
 
 # Run the model. Note the additional `hiatus` arguments
-@time (mdl, agedist, hiatusdist, lldist) = StratMetropolis(smpl, hiatus, config); sleep(0.5)
+@time (mdl, agedist, hiatusdist, lldist) = StratMetropolis14C(smpl, hiatus, config); sleep(0.5)
 
 # Test that results match expectation, within some tolerance
 @test isa(mdl.Age, Array{Float64,1})
-@test isapprox(mdl.Age, [8331.5, 8170.4, 8116.7, 8068.5, 8032.7, 7997.2, 7960.6, 7940.3, 7862.7, 7842.9, 7826.1], atol=10)
-@test isapprox(mdl.Age_025CI, [8234.9, 8035.9, 7997.0, 7972.8, 7915.3, 7884.2, 7862.2, 7830.9, 7757.2, 7744.5, 7734.1], atol=10)
-@test isapprox(mdl.Age_975CI, [8429.0, 8297.8, 8249.2, 8165.9, 8144.5, 8114.2, 8059.5, 8046.6, 7972.9, 7949.1, 7925.0], atol=10)
+@test isapprox(mdl.Age, [8336.1, 8172.7, 8118.6, 8067.4, 8030.1, 7994.4, 7957.2, 7937.3, 7860.7, 7841.5, 7824.9], atol=10)
+@test isapprox(mdl.Age_025CI, [8213.3, 8027.9, 7993.4, 7975.2, 7915.7, 7883.9, 7864.7, 7830.4, 7756.0, 7743.0, 7733.0], atol=10)
+@test isapprox(mdl.Age_975CI, [8406.9, 8287.9, 8252.3, 8160.5, 8149.6, 8126.7, 8056.8, 8038.9, 7967.9, 7945.6, 7921.8], atol=10)
