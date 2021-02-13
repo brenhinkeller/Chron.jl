@@ -1,25 +1,53 @@
 ## --- Utility functions for plotting
 
-    function plot_rankorder_errorbar(data,uncert; scale=1,seriestype=:scatter,ylabel="",label="",xticks=[],xlabel="",color=:auto,markersize=2)
-        sI = sortperm(data)
-        h = plot((1:length(sI))*scale,data[sI],yerror=uncert[sI],seriestype=seriestype,
-                markerstrokecolor=color,color=color,label=label,ylabel=ylabel,
-                xlabel=xlabel, xticks=xticks,markersize=markersize)
+    function plot_rankorder_errorbar(data,uncert;
+            scale=1,
+            seriestype=:scatter,
+            ylabel="",
+            label="",
+            xticks=[],
+            xlabel="",
+            color=:auto,
+            markersize=2
+        )
+        h = plot()
+        i0 = 0
+        plot_rankorder_errorbar!(h,data,uncert,i0;
+                scale=scale,
+                seriestype=seriestype,
+                markerstrokecolor=color,
+                color=color,
+                label=label,
+                ylabel=ylabel,
+                xlabel=xlabel,
+                xticks=xticks,
+                markersize=markersize
+        )
         return h
     end
 
-    function plot_rankorder_errorbar!(h::Plots.Plot,data,uncert,i0; scale=1,seriestype=:scatter,ylabel="",label="",xticks=[],xlabel="",color=:auto,markersize=2)
+    function plot_rankorder_errorbar!(h::Plots.Plot,data,uncert,i0;
+            scale=1,
+            seriestype=:scatter,
+            ylabel="",
+            label="",
+            xticks=[],
+            xlabel="",
+            color=:auto,
+            markersize=2
+        )
         sI = sortperm(data)
-        plot!(h, i0 .+ (1:length(sI))*scale,data[sI],yerror=uncert[sI],seriestype=seriestype,
-                 markerstrokecolor=color,color=color,label=label,ylabel=ylabel,
-                 xlabel=xlabel,xticks=xticks,markersize=markersize)
-    end
-
-    function plot_rankorder_errorbar!(data,uncert,i0; scale=1,seriestype=:scatter,ylabel="",label="",xticks=[],xlabel="",color=:auto,markersize=2)
-        sI = sortperm(data)
-        plot!(i0 .+ (1:length(sI))*scale,data[sI],yerror=uncert[sI],seriestype=seriestype,
-                 markerstrokecolor=color,color=color,label=label,ylabel=ylabel,
-                 xlabel=xlabel,xticks=xticks,markersize=markersize)
+        plot!(h, i0 .+ (1:length(sI))*scale,data[sI],
+            yerror=uncert[sI],
+            seriestype=seriestype,
+            markerstrokecolor=color,
+            color=color,
+            label=label,
+            ylabel=ylabel,
+            xlabel=xlabel,
+            xticks=xticks,
+            markersize=markersize
+        )
     end
 
 

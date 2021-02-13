@@ -12,6 +12,10 @@ smpl.Height_Unit = "cm" # Unit of measurement for Height and Height_sigma
 # Remove outliers (if any)
 smpl = screen_outliers(smpl, maxgap=50)
 
+# Distribution boostrapping from chron strat object
+BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl)
+@test isa(BootstrappedDistribution, Array{Float64,1})
+
 # Estimate the eruption age distributions for each sample  - - - - - - - -
 
 # Configure distribution model here
@@ -19,7 +23,7 @@ distSteps = 10^5 # Number of steps to run in distribution MCMC
 distBurnin = floor(Int,distSteps/2) # Number to discard
 
 # Run MCMC to estimate saturation and eruption/deposition age distributions
-@time tMinDistMetropolis(smpl,distSteps,distBurnin,HalfNormalDistribution)
+@time tMinDistMetropolis(smpl,distSteps,distBurnin,BootstrappedDistribution)
 
 # Run stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - - -
 # Configure the stratigraphic Monte Carlo model
