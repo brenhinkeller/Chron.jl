@@ -2,11 +2,7 @@
 
     # Construct linearly spaced array with n points between l and u
     # (linspace replacement )
-    if VERSION>=v"0.7"
-        linsp(l::Number,u::Number,n::Number) = range(l,stop=u,length=n)
-    else
-        linsp(l::Number,u::Number,n::Number) = linspace(l,u,n)
-    end
+    linsp(l::Number,u::Number,n::Number) = range(l,stop=u,length=n)
 
 ## --- Weighted means
 
@@ -150,35 +146,19 @@
 
     # Interpolate y-value at xq
     # Linear interpolation, sorting inputs
-    if VERSION>v"0.7"
-        function linterp1(x,y,xq)
-            itp = LinearInterpolation(x,y, extrapolation_bc = Line())
-            yq = itp(xq) # Interpolate value of y at queried x values
-            return yq
-        end
-    else
-        function linterp1(x,y,xq)
-            itp = interpolate((x,),y, Gridded(Linear()))
-            yq = itp[xq] # Interpolate value of y at queried x values
-            return yq
-        end
+    function linterp1(x,y,xq)
+        itp = LinearInterpolation(x,y, extrapolation_bc = Line())
+        yq = itp(xq) # Interpolate value of y at queried x values
+        return yq
     end
 
+
     # Sort x and interpolate y-value at xq
-    if VERSION>v"0.7"
-        function linterp1s(x,y,xq)
-            sI = sortperm(x) # indices to construct sorted array
-            itp = LinearInterpolation(x[sI], y[sI], extrapolation_bc = Line())
-            yq = itp(xq) # Interpolate value of y at queried x values
-            return yq
-        end
-    else
-        function linterp1s(x,y,xq)
-            sI = sortperm(x) # indices to construct sorted array
-            itp = interpolate((x[sI],), y[sI], Gridded(Linear()))
-            yq = itp[xq] # Interpolate value of y at queried x values
-            return yq
-        end
+    function linterp1s(x,y,xq)
+        sI = sortperm(x) # indices to construct sorted array
+        itp = LinearInterpolation(x[sI], y[sI], extrapolation_bc = Line())
+        yq = itp(xq) # Interpolate value of y at queried x values
+        return yq
     end
 
 ## --- Some mathematical constants
