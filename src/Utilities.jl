@@ -260,7 +260,7 @@
     How dispersed (in units of sigma) should we expect a sample of N numbers
     drawn from a standard Gaussian (Normal[0,1]) distribution to be?
     """
-    @inline norm_width(N) = 2*norm_quantile(1 - 1/(N+1))
+    @inline norm_width(N) = 2*norm_quantile(1 - 1/(2N))
 
     """
     ```julia
@@ -292,29 +292,10 @@
     specified by a vector `dist` defining the PDF curve thereof.
     """
     function draw_from_distribution(dist::AbstractArray{<:AbstractFloat}, n::Integer)
-        # Draw n random floating-point numbers from the distribution 'dist'
         x = Array{eltype(dist)}(undef, n)
-        dist_ymax = maximum(dist)
-        dist_xmax = prevfloat(length(dist) - 1.0)
-
-        @inbounds for i = 1:n
-            while true
-                # Pick random x value
-                rx = rand(Float64) * dist_xmax
-                # Interpolate corresponding distribution value
-                f = floor(Int,rx)
-                y = dist[f+2]*(rx-f) + dist[f+1]*(1-(rx-f))
-                # See if x value is accepted
-                ry = rand(Float64) * dist_ymax
-                if (y > ry)
-                    x[i] = rx / dist_xmax
-                    break
-                end
-            end
-        end
+        draw_from_distribution!(x, dist)
         return x
     end
-    export draw_from_distribution
 
     """
     ```julia
