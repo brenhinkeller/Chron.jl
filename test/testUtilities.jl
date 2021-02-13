@@ -1,52 +1,69 @@
 # Summary statistics: simple cases, Float64
     A = [1:10.0..., NaN]
     @test nanmean(A) == 5.5
+    @test nanmean(A, ones(11)) == 5.5 # weighted
     @test nanrange(A) == 9.0
     @test nanminimum(A) == 1.0
     @test nanmaximum(A) == 10.0
     @test nanextrema(A) == (1.0, 10.0)
     @test nanstd([1,2,3,NaN]) == 1.0
+    @test nanstd([1,2,3,NaN], ones(4)) == 1.0 # weighted
     @test nanmedian([1,2,3,NaN]) == 2.0
     @test pctile([0:100...,NaN],99) == 99.0
+    @test Chron.nanmin(1.,2.) == 1.
+    @test Chron.nanmax(1.,2.) == 2.
 
 # Arrays containing only NaNs should yield NaN
     A = fill(NaN,10)
     @test isnan(nanmean(A))
+    @test isnan(nanmean(A, ones(10))) # weighted
     @test isnan(nanrange(A))
     @test isnan(nanminimum(A))
     @test isnan(nanmaximum(A))
     @test all(isnan.(nanextrema(A)))
     @test isnan(nanstd(A))
+    @test isnan(nanstd(A, ones(10))) # weighted
+    @test isnan(Chron.nanmin(NaN,NaN))
+    @test isnan(Chron.nanmax(NaN,NaN))
 
 # Summary statistics: simple cases, Int64
     A = collect(1:10)
     @test nanmean(A) == 5.5
+    @test nanmean(A, ones(10)) == 5.5 # weighted
     @test nanrange(A) == 9.0
     @test nanminimum(A) == 1.0
     @test nanmaximum(A) == 10.0
     @test nanextrema(A) == (1.0, 10.0)
     @test nanstd([1,2,3]) == 1.0
+    @test nanstd([1,2,3], ones(3)) == 1.0 # weighted
     @test nanmedian([1,2,3]) == 2.0
     @test pctile([0:100...],99) == 99.0
+    @test Chron.nanmin(1,2) == 1
+    @test Chron.nanmax(1,2) == 2
 
 # Summary statistics: simple cases, ranges
     A = 1:10
     @test nanmean(A) == 5.5
+    @test nanmean(A, ones(10)) == 5.5 # weighted
     @test nanrange(A) == 9.0
     @test nanminimum(A) == 1.0
     @test nanmaximum(A) == 10.0
     @test nanextrema(A) == (1.0, 10.0)
     @test nanstd(1:3) == 1.0
+    @test nanstd(1:3, ones(3)) == 1.0 # weighted
     @test nanmedian(1:3) == 2.0
     @test pctile(0:100,99) == 99.0
 
+
     A = 1:10.
     @test nanmean(A) == 5.5
+    @test nanmean(A, ones(10)) == 5.5 # weighted
     @test nanrange(A) == 9.0
     @test nanminimum(A) == 1.0
     @test nanmaximum(A) == 10.0
     @test nanextrema(A) == (1.0, 10.0)
     @test nanstd(1:3.) == 1.0
+    @test nanstd(1:3., ones(3)) == 1.0 # weighted
     @test nanmedian(1:3.) == 2.0
     @test pctile(0:100.,99) == 99.0
 
@@ -58,10 +75,17 @@
     @test nanmaximum(A, dims=2) == maximum(A, dims=2)
     @test nanmean(A, dims=1) == mean(A, dims=1)
     @test nanmean(A, dims=2) == mean(A, dims=2)
+    @test nanmean(A, ones(size(A)), dims=1) == mean(A, dims=1) # weighted
+    @test nanmean(A, ones(size(A)), dims=2) == mean(A, dims=2) # weighted
     @test nanstd(A, dims=1) ≈ std(A, dims=1)
     @test nanstd(A, dims=2) ≈ std(A, dims=2)
+    @test nanstd(A, ones(size(A)), dims=1) ≈ std(A, dims=1) # weighted
+    @test nanstd(A, ones(size(A)), dims=2) ≈ std(A, dims=2) # weighted
     @test nanmedian(A, dims=1) == median(A, dims=1)
     @test nanmedian(A, dims=2) == median(A, dims=2)
+    @test pctile(A, 10, dims=1) == [10.9  110.9  210.9]
+    @test pctile(A, 10, dims=2) ≈ 21:120
+
 
 # Summary statistics: dimensional tests, Float64
     A = reshape(1:300.,100,3)
@@ -71,10 +95,34 @@
     @test nanmaximum(A, dims=2) == maximum(A, dims=2)
     @test nanmean(A, dims=1) == mean(A, dims=1)
     @test nanmean(A, dims=2) == mean(A, dims=2)
+    @test nanmean(A, ones(size(A)), dims=1) == mean(A, dims=1) # weighted
+    @test nanmean(A, ones(size(A)), dims=2) == mean(A, dims=2) # weighted
     @test nanstd(A, dims=1) ≈ std(A, dims=1)
     @test nanstd(A, dims=2) ≈ std(A, dims=2)
+    @test nanstd(A, ones(size(A)), dims=1) ≈ std(A, dims=1) # weighted
+    @test nanstd(A, ones(size(A)), dims=2) ≈ std(A, dims=2) # weighted
     @test nanmedian(A, dims=1) == median(A, dims=1)
     @test nanmedian(A, dims=2) == median(A, dims=2)
+    @test pctile(A, 10, dims=1) == [10.9 110.9 210.9]
+    @test pctile(A, 10, dims=2) ≈ 21:120
+
+    # Same but with other keyword, for 1-d output
+    @test nanminimum(A, dim=1) == [1,101,201]
+    @test nanminimum(A, dim=2) == 1:100
+    @test nanmaximum(A, dim=1) == [100,200,300]
+    @test nanmaximum(A, dim=2) == 201:300
+    @test nanmean(A, dim=1) == [50.5, 150.5, 250.5]
+    @test nanmean(A, dim=2) == 101:200
+    @test nanmean(A, ones(size(A)), dim=1) == [50.5, 150.5, 250.5] # weighted
+    @test nanmean(A, ones(size(A)), dim=2) == 101:200 # weighted
+    @test nanstd(A, dim=1) ≈ fill(29.011491975882016,3)
+    @test nanstd(A, dim=2) ≈ fill(100,100)
+    @test nanstd(A, ones(size(A)), dim=1) ≈ fill(29.011491975882016,3) # weighted
+    @test nanstd(A, ones(size(A)), dim=2) ≈ fill(100,100) # weighted
+    @test nanmedian(A, dim=1) == [50.5, 150.5, 250.5]
+    @test nanmedian(A, dim=2) == 101:200
+    @test pctile(A, 10, dim=1) == [10.9, 110.9, 210.9]
+    @test pctile(A, 10, dim=2) ≈ 21:120
 
 # Interpolation
     @test linterp1(1:10,21:30,5:0.5:6) == [25.0, 25.5, 26.0]
