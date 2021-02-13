@@ -9,6 +9,9 @@ smpl.inputSigmaLevel = 2 # i.e., are the data files 1-sigma or 2-sigma. Integer.
 smpl.Age_Unit = "Ma" # Unit of measurement for ages and errors in the data files
 smpl.Height_Unit = "cm" # Unit of measurement for Height and Height_sigma
 
+# Remove outliers (if any)
+smpl = screen_outliers(smpl, maxgap=50)
+
 # Estimate the eruption age distributions for each sample  - - - - - - - -
 
 # Configure distribution model here
