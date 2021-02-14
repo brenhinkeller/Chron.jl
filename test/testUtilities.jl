@@ -173,3 +173,15 @@
     # Mean Square of Weighted Deviates (aka reduced chi-squared)
     @test Chron.MSWD(0:10, ones(11)) == 11
     @test Chron.MSWD([0,1,2],[1,1,1]) == 1.0
+
+# Sorting, counting, matching
+    A = rand(1:100.,100); B = sort(A)
+    @test findclosest(3.3:5.3,1:10) == 3:5
+    @test findclosestbelow(3.3:5.3,1:10) == 3:5
+    @test findclosestabove(3.3:5.3,1:10) == 4:6
+    @test findmatches(40:60,1:100) == 40:60
+
+# Integration
+    @test trapz(1:10,fill(1,10)) == 9
+    @test trapz(collect(1:10.),ones(10)) == 9
+    @test midpointintegrate(1:10,ones(10)) == 10
