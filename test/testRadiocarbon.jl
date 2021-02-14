@@ -49,8 +49,8 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 # Test that results match expectation, within some tolerance
 @test isa(mdl.Age, Array{Float64,1})
 @test isapprox(mdl.Age, [8319.5, 8235.7, 8154.8, 8072.3, 8025.8, 7982.2, 7938.8, 7914.7, 7891.3, 7868.5, 7845.1], atol=10)
-@test isapprox(mdl.Age_025CI, [8205.0, 8045.4, 7998.9, 7975.5, 7893.6, 7859.9, 7838.6, 7802.2, 7779.3, 7761.3, 7747.5], atol=10)
-@test isapprox(mdl.Age_975CI, [8403.9, 8385.1, 8345.7, 8163.4, 8150.0, 8123.4, 8028.4, 8014.9, 8002.3, 7984.7, 7957.1], atol=10)
+@test isapprox(mdl.Age_025CI, [8205.0, 8045.4, 7998.9, 7975.5, 7893.6, 7859.9, 7838.6, 7802.2, 7779.3, 7761.3, 7747.5], atol=15)
+@test isapprox(mdl.Age_975CI, [8403.9, 8385.1, 8345.7, 8163.4, 8150.0, 8123.4, 8028.4, 8014.9, 8002.3, 7984.7, 7957.1], atol=15)
 
 
 # Data about hiatuses
@@ -66,6 +66,6 @@ hiatus.Duration_sigma = [  30.5,   20.0 ]
 
 # Test that results match expectation, within some tolerance
 @test isa(mdl.Age, Array{Float64,1})
-@test isapprox(mdl.Age, [8336.1, 8172.7, 8118.6, 8067.4, 8030.1, 7994.4, 7957.2, 7937.3, 7860.7, 7841.5, 7824.9], atol=10)
-@test isapprox(mdl.Age_025CI, [8213.3, 8027.9, 7993.4, 7975.2, 7915.7, 7883.9, 7864.7, 7830.4, 7756.0, 7743.0, 7733.0], atol=10)
-@test isapprox(mdl.Age_975CI, [8406.9, 8287.9, 8252.3, 8160.5, 8149.6, 8126.7, 8056.8, 8038.9, 7967.9, 7945.6, 7921.8], atol=10)
+@test isapprox(mdl.Age, [8336.6, 8173.9, 8120.0, 8068.4, 8031.4, 7995.5, 7957.1, 7937.2, 7860.6, 7841.4, 7825.1], atol=10)
+@test isapprox(mdl.Age_025CI, [8214.9, 8027.9, 7993.8, 7975.3, 7915.4, 7884.2, 7865.3, 7832.7, 7757.4, 7744.4, 7734.2], atol=15)
+@test isapprox(mdl.Age_975CI, [8407.2, 8288.1, 8253.8, 8161.2, 8150.2, 8128.7, 8062.0, 8042.4, 7968.9, 7945.2, 7922.8], atol=15)

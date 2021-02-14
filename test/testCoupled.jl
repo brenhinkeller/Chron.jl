@@ -44,8 +44,8 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 # Test that results match expectation, within some tolerance
 @test isa(mdl.Age, Array{Float64,1})
 @test isapprox(mdl.Age, [66.06, 66.05, 66.03, 66.02, 66.01, 66.0, 65.98, 65.97, 65.96, 65.94, 65.94, 65.93, 65.93, 65.9], atol=0.1)
-@test isapprox(mdl.Age_025CI, [66.0, 65.98, 65.96, 65.95, 65.94, 65.93, 65.93, 65.92, 65.92, 65.91, 65.91, 65.89, 65.88, 65.82], atol=0.1)
-@test isapprox(mdl.Age_975CI, [66.09, 66.09, 66.08, 66.08, 66.07, 66.07, 66.05, 66.04, 66.02, 65.97, 65.97, 65.96, 65.96, 65.95], atol=0.1)
+@test isapprox(mdl.Age_025CI, [66.0, 65.98, 65.96, 65.95, 65.94, 65.93, 65.93, 65.92, 65.92, 65.91, 65.91, 65.89, 65.88, 65.82], atol=0.15)
+@test isapprox(mdl.Age_975CI, [66.09, 66.09, 66.08, 66.08, 66.07, 66.07, 66.05, 66.04, 66.02, 65.97, 65.97, 65.96, 65.96, 65.95], atol=0.15)
 
 # Data about hiatuses
 nHiatuses = 2 # The number of hiatuses you have data for
@@ -61,5 +61,5 @@ hiatus.Duration_sigma = [ 0.05, 0.05]
 # Test that results match expectation, within some tolerance
 @test isa(mdl.Age, Array{Float64,1})
 @test isapprox(mdl.Age, [66.08, 66.07, 66.07, 66.07, 66.02, 66.01, 66.01, 66.01, 65.94, 65.94, 65.93, 65.93, 65.92, 65.9], atol=0.1)
-@test isapprox(mdl.Age_025CI, [66.05, 66.04, 66.03, 66.02, 65.94, 65.94, 65.93, 65.93, 65.91, 65.9, 65.9, 65.89, 65.88, 65.82], atol=0.1)
-@test isapprox(mdl.Age_975CI, [66.1, 66.1, 66.1, 66.1, 66.08, 66.08, 66.08, 66.08, 65.98, 65.96, 65.96, 65.96, 65.96, 65.95], atol=0.1)
+@test isapprox(mdl.Age_025CI, [66.05, 66.04, 66.03, 66.02, 65.94, 65.94, 65.93, 65.93, 65.91, 65.9, 65.9, 65.89, 65.88, 65.82], atol=0.15)
+@test isapprox(mdl.Age_975CI, [66.1, 66.1, 66.1, 66.1, 66.08, 66.08, 66.08, 66.08, 65.98, 65.96, 65.96, 65.96, 65.96, 65.95], atol=0.15)
