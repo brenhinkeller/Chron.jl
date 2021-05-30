@@ -59,11 +59,12 @@
         Age_Unit = smpl.Age_Unit::String
 
         # Create and populate directory of screened output
-        system("mkdir -p $(Path)screened/")
+        screenedpath = joinpath(Path, "screened/")
+        mkpath(screenedpath)
         for i=1:length(Name)
             # With screening
             # Maximum offset before cutoff
-            data = readdlm("$(Path)$(Name[i]).csv", ',', Float64)::Array{Float64,2}
+            data = readdlm(joinpath(Path, Name[i]*".csv"), ',', Float64)::Array{Float64,2}
             data = sortslices(data,dims=1) # Sort ages in ascending order
             nAnalyses = size(data,1)
             maxdt_sigma = maxgap*norm_width(nAnalyses)/nAnalyses
@@ -83,10 +84,10 @@
                 end
             end
             plot!(hdl, 1:size(data,1),data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:blue,markerstrokecolor=:blue,label="included",xlabel="N",ylabel="Age ($(Age_Unit))")
-            savefig(hdl,"$(Path)screened/$(Name[i])_screening.pdf")
-            writedlm("$(Path)screened/$(Name[i]).csv", data, ',')
+            savefig(hdl, joinpath(screenedpath, Name[i]*"_screening.pdf"))
+            writedlm(joinpath(screenedpath, Name[i]*".csv"), data, ',')
         end
-        smpl.Path = "$(Path)screened/"
+        smpl.Path = screenedpath
         return smpl
     end
 
@@ -110,7 +111,7 @@
         allscaled = Array{Float64}([])
         for i=1:length(Name)
             if DistType[i]==0
-                data = readdlm("$(Path)$(Name[i]).csv", ',', Float64)::Array{Float64,2}
+                data = readdlm(joinpath(Path, Name[i]*".csv"), ',', Float64)::Array{Float64,2}
 
                 # Maximum extent of expected analytical tail (beyond eruption/deposition)
                 maxTailLength = mean(data[:,2]) ./ smpl.inputSigmaLevel .* norm_quantile(1 - 1/(1+size(data,1)))
@@ -216,7 +217,7 @@
         for i=1:length(Name)
             if DistType[i] == 0 # A distribution to fit properly
                 # Load data for each sample
-                data = readdlm("$(Path)$(Name[i]).csv", ',', Float64)::Array{Float64,2}
+                data = readdlm(joinpath(Path, Name[i]*".csv"), ',', Float64)::Array{Float64,2}
                 print(i, ": ", Name[i], "\n") # Display progress
 
                 # Run MCMC to estimate saturation and eruption/deposition age distributions
@@ -256,19 +257,19 @@
                 u = ones(nAnalyses).*smpl.Age_975CI[i]
                 plot!(h1,1:nAnalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="Model ($(round(m[1],digits=3)) +$(round(u[1]-m[1],digits=3))/-$(round(m[1]-l[1],digits=3)) $(Age_Unit))")
                 plot!(h1,1:nAnalyses,m,linecolor=:black,linestyle=:dot,label="",legend=:topleft,fg_color_legend=:white,framestyle=:box)
-                savefig(h1,string(Path,Name[i],"_rankorder.pdf"))
-                savefig(h1,string(Path,Name[i],"_rankorder.svg"))
+                savefig(h1,joinpath(Path, Name[i]*"_rankorder.pdf"))
+                savefig(h1,joinpath(Path, Name[i]*"_rankorder.svg"))
 
                 # Plot model fit to histogram
                 h2 = plot(bincenters,N,label="Histogram",fg_color_legend=:white,framestyle=:box)
                 plot!(h2,bincenters, bilinear_exponential(bincenters,smpl.Params[:,i]), label="Curve fit")
                 plot!(h2,legend=:topleft, xlabel="Age ($(Age_Unit))", ylabel="Probability density")
-                savefig(h2,string(Path,Name[i],"_distribution.pdf"))
-                savefig(h2,string(Path,Name[i],"_distribution.svg"))
+                savefig(h2,joinpath(Path, Name[i]*"_distribution.pdf"))
+                savefig(h2,joinpath(Path, Name[i]*"_distribution.pdf"))
 
             elseif DistType[i] == 1 # A single Gaussian
                 # Load data for each sample
-                data = readdlm("$(Path)$(Name[i]).csv", ',', Float64)::Array{Float64,2}
+                data = readdlm(joinpath(Path, Name[i]*".csv"), ',', Float64)::Array{Float64,2}
                 print(i, ": ", Name[i], "\n") # Display progress
                 μ = data[1,1]
                 σ = data[1,2]
@@ -295,7 +296,7 @@
 
         # Save results as csv
         results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(Name,smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_sigma))::Array{Any,2}
-        writedlm(joinpath(Path,"distresults.csv"), results, ',')
+        writedlm(joinpath(Path, "distresults.csv"), results, ',')
 
         return smpl
     end

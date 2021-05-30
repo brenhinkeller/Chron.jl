@@ -976,20 +976,6 @@
     end
     export midpointintegrate
 
-## --- Other
-
-    """
-    ```julia
-    system(cmdstr::AbstractString)
-    ```
-
-    Direct access to the command line through C's `system` function -- without
-    stripping/sanitizing special characters,  in contrast to Julia's safer
-    `run()` function. This allows pipelining, etc. in shell commands. Returns
-    0 on success.
-    """
-    system(cmdstr::AbstractString) = ccall((:system,), Int, (Cstring,), cmdstr)
-    export system
 
 ## --- Retain deprecated functions with matlab-like syntax, to avoid breakages in user scripts that may depend on them
 
