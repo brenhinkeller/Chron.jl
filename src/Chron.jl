@@ -27,13 +27,6 @@ module Chron
     # Forwards compatibility
     VERSION >= v"0.7" && using Statistics, DelimitedFiles, SpecialFunctions
 
-    # AVX vectorziation tools
-    using LoopVectorization
-    using SIMDPirates: vifelse, verf
-    using VectorizationBase: SVec
-    import SpecialFunctions.erf
-    erf(x::SVec) = verf(x)
-
     # Basic statistics and UI resources
     using StatsBase: fit, Histogram, percentile
     using ProgressMeter: @showprogress, Progress, update!

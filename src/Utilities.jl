@@ -29,23 +29,7 @@
         wσ = sqrt(1.0 / sum_of_weights)
         return wx, wσ, mswd
     end
-    function awmean(x::Array{<:Number}, σ::Array{<:Number})
-        n = length(x)
 
-        sum_of_values = sum_of_weights = χ2 = 0.0
-        @avx for i=1:n
-            sum_of_values += x[i] / (σ[i]*σ[i])
-            sum_of_weights += 1 / (σ[i]*σ[i])
-        end
-        wx = sum_of_values / sum_of_weights
-
-        @avx for i=1:n
-            χ2 += (x[i] - wx) * (x[i] - wx) / (σ[i] * σ[i])
-        end
-        mswd = χ2 / (n-1)
-        wσ = sqrt(1.0 / sum_of_weights)
-        return wx, wσ, mswd
-    end
 
     """
     ```julia
@@ -71,22 +55,7 @@
         wσ = sqrt(mswd / sum_of_weights)
         return wx, wσ, mswd
     end
-    function gwmean(x::Array{<:Number}, σ::Array{<:Number})
-        n = length(x)
-        sum_of_values = sum_of_weights = χ2 = 0.0
-        @avx for i=1:n
-            sum_of_values += x[i] / (σ[i]*σ[i])
-            sum_of_weights += 1 / (σ[i]*σ[i])
-        end
-        wx = sum_of_values / sum_of_weights
 
-        @avx for i=1:n
-            χ2 += (x[i] - wx) * (x[i] - wx) / (σ[i] * σ[i])
-        end
-        mswd = χ2 / (n-1)
-        wσ = sqrt(mswd / sum_of_weights)
-        return wx, wσ, mswd
-    end
 
     """
     ```julia
@@ -107,23 +76,6 @@
         wx = sum_of_values / sum_of_weights
 
         @inbounds @simd for i=1:n
-            χ2 += (x[i] - wx) * (x[i] - wx) / (σ[i] * σ[i])
-        end
-
-        return χ2 / (n-1)
-    end
-    function MSWD(x::Array{<:Number}, σ::Array{<:Number})
-        sum_of_values = sum_of_weights = χ2 = 0.0
-        n = length(x)
-
-        @avx for i=1:n
-            w = 1 / (σ[i]*σ[i])
-            sum_of_values += w * x[i]
-            sum_of_weights += w
-        end
-        wx = sum_of_values / sum_of_weights
-
-        @avx for i=1:n
             χ2 += (x[i] - wx) * (x[i] - wx) / (σ[i] * σ[i])
         end
 
@@ -180,7 +132,7 @@
     with mean `mu` and standard deviation `sigma`, evaluated at `x`
     """
     @inline normpdf(mu,sigma,x) = exp(-(x-mu)*(x-mu) / (2*sigma*sigma)) / (SQRT2PI*sigma)
-    @inline normpdf(mu::AN,sigma::AN,x::AN) = @avx @. exp(-(x-mu)*(x-mu) / (2*sigma*sigma)) / (SQRT2PI*sigma)
+    @inline normpdf(mu::AN,sigma::AN,x::AN) = @. exp(-(x-mu)*(x-mu) / (2*sigma*sigma)) / (SQRT2PI*sigma)
     @inline normpdf(mu::Number,sigma::Number,x::Number) = exp(-(x-mu)*(x-mu) / (2*sigma*sigma)) / (SQRT2PI*sigma)
 
 
@@ -201,7 +153,7 @@
     function normpdf_ll(mu::Number,sigma::Number,x::AbstractArray)
         inv_s2 = 1/(2*sigma*sigma)
         ll = zero(typeof(inv_s2))
-        @avx for i=1:length(x)
+        @inbounds @simd for i=1:length(x)
             ll -= (x[i]-mu)*(x[i]-mu) * inv_s2
         end
         return ll
@@ -209,21 +161,21 @@
     function normpdf_ll(mu::AbstractArray,sigma::Number,x::AbstractArray)
         inv_s2 = 1/(2*sigma*sigma)
         ll = zero(typeof(inv_s2))
-        @avx for i=1:length(x)
+        @inbounds @simd for i=1:length(x)
             ll -= (x[i]-mu[i])*(x[i]-mu[i]) * inv_s2
         end
         return ll
     end
     function normpdf_ll(mu::Number,sigma::AbstractArray,x::AbstractArray)
         ll = zero(float(eltype(sigma)))
-        @avx for i=1:length(x)
+        @inbounds @simd for i=1:length(x)
             ll -= (x[i]-mu)*(x[i]-mu) / (2*sigma[i]*sigma[i])
         end
         return ll
     end
     function normpdf_ll(mu::AbstractArray,sigma::AbstractArray,x::AbstractArray)
         ll = zero(float(eltype(sigma)))
-        @avx for i=1:length(x)
+        @inbounds @simd for i=1:length(x)
             ll -= (x[i]-mu[i])*(x[i]-mu[i]) / (2*sigma[i]*sigma[i])
         end
         return ll
@@ -240,7 +192,7 @@
     with mean `mu` and standard deviation `sigma`, evaluated at `x`.
     """
     @inline normcdf(mu,sigma,x) = 0.5 + 0.5 * erf((x-mu) / (sigma*SQRT2))
-    @inline normcdf(mu::AN,sigma::AN,x::AN) = @avx @. 0.5 + 0.5 * erf((x-mu) / (sigma*SQRT2))
+    @inline normcdf(mu::AN,sigma::AN,x::AN) = @. 0.5 + 0.5 * erf((x-mu) / (sigma*SQRT2))
     @inline normcdf(mu::Number,sigma::Number,x::Number) = 0.5 + 0.5 * erf((x-mu) / (sigma*SQRT2))
 
 
@@ -364,7 +316,7 @@
     end
     function bilinear_exponential(x::AbstractVector, p::AbstractVector)
         f = Array{float(eltype(x))}(undef,size(x))
-        @avx for i = 1:length(x)
+        @inbounds @simd for i = 1:length(x)
             xs = (x[i] - p[2])/p[3]^2 # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
             f[i] = exp(p[1] + (p[4]^2)*(p[5]^2)*xs*v - (p[4]^2)/(p[5]^2)*xs*(1-v))
@@ -393,7 +345,7 @@
     end
     function bilinear_exponential_ll(x::AbstractVector, p::AbstractMatrix)
         ll = 0.0
-        @avx for i=1:length(x)
+        @inbounds @simd for i=1:length(x)
             xs = (x[i]-p[2,i])/p[3,i]^2 # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
             ll += p[1,i] + (p[4,i]^2)*(p[5,i]^2)*xs*v - (p[4,i]^2)/(p[5,i]^2)*xs*(1 - v)
@@ -439,7 +391,7 @@
     Fill a Boolean mask of dimensions `size(A)` that is false wherever `A` is `NaN`
     """
     function nanmask!(mask, A)
-        @avx for i=1:length(A)
+        @inbounds @simd for i=1:length(A)
             mask[i] = !isnan(A[i])
         end
         return mask
@@ -456,8 +408,8 @@
     """
     nanmax(a, b) = ifelse(a > b, a, b)
     nanmax(a, b::AbstractFloat) = ifelse(a==a, ifelse(b > a, b, a), b)
-    nanmax(a::SVec{N,<:Integer}, b::SVec{N,<:Integer}) where N = vifelse(a > b, a, b)
-    nanmax(a::SVec{N,<:AbstractFloat}, b::SVec{N,<:AbstractFloat}) where N = vifelse(a==a, vifelse(b > a, b, a), b)
+    nanmax(a::Vec{N,<:Integer}, b::Vec{N,<:Integer}) where N = ifelse(a > b, a, b)
+    nanmax(a::Vec{N,<:AbstractFloat}, b::Vec{N,<:AbstractFloat}) where N = ifelse(a==a, ifelse(b > a, b, a), b)
 
     """
     ```julia
@@ -467,8 +419,8 @@
     """
     nanmin(a, b) = ifelse(a < b, a, b)
     nanmin(a, b::AbstractFloat) = ifelse(a==a, ifelse(b < a, b, a), b)
-    nanmin(a::SVec{N,<:Integer}, b::SVec{N,<:Integer}) where N = vifelse(a < b, a, b)
-    nanmin(a::SVec{N,<:AbstractFloat}, b::SVec{N,<:AbstractFloat}) where N = vifelse(a==a, vifelse(b < a, b, a), b)
+    nanmin(a::Vec{N,<:Integer}, b::Vec{N,<:Integer}) where N = ifelse(a < b, a, b)
+    nanmin(a::Vec{N,<:AbstractFloat}, b::Vec{N,<:AbstractFloat}) where N = ifelse(a==a, ifelse(b < a, b, a), b)
 
     """
     ```julia
@@ -582,26 +534,6 @@
         end
         return m / n
     end
-    # Can't have NaNs if array is all Integers
-    function _nanmean(A::Array{<:Integer}, ::Colon)
-        m = zero(eltype(A))
-        @avx for i ∈ eachindex(A)
-            m += A[i]
-        end
-        return m / length(A)
-    end
-    # Optimized AVX version for floats
-    function _nanmean(A::AbstractArray{<:AbstractFloat}, ::Colon)
-        n = 0
-        m = zero(eltype(A))
-        @avx for i ∈ eachindex(A)
-            Aᵢ = A[i]
-            t = Aᵢ == Aᵢ
-            n += t
-            m += Aᵢ * t
-        end
-        return m / n
-    end
     nanmean(A, W; dims=:, dim=:) = __nanmean(A, W, dims, dim)
     __nanmean(A, W, dims, dim) = _nanmean(A, W, dim) |> vec
     __nanmean(A, W, dims, ::Colon) = _nanmean(A, W, dims)
@@ -614,30 +546,6 @@
         n = zero(eltype(W))
         m = zero(promote_type(eltype(W), eltype(A)))
         @inbounds @simd for i ∈ eachindex(A)
-            Aᵢ = A[i]
-            Wᵢ = W[i]
-            t = Aᵢ == Aᵢ
-            n += Wᵢ * t
-            m += Wᵢ * Aᵢ * t
-        end
-        return m / n
-    end
-    # Can't have NaNs if array is all Integers
-    function _nanmean(A::Array{<:Integer}, W, ::Colon)
-        n = zero(eltype(W))
-        m = zero(promote_type(eltype(W), eltype(A)))
-        @avx for i ∈ eachindex(A)
-            Wᵢ = W[i]
-            n += Wᵢ
-            m += Wᵢ * A[i]
-        end
-        return m / n
-    end
-    # Optimized AVX method for floats
-    function _nanmean(A::AbstractArray{<:AbstractFloat}, W, ::Colon)
-        n = zero(eltype(W))
-        m = zero(promote_type(eltype(W), eltype(A)))
-        @avx for i ∈ eachindex(A)
             Aᵢ = A[i]
             Wᵢ = W[i]
             t = Aᵢ == Aᵢ
@@ -663,12 +571,12 @@
         N = sum(mask, dims=region)
         s = sum(A.*mask, dims=region)./N
         d = A .- s # Subtract mean, using broadcasting
-        @avx for i ∈ eachindex(d)
+        @inbounds @simd for i ∈ eachindex(d)
             dᵢ = d[i]
             d[i] = (dᵢ * dᵢ) * mask[i]
         end
         s .= sum(d, dims=region)
-        @avx for i ∈ eachindex(s)
+        @inbounds @simd for i ∈ eachindex(s)
             s[i] = sqrt( s[i] / max((N[i] - 1), 0) )
         end
         return s
@@ -691,24 +599,6 @@
         end
         return sqrt(s / max((n-1), 0))
     end
-    function _nanstd(A::AbstractArray{<:AbstractFloat}, ::Colon)
-        n = 0
-        m = zero(eltype(A))
-        @avx for i ∈ eachindex(A)
-            Aᵢ = A[i]
-            t = Aᵢ == Aᵢ # False for NaNs
-            n += t
-            m += Aᵢ * t
-        end
-        mu = m / n
-        s = zero(typeof(mu))
-        @avx for i ∈ eachindex(A)
-            Aᵢ = A[i]
-            d = (Aᵢ - mu) * (Aᵢ == Aᵢ)# zero if Aᵢ is NaN
-            s += d * d
-        end
-        return sqrt(s / max((n-1), 0))
-    end
 
     nanstd(A, W; dims=:, dim=:) = __nanstd(A, W, dims, dim)
     __nanstd(A, W, dims, dim) = _nanstd(A, W, dim) |> vec
@@ -719,12 +609,12 @@
         w = sum(W.*mask, dims=region)
         s = sum(A.*W.*mask, dims=region) ./ w
         d = A .- s # Subtract mean, using broadcasting
-        @avx for i ∈ eachindex(d)
+        @inbounds @simd for i ∈ eachindex(d)
             dᵢ = d[i]
             d[i] = (dᵢ * dᵢ * W[i]) * mask[i]
         end
         s .= sum(d, dims=region)
-        @avx for i ∈ eachindex(s)
+        @inbounds @simd for i ∈ eachindex(s)
             s[i] = sqrt((s[i] * n[i]) / (w[i] * (n[i] - 1)))
         end
         return s
@@ -744,27 +634,6 @@
         mu = m / w
         s = zero(typeof(mu))
         @inbounds @simd for i ∈ eachindex(A)
-            Aᵢ = A[i]
-            d = Aᵢ - mu
-            s += (d * d * W[i]) * (Aᵢ == Aᵢ) # Zero if Aᵢ is NaN
-        end
-        return sqrt(s / w * n / (n-1))
-    end
-    function _nanstd(A::AbstractArray{<:AbstractFloat}, W, ::Colon)
-        n = 0
-        w = zero(eltype(W))
-        m = zero(promote_type(eltype(W), eltype(A)))
-        @avx for i ∈ eachindex(A)
-            Aᵢ = A[i]
-            Wᵢ = W[i]
-            t = Aᵢ == Aᵢ
-            n += t
-            w += Wᵢ * t
-            m += Wᵢ * Aᵢ * t
-        end
-        mu = m / w
-        s = zero(typeof(mu))
-        @avx for i ∈ eachindex(A)
             Aᵢ = A[i]
             d = Aᵢ - mu
             s += (d * d * W[i]) * (Aᵢ == Aᵢ) # Zero if Aᵢ is NaN
@@ -949,7 +818,7 @@
     """
     function trapz(edges::AbstractRange, values::AbstractArray)
         result = zero(eltype(values))
-        @avx for i=2:length(edges)
+        @inbounds @simd for i=2:length(edges)
             result += values[i-1]+values[i]
         end
         dx = (edges[end]-edges[1])/(length(edges) - 1)
@@ -957,7 +826,7 @@
     end
     function trapz(edges::AbstractArray, values::AbstractArray)
         result = zero(promote_type(eltype(edges), eltype(values)))
-        @avx for i=2:length(edges)
+        @inbounds @simd for i=2:length(edges)
             result += (values[i-1] + values[i]) * (edges[i] - edges[i-1])
         end
         return result / 2

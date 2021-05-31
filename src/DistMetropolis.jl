@@ -29,7 +29,7 @@
                 # Otherwise, sum contributions from Gaussians at each point in distribution
             else
                 likelihood = zero(float(eltype(dist)))
-                @avx for i=1:distrows
+                @inbounds @simd for i=1:distrows
                     distx = tmin + dt*(i-1)/nbins # time-position of distribution point
                     # Likelihood curve follows a Gaussian PDF. Note: dt cancels
                     likelihood += dist[i] / (dist_yave * distrows * sigma[j] * sqrt(2*pi)) *
