@@ -408,8 +408,6 @@
     """
     nanmax(a, b) = ifelse(a > b, a, b)
     nanmax(a, b::AbstractFloat) = ifelse(a==a, ifelse(b > a, b, a), b)
-    nanmax(a::Vec{N,<:Integer}, b::Vec{N,<:Integer}) where N = ifelse(a > b, a, b)
-    nanmax(a::Vec{N,<:AbstractFloat}, b::Vec{N,<:AbstractFloat}) where N = ifelse(a==a, ifelse(b > a, b, a), b)
 
     """
     ```julia
@@ -419,8 +417,6 @@
     """
     nanmin(a, b) = ifelse(a < b, a, b)
     nanmin(a, b::AbstractFloat) = ifelse(a==a, ifelse(b < a, b, a), b)
-    nanmin(a::Vec{N,<:Integer}, b::Vec{N,<:Integer}) where N = ifelse(a < b, a, b)
-    nanmin(a::Vec{N,<:AbstractFloat}, b::Vec{N,<:AbstractFloat}) where N = ifelse(a==a, ifelse(b < a, b, a), b)
 
     """
     ```julia
@@ -472,7 +468,7 @@
     __nanminimum(A, dims, dim) = _nanminimum(A, dim) |> vec
     __nanminimum(A, dims, ::Colon) = _nanminimum(A, dims)
     _nanminimum(A, region) = reduce(nanmin, A, dims=region, init=float(eltype(A))(NaN))
-    _nanminimum(A::AbstractArray{<:Number}, ::Colon) = vreduce(nanmin, A)
+    _nanminimum(A::AbstractArray{<:Number}, ::Colon) = reduce(nanmin, A)
 
     """
     ```julia
@@ -485,7 +481,7 @@
     __nanmaximum(A, dims, dim) = _nanmaximum(A, dim) |> vec
     __nanmaximum(A, dims, ::Colon) = _nanmaximum(A, dims)
     _nanmaximum(A, region) = reduce(nanmax, A, dims=region, init=float(eltype(A))(NaN))
-    _nanmaximum(A::AbstractArray{<:Number}, ::Colon) = vreduce(nanmax, A)
+    _nanmaximum(A::AbstractArray{<:Number}, ::Colon) = reduce(nanmax, A)
 
     """
     ```julia
