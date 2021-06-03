@@ -10,16 +10,13 @@ The first (distribution) MCMC model is based on the work of [Keller, Schoene, an
 The second (stratigraphic) MCMC model, developed for use in [Schoene et al. (2019)](https://doi.org/10.1126/science.aau2422) and [Deino et al. (2019)](https://doi.org/10.1016/j.quascirev.2019.05.009) among others, uses the estimated (posterior) eruption/deposition age distributions along with the constraint of stratigraphic superposition to produce an age-depth model. This stratigraphic model can incorporate either standard Gaussian or asymmetric empirical distributions as age constraints, as well additional complications such as hiatuses of known minimum duration, height uncertainty, and one-sided age constraints. The stationary distribution of this second MCMC model yields an estimate of age at each model horizon throughout the section.
 
 ## Installation
-Chron.jl is written in the [Julia programming language](https://julialang.org/).
-
-In the Julia package manager (type `]` in the REPL)
+Chron.jl is written in the [Julia programming language](https://julialang.org/), and is registered on the General registry. To install, enter the Julia package manager (type ] in the REPL) and type:
 ```Julia
-pkg> add https://github.com/brenhinkeller/Chron.j
+pkg> add Chron
 ```
-or equivalently in the normal REPL
+If you are trying to use Chron with a published script written prior to ~2021, you may want to use the oldest registered version of the package, which you can install with (e.g.)
 ```Julia
-julia> using Pkg
-julia> Pkg.add(PackageSpec(url="https://github.com/brenhinkeller/Chron.jl"))
+julia> add Chron@v0.1
 ```
 
 ## Online / Notebook Usage
