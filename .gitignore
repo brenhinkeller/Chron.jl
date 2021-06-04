@@ -17,6 +17,4 @@ examples/DenverUPbExampleData/results.csv
 results.csv
 
 .ipynb_check*
-
-# Don't include dev tests
-dev/
+/etc
