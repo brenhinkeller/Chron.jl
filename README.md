@@ -1,5 +1,6 @@
 # Chron.jl
 [![DOI](readme_figures/osf_io_TQX3F.svg)](https://doi.org/10.17605/OSF.IO/TQX3F)
+[![Dev][docs-dev-img]][docs-dev-url]
 [![Build Status][ci-img]][ci-url]
 [![codecov.io][codecov-img]][codecov-url]
 
@@ -345,6 +346,8 @@ plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)")
 
 ![png](readme_figures/output_19_4.png)
 
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://brenhinkeller.github.io/Chron.jl/dev/
 [ci-img]: https://github.com/brenhinkeller/Chron.jl/workflows/CI/badge.svg
 [ci-url]: https://github.com/brenhinkeller/Chron.jl/actions?query=workflow%3ACI
 [codecov-img]: http://codecov.io/github/brenhinkeller/Chron.jl/coverage.svg?branch=master
