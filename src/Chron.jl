@@ -63,17 +63,6 @@ module Chron
         screen_outliers, BootstrapCrystDistributionKDE
 
 
-    # Utility functions
-    export nanminimum, nanmaximum, nanrange, nanextrema, pctile, nanmedian, nanmean, nanstd,
-        linsp, linterp1s, linterp1, cntr, gwmean, awmean,
-        normpdf, normpdf_ll, normcdf, norm_quantile, norm_width,
-        findmatches, findclosest, findclosestbelow, findclosestabove,
-        draw_from_distribution, draw_from_distribution!,
-        linterp_at_index, interpolate_ll, normproduct, normproduct_ll
-
-    # Colormaps
-    export viridis, inferno, plasma, magma, fire, water
-
     # Distributions
     export UniformDistribution, TriangularDistribution, HalfNormalDistribution, TruncatedNormalDistribution,
         EllisDistribution, MeltsZirconDistribution, MeltsVolcanicZirconDistribution
