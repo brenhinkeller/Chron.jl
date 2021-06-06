@@ -19,7 +19,7 @@ pkg> add Chron
 ```
 If you are trying to use Chron with a published script written prior to ~2021, you may want to use the oldest registered version of the package, which you can install with (e.g.)
 ```Julia
-julia> add Chron@v0.1
+pkg> add Chron@v0.1
 ```
 
 ## Online / Notebook Usage
