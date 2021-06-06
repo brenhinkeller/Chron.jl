@@ -14,7 +14,7 @@
 #  distributions along with the constraint of stratigraphic superposition to    #
 #  produce an age-depth model                                                   #
 #                                                                               #
-#   Last modified by C. Brenhin Keller 2018-04-09                               #
+#   Last modified by C. Brenhin Keller 2021-05-05                               #
 #                                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -23,8 +23,8 @@ __precompile__()
 module Chron
 
     using Reexport
-    @reexport NaNStatistics
-    @reexport StatGeochemBase
+    @reexport using NaNStatistics
+    @reexport using StatGeochemBase
 
     using Statistics, DelimitedFiles, SpecialFunctions
 
