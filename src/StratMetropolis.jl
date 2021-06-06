@@ -219,8 +219,8 @@
             nanmean(agedist,dim=2), # Mean age
             nanstd(agedist,dim=2), # Standard deviation
             nanmedian(agedist,dim=2), # Median age
-            pctile(agedist,2.5,dim=2), # 2.5th percentile
-            pctile(agedist,97.5,dim=2) # 97.5th percentile
+            nanpctile(agedist,2.5,dim=2), # 2.5th percentile
+            nanpctile(agedist,97.5,dim=2) # 97.5th percentile
         )
 
         return mdl, agedist, lldist
@@ -528,8 +528,8 @@
             nanmean(agedist,dim=2), # Mean age
             nanstd(agedist,dim=2), # Standard deviation
             nanmedian(agedist,dim=2), # Median age
-            pctile(agedist,2.5,dim=2), # 2.5th percentile
-            pctile(agedist,97.5,dim=2) # 97.5th percentile
+            nanpctile(agedist,2.5,dim=2), # 2.5th percentile
+            nanpctile(agedist,97.5,dim=2) # 97.5th percentile
         )
 
         return mdl, agedist, lldist, hiatusdist
@@ -766,8 +766,8 @@
             nanmean(agedist,dim=2), # Mean age
             nanstd(agedist,dim=2), # Standard deviation
             nanmedian(agedist,dim=2), # Median age
-            pctile(agedist,2.5,dim=2), # 2.5th percentile
-            pctile(agedist,97.5,dim=2) # 97.5th percentile
+            nanpctile(agedist,2.5,dim=2), # 2.5th percentile
+            nanpctile(agedist,97.5,dim=2) # 97.5th percentile
         )
 
         return mdl, agedist, lldist
@@ -1080,8 +1080,8 @@
             nanmean(agedist,dim=2), # Mean age
             nanstd(agedist,dim=2), # Standard deviation
             nanmedian(agedist,dim=2), # Median age
-            pctile(agedist,2.5,dim=2), # 2.5th percentile
-            pctile(agedist,97.5,dim=2) # 97.5th percentile
+            nanpctile(agedist,2.5,dim=2), # 2.5th percentile
+            nanpctile(agedist,97.5,dim=2) # 97.5th percentile
         )
 
         return mdl, agedist, lldist, hiatusdist
@@ -1312,8 +1312,8 @@
             nanmean(agedist,dim=2), # Mean age
             nanstd(agedist,dim=2), # Standard deviation
             nanmedian(agedist,dim=2), # Median age
-            pctile(agedist,2.5,dim=2), # 2.5th percentile
-            pctile(agedist,97.5,dim=2) # 97.5th percentile
+            nanpctile(agedist,2.5,dim=2), # 2.5th percentile
+            nanpctile(agedist,97.5,dim=2) # 97.5th percentile
         )
 
         return mdl, agedist, lldist
@@ -1625,8 +1625,8 @@
             nanmean(agedist,dim=2), # Mean age
             nanstd(agedist,dim=2), # Standard deviation
             nanmedian(agedist,dim=2), # Median age
-            pctile(agedist,2.5,dim=2), # 2.5th percentile
-            pctile(agedist,97.5,dim=2) # 97.5th percentile
+            nanpctile(agedist,2.5,dim=2), # 2.5th percentile
+            nanpctile(agedist,97.5,dim=2) # 97.5th percentile
         )
 
         return mdl, agedist, lldist, hiatusdist

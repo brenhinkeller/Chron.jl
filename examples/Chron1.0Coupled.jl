@@ -211,8 +211,8 @@
     # Find mean and 1-sigma (68%) CI
     dhdt = nanmean(dhdt_dist,dim=2)
     dhdt_50p = nanmedian(dhdt_dist,dim=2)
-    dhdt_16p = pctile(dhdt_dist,15.865,dim=2) # Minus 1-sigma (15.865th percentile)
-    dhdt_84p = pctile(dhdt_dist,84.135,dim=2) # Plus 1-sigma (84.135th percentile)
+    dhdt_16p = nanpctile(dhdt_dist,15.865,dim=2) # Minus 1-sigma (15.865th percentile)
+    dhdt_84p = nanpctile(dhdt_dist,84.135,dim=2) # Plus 1-sigma (84.135th percentile)
 
     # Plot results
     hdl = plot(bincenters,dhdt, label="Mean", color=:black, linewidth=2)
@@ -224,18 +224,18 @@
 
 ## --- Multiple confidence intervals (every 10) - - - - - - - - - - - - - - - -
 
-    dhdt_20p = pctile(dhdt_dist,20,dim=2)
-    dhdt_80p = pctile(dhdt_dist,80,dim=2)
-    dhdt_25p = pctile(dhdt_dist,25,dim=2)
-    dhdt_75p = pctile(dhdt_dist,75,dim=2)
-    dhdt_30p = pctile(dhdt_dist,30,dim=2)
-    dhdt_70p = pctile(dhdt_dist,70,dim=2)
-    dhdt_35p = pctile(dhdt_dist,35,dim=2)
-    dhdt_65p = pctile(dhdt_dist,65,dim=2)
-    dhdt_40p = pctile(dhdt_dist,40,dim=2)
-    dhdt_60p = pctile(dhdt_dist,60,dim=2)
-    dhdt_45p = pctile(dhdt_dist,45,dim=2)
-    dhdt_55p = pctile(dhdt_dist,55,dim=2)
+    dhdt_20p = nanpctile(dhdt_dist,20,dim=2)
+    dhdt_80p = nanpctile(dhdt_dist,80,dim=2)
+    dhdt_25p = nanpctile(dhdt_dist,25,dim=2)
+    dhdt_75p = nanpctile(dhdt_dist,75,dim=2)
+    dhdt_30p = nanpctile(dhdt_dist,30,dim=2)
+    dhdt_70p = nanpctile(dhdt_dist,70,dim=2)
+    dhdt_35p = nanpctile(dhdt_dist,35,dim=2)
+    dhdt_65p = nanpctile(dhdt_dist,65,dim=2)
+    dhdt_40p = nanpctile(dhdt_dist,40,dim=2)
+    dhdt_60p = nanpctile(dhdt_dist,60,dim=2)
+    dhdt_45p = nanpctile(dhdt_dist,45,dim=2)
+    dhdt_55p = nanpctile(dhdt_dist,55,dim=2)
 
     # Plot results
     hdl = plot(bincenters,dhdt, label="Mean", color=:black, linewidth=2)
@@ -263,7 +263,7 @@
 
     # Rescale image to fit in UInt8 (0-255)
     using IndirectArrays: IndirectArray
-    imSc = dhdt_im./pctile(dhdt_im[:],97.5)*256 # Rescale to include 97.5 CI (may need ot adjust)
+    imSc = dhdt_im./nanpctile(dhdt_im[:],97.5)*256 # Rescale to include 97.5 CI (may need ot adjust)
     imSc[imSc.>255] .= 255 # Cut off to fit in Uint8
 
     # Apply colormap. Available colormaps include viridis, inferno, plasma, fire
@@ -364,20 +364,20 @@
     # age_dist_X_mean = mean(age_dist_X,2) # Mean age
     # age_dist_X_std =  std(age_dist_X,2) # Standard deviation
     # age_dist_X_median = median(age_dist_X,2) # Median age
-    # age_dist_X_025p = pctile(age_dist_X,2.5,dim=2) # 2.5th percentile
-    # age_dist_X_975p = pctile(age_dist_X,97.5,dim=2) # 97.5th percentile
+    # age_dist_X_025p = nanpctile(age_dist_X,2.5,dim=2) # 2.5th percentile
+    # age_dist_X_975p = nanpctile(age_dist_X,97.5,dim=2) # 97.5th percentile
     #
     # age_dist_XY_mean = mean(age_dist_XY,2) # Mean age
     # age_dist_XY_std =  std(age_dist_XY,2) # Standard deviation
     # age_dist_XY_median = median(age_dist_XY,2) # Median age
-    # age_dist_XY_025p = pctile(age_dist_XY,2.5,dim=2) # 2.5th percentile
-    # age_dist_XY_975p = pctile(age_dist_XY,97.5,dim=2) # 97.5th percentile
+    # age_dist_XY_025p = nanpctile(age_dist_XY,2.5,dim=2) # 2.5th percentile
+    # age_dist_XY_975p = nanpctile(age_dist_XY,97.5,dim=2) # 97.5th percentile
     #
     # age_dist_XYZ_mean = mean(age_dist_XYZ,2) # Mean age
     # age_dist_XYZ_std =  std(age_dist_XYZ,2) # Standard deviation
     # age_dist_XYZ_median = median(age_dist_XYZ,2) # Median age
-    # age_dist_XYZ_025p = pctile(age_dist_XYZ,2.5,dim=2) # 2.5th percentile
-    # age_dist_XYZ_975p = pctile(age_dist_XYZ,97.5,dim=2) # 97.5th percentile
+    # age_dist_XYZ_025p = nanpctile(age_dist_XYZ,2.5,dim=2) # 2.5th percentile
+    # age_dist_XYZ_975p = nanpctile(age_dist_XYZ,97.5,dim=2) # 97.5th percentile
     #
     # age_X_95p = [age_dist_X_mean age_dist_X_975p-age_dist_X_mean age_dist_X_mean-age_dist_X_025p]
     # age_XY_95p = [age_dist_XY_mean age_dist_XY_975p-age_dist_XY_mean age_dist_XY_mean-age_dist_XY_025p]
