@@ -22,19 +22,19 @@ __precompile__()
 
 module Chron
 
-    # Backwards compatibility
-    using Compat
-    # Forwards compatibility
-    VERSION >= v"0.7" && using Statistics, DelimitedFiles, SpecialFunctions
+    using Reexport
+    @reexport NaNStatistics
+    @reexport StatGeochemBase
+
+    using Statistics, DelimitedFiles, SpecialFunctions
 
     # Basic statistics and UI resources
     using StatsBase: fit, Histogram, percentile
     using ProgressMeter: @showprogress, Progress, update!
     using LsqFit: curve_fit
     using KernelDensity: kde
-    using Interpolations
 
-    # Weighted mean, systematic errors, etc
+    # Bilinear exponential function
     include("Utilities.jl")
     # Functions for propagating systematic uncertainties
     using Distributions
@@ -47,10 +47,6 @@ module Chron
     include("DistMetropolis.jl")
     # Functions for stratigraphic modelling
     include("StratMetropolis.jl")
-
-    # Higher-level functions for fitting and plotting
-    using Colors: Colorant, ColorTypes, RGBX, RGB, N0f8
-    include("Colormaps.jl")
 
     using Plots; gr();
     include("Fitplot.jl")

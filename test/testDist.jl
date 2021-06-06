@@ -5,12 +5,6 @@
     @test isapprox.(nanmean.(metropolis_minmax(2*10^5, MeltsVolcanicZirconDistribution, mu, sigma, burnin=10^5))[1:2], (99.92,101.08), atol=0.015) |> all
     @test isapprox(nanmean(metropolis_min(2*10^5, MeltsVolcanicZirconDistribution, mu, sigma, burnin=10^5)), 99.9228, atol=0.015)
 
-## --- Test bilinear exponential function
-
-    @test bilinear_exponential(66.02, [1.219384666893631, 66.0846112095295, 0.10822726922099106, -1.277645745450562, 0.6971298010153942]) ≈ 0.15736531960405353
-    @test bilinear_exponential([66.02, 66.08, 66.15], [1.219384666893631, 66.0846112095295, 0.10822726922099106, -1.277645745450562, 0.6971298010153942]) ≈ [0.1573653196040532, 4.614683898246965, 8.99724709626313e-8]
-    @test bilinear_exponential_ll(66.02, [1.219384666893631, 66.0846112095295, 0.10822726922099106, -1.277645745450562, 0.6971298010153942]) ≈ -1.8491853001597212
-
 ## -- Test distribution bootstrapping
 
      dist = BootstrapCrystDistributionKDE(1:10)
