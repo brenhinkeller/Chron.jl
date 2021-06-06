@@ -24,7 +24,7 @@ julia> add Chron@v0.1
 
 ## Online / Notebook Usage
 ### Coupled eruption/deposition age and age-depth modelling
-For a quick test (without having to install anything), try the [interactive online Jupyter notebook](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0Coupled.ipynb) (note: it'll take a few minutes for the notebook to launch). [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0Coupled.ipynb)
+For a quick test (without having to install anything), try the [interactive online Jupyter notebook](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0Coupled.ipynb) (note: it'll take a few minutes for the notebook to launch). [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0Coupled.ipynb)
 
 This runs [examples/Chron1.0Coupled.ipynb](examples/Chron1.0Coupled.ipynb) on a [JupyterHub](https://github.com/jupyterhub/jupyterhub) server hosted by the [Binder](https://mybinder.org) project. If you make changes to the interactive online notebook, you can save them with `File` > `Download as` > `Notebook (.ipynb)` To run a downloaded notebook locally, use [IJulia](https://github.com/JuliaLang/IJulia.jl)
 
@@ -35,15 +35,15 @@ julia> notebook()
 
 ### Standalone age-depth modelling
 If you want to use Chron.jl for for age-depth modelling without the eruption/deposition age estimation step, there are also example notebooks standalone age-depth modelling using either
-* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0StratOnly.ipynb) [Age-depth modelling with simple Gaussian age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0StratOnly.ipynb) or
-* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0Radiocarbon.ipynb) [Age-depth modelling with radiocarbon age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/Chron1.0Radiocarbon.ipynb)
+* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0StratOnly.ipynb) [Age-depth modelling with simple Gaussian age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0StratOnly.ipynb) or
+* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0Radiocarbon.ipynb) [Age-depth modelling with radiocarbon age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0Radiocarbon.ipynb)
 
 with or without hiatuses.
 
 ### Standalone eruption/deposition age modelling
 
 To run an eruption/deposition age estimate, without any age-depth modelling, try the notebook for
-* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/EruptionDepositionAgeDemonstration.ipynb) [Standalone eruption/deposition age modelling](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/master?filepath=examples/EruptionDepositionAgeDemonstration.ipynb)
+* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/EruptionDepositionAgeDemonstration.ipynb) [Standalone eruption/deposition age modelling](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/EruptionDepositionAgeDemonstration.ipynb)
 
 ## Standard Usage
 After installing [Julia](https://julialang.org/downloads/) with or without [Juno](http://junolab.org/), and Chron.jl (above), run [examples/Chron1.0Coupled.jl](examples/Chron1.0Coupled.jl) to see how the code works. It should look something like this:
@@ -352,5 +352,5 @@ plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)")
 [docs-dev-url]: https://brenhinkeller.github.io/Chron.jl/dev/
 [ci-img]: https://github.com/brenhinkeller/Chron.jl/workflows/CI/badge.svg
 [ci-url]: https://github.com/brenhinkeller/Chron.jl/actions?query=workflow%3ACI
-[codecov-img]: http://codecov.io/github/brenhinkeller/Chron.jl/coverage.svg?branch=master
-[codecov-url]: http://codecov.io/github/brenhinkeller/Chron.jl?branch=master
+[codecov-img]: http://codecov.io/github/brenhinkeller/Chron.jl/coverage.svg?branch=main
+[codecov-url]: http://codecov.io/github/brenhinkeller/Chron.jl?branch=main
