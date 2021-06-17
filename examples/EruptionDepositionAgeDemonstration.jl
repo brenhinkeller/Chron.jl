@@ -4,7 +4,7 @@
         using Chron
     catch
         using Pkg
-        Pkg.add(PackageSpec(url="https://github.com/brenhinkeller/Chron.jl"))
+        Pkg.add("Chron")
         using Chron
     end
 
