@@ -26,7 +26,7 @@
     (wx, wsigma, mswd) = awmean(ages, uncert)
 
     h = plot(ylabel="Time before eruption (sigma)", xlabel="N", fg_color_legend=:white, legend=:topleft)
-    plot!(h,1:length(ages),sort(ages),yerror=uncert*2,seriestype=:scatter, markerstrokecolor=:auto, label="Synthetic zircon ages")
+    plot!(h,1:length(ages),sort(ages),yerror=uncert*2,seriestype=:scatter, label="Synthetic zircon ages")
     plot!(h,collect(xlims()), [0,0], label="Eruption age")
     plot!(h,collect(xlims()), [wx,wx], label="Weighted mean, MSWD $(round(mswd,sigdigits=2))")
 
