@@ -21,7 +21,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 Distributions = "0.15 - 0.25"
-GR = "0.28 - 0.57, 0.58"
+GR = "0.28 - 0.57"
 KernelDensity = "0.4 - 0.6"
 LsqFit = "0.7 - 0.12"
 NaNStatistics = "0.4, 0.5"
