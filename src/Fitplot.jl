@@ -52,7 +52,7 @@
 
 ## --- Remove outliers
 
-    function screen_outliers(smpl::ChronAgeData; maxgap=100)
+    function screen_outliers(smpl::ChronAgeData; maxgap=100, make_plots=true)
         # Variables from struct
         Name = collect(smpl.Name)::Array{String,1}
         Path = smpl.Path::String
@@ -69,9 +69,6 @@
             nAnalyses = size(data,1)
             maxdt_sigma = maxgap*norm_width(nAnalyses)/nAnalyses
 
-            # Rank-order plot of all individual ages for comparison
-            hdl = plot(1:nAnalyses,data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:red, markerstrokecolor=:red,label="rejected",legend=:topleft,framestyle=:box,fg_color_legend=:white)
-
             # Filter data to exclude outliers
             sigma_mutual = nanmean(data[:,2]) / smpl.inputSigmaLevel * sqrt(2)
             for j=nAnalyses:-1:2
@@ -83,8 +80,12 @@
                     data=data[1:j-1,:]
                 end
             end
-            plot!(hdl, 1:size(data,1),data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:blue,markerstrokecolor=:blue,label="included",xlabel="N",ylabel="Age ($(Age_Unit))")
-            savefig(hdl, joinpath(screenedpath, Name[i]*"_screening.pdf"))
+            if make_plots
+                # Rank-order plot of all individual ages for comparison
+                hdl = plot(1:nAnalyses,data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:red, markerstrokecolor=:red,label="rejected",legend=:topleft,framestyle=:box,fg_color_legend=:white)
+                plot!(hdl, 1:size(data,1),data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:blue,markerstrokecolor=:blue,label="included",xlabel="N",ylabel="Age ($(Age_Unit))")
+                savefig(hdl, joinpath(screenedpath, Name[i]*"_screening.pdf"))
+            end
             writedlm(joinpath(screenedpath, Name[i]*".csv"), data, ',')
         end
         smpl.Path = screenedpath

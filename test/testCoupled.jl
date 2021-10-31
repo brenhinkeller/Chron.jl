@@ -10,7 +10,7 @@ smpl.Age_Unit = "Ma" # Unit of measurement for ages and errors in the data files
 smpl.Height_Unit = "cm" # Unit of measurement for Height and Height_sigma
 
 # Remove outliers (if any)
-smpl = screen_outliers(smpl, maxgap=50)
+smpl = screen_outliers(smpl, maxgap=50, make_plots=false)
 
 # Distribution boostrapping from chron strat object
 BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl)
