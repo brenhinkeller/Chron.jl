@@ -205,7 +205,7 @@
     drawn from the source distribution `dist`. Fits a `bilinearexponential` function
     to the resulting stationary distribution for each sample.
     """
-    function tMinDistMetropolis(smpl::ChronAgeData,nsteps::Int,burnin::Int,dist::Array{Float64})
+    function tMinDistMetropolis(smpl::ChronAgeData,nsteps::Int,burnin::Int,dist::Array{Float64}; make_plots=true)
         # Extract variables from struct
         Name = collect(smpl.Name)::Array{String,1}
         Path = smpl.Path::String
@@ -249,23 +249,25 @@
                 fobj = curve_fit(bilinear_exponential,bincenters,N,p)
                 smpl.Params[:,i] = fobj.param
 
-                # Rank-order plot of analyses and eruption/deposition age range
-                nAnalyses = length(data[:,1])
-                h1 = plot_rankorder_errorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age ($(Age_Unit))",label="Data (observed ages)")
-                m = ones(nAnalyses).*smpl.Age[i]
-                l = ones(nAnalyses).*smpl.Age_025CI[i]
-                u = ones(nAnalyses).*smpl.Age_975CI[i]
-                plot!(h1,1:nAnalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="Model ($(round(m[1],digits=3)) +$(round(u[1]-m[1],digits=3))/-$(round(m[1]-l[1],digits=3)) $(Age_Unit))")
-                plot!(h1,1:nAnalyses,m,linecolor=:black,linestyle=:dot,label="",legend=:topleft,fg_color_legend=:white,framestyle=:box)
-                savefig(h1,joinpath(Path, Name[i]*"_rankorder.pdf"))
-                savefig(h1,joinpath(Path, Name[i]*"_rankorder.svg"))
+                if make_plots
+                    # Rank-order plot of analyses and eruption/deposition age range
+                    nAnalyses = length(data[:,1])
+                    h1 = plot_rankorder_errorbar(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age ($(Age_Unit))",label="Data (observed ages)")
+                    m = ones(nAnalyses).*smpl.Age[i]
+                    l = ones(nAnalyses).*smpl.Age_025CI[i]
+                    u = ones(nAnalyses).*smpl.Age_975CI[i]
+                    plot!(h1,1:nAnalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="Model ($(round(m[1],digits=3)) +$(round(u[1]-m[1],digits=3))/-$(round(m[1]-l[1],digits=3)) $(Age_Unit))")
+                    plot!(h1,1:nAnalyses,m,linecolor=:black,linestyle=:dot,label="",legend=:topleft,fg_color_legend=:white,framestyle=:box)
+                    savefig(h1,joinpath(Path, Name[i]*"_rankorder.pdf"))
+                    savefig(h1,joinpath(Path, Name[i]*"_rankorder.svg"))
 
-                # Plot model fit to histogram
-                h2 = plot(bincenters,N,label="Histogram",fg_color_legend=:white,framestyle=:box)
-                plot!(h2,bincenters, bilinear_exponential(bincenters,smpl.Params[:,i]), label="Curve fit")
-                plot!(h2,legend=:topleft, xlabel="Age ($(Age_Unit))", ylabel="Probability density")
-                savefig(h2,joinpath(Path, Name[i]*"_distribution.pdf"))
-                savefig(h2,joinpath(Path, Name[i]*"_distribution.pdf"))
+                    # Plot model fit to histogram
+                    h2 = plot(bincenters,N,label="Histogram",fg_color_legend=:white,framestyle=:box)
+                    plot!(h2,bincenters, bilinear_exponential(bincenters,smpl.Params[:,i]), label="Curve fit")
+                    plot!(h2,legend=:topleft, xlabel="Age ($(Age_Unit))", ylabel="Probability density")
+                    savefig(h2,joinpath(Path, Name[i]*"_distribution.pdf"))
+                    savefig(h2,joinpath(Path, Name[i]*"_distribution.pdf"))
+                end
 
             elseif DistType[i] == 1 # A single Gaussian
                 # Load data for each sample

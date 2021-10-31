@@ -23,7 +23,7 @@ distSteps = 10^5 # Number of steps to run in distribution MCMC
 distBurnin = floor(Int,distSteps/2) # Number to discard
 
 # Run MCMC to estimate saturation and eruption/deposition age distributions
-@time tMinDistMetropolis(smpl,distSteps,distBurnin,BootstrappedDistribution)
+@time tMinDistMetropolis(smpl,distSteps,distBurnin,BootstrappedDistribution; make_plots=false)
 
 # Run stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - - -
 # Configure the stratigraphic Monte Carlo model
