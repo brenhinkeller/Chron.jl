@@ -15,6 +15,7 @@ deps/deps.jl
 Manifest.toml
 examples/DenverUPbExampleData/results.csv
 results.csv
+distresults.csv
 
 .ipynb_check*
 /etc
