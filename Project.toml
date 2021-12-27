@@ -1,7 +1,7 @@
 name = "Chron"
 uuid = "68885b1f-77b5-52a7-b2e7-6a8014c56b98"
 authors = ["C. Brenhin Keller <cbkeller@dartmouth.edu>"]
-version = "0.2.1"
+version = "0.2.3"
 
 [deps]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
@@ -21,14 +21,14 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 Distributions = "0.15 - 0.25"
-GR = "0.28 - 0.57, 0.58, 0.59, 0.62"
+GR = "0.28 - 0.62, 0.63"
 KernelDensity = "0.4 - 0.6"
 LsqFit = "0.7 - 0.12"
 NaNStatistics = "0.4, 0.5"
 Plots = "1"
 ProgressMeter = "1"
 Reexport = "0.2, 1.0"
-SpecialFunctions = "0.5 - 0.10, 1"
+SpecialFunctions = "0.5 - 0.10, 1, 2"
 StatGeochemBase = "0.2"
 StatsBase = "0.28 - 0.33"
 julia = "1"
