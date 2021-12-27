@@ -24,7 +24,7 @@
         using Chron
     end
 
-    using Statistics, StatsBase, DelimitedFiles, SpecialFunctions
+    using Statistics, StatsBase, DelimitedFiles, SpecialFunctions, ProgressMeter
     using Plots; gr();
 
 ## --- Define sample properties - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@
 
     nSamples = 5 # The number of samples you have data for
     smpl = NewChronAgeData(nSamples)
-    smpl.Name      =  ("KJ08-157", "KJ04-75", "KJ09-66",  "KJ4-72", "KJ04-70",)
+    smpl.Name      =  ("KJ08-157", "KJ04-75", "KJ09-66", "KJ04-72", "KJ04-70",)
     smpl.Height   .=  [     -52.0,      44.0,      54.0,      82.0,      93.0,]
     smpl.Height_sigma .= [    3.0,       1.0,       3.0,       3.0,       3.0,]
     smpl.Age_Sidedness .= zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
@@ -200,11 +200,13 @@
         dhdt_dist[:,i] .= abs.(heights[1:end-spacing] - heights[spacing+1:end]) ./ binwidth
     end
 
-    # # Exact (added precision is below sampling resolution, so not useful) and very slow
-    # @showprogress "Calculating dh/dt..." for i=1:config.nsteps
-    #     for j=1:length(bincenters)
-    #         t = (agedist[:,i] .> bincenters[j] - binwidth/2) .& (agedist[:,i] .< bincenters[j] + binwidth/2)
-    #         dhdt_dist[j,i] = sum(t) * resolution / binwidth
+    # # Exact (added precision is below sampling resolution, so not visible) and rather slow
+    # let t = Array{Bool}(undef,size(agedist,1))
+    #     @showprogress "Calculating dh/dt..." for i=1:config.nsteps
+    #         for j=1:length(bincenters)
+    #             t .= (agedist[:,i] .> bincenters[j] - binwidth/2) .& (agedist[:,i] .< bincenters[j] + binwidth/2)
+    #             dhdt_dist[j,i] = count(t) * config.resolution / binwidth
+    #         end
     #     end
     # end
 
