@@ -35,6 +35,7 @@ module Chron
     using KernelDensity: kde
 
     # Bilinear exponential function
+    using LoopVectorization
     include("Utilities.jl")
     # Functions for propagating systematic uncertainties
     using Distributions

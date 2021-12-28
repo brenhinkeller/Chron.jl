@@ -37,7 +37,7 @@
     end
     function bilinear_exponential(x::AbstractVector, p::AbstractVector)
         result = Array{float(eltype(x))}(undef,size(x))
-        @turbo for i = 1:length(x)
+        @turbo for i ∈ eachindex(x)
             xs = (x[i] - p[2])/abs2(p[3]) # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
             shp = abs2(p[4])
@@ -70,7 +70,7 @@
     end
     function bilinear_exponential_ll(x::AbstractVector, p::AbstractMatrix)
         ll = 0.0
-        @turbo for i=1:length(x)
+        @turbo for i ∈ eachindex(x)
             xs = (x[i]-p[2,i])/abs2(p[3,i]) # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
             shp = abs2(p[4,i])
