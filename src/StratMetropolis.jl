@@ -291,9 +291,10 @@
         Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
         for i=1:length(closest_hiatus_unique)
-            Hiatus_height[i] = mean((hiatus.Height::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]])
-            Hiatus_duration[i] = sum((hiatus.Duration::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]])
-            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]].^2))
+            t = closest_hiatus.==closest_hiatus_unique[i]
+            Hiatus_height[i] = mean((hiatus.Height::Array{Float64,1})[t])
+            Hiatus_duration[i] = sum((hiatus.Duration::Array{Float64,1})[t])
+            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Array{Float64,1})[t].^2))
         end
 
         # Add log likelihood for hiatus duration
@@ -842,9 +843,10 @@
         Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
         for i=1:length(closest_hiatus_unique)
-            Hiatus_height[i] = mean((hiatus.Height::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]])
-            Hiatus_duration[i] = sum((hiatus.Duration::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]])
-            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]].^2))
+            t = closest_hiatus.==closest_hiatus_unique[i]
+            Hiatus_height[i] = mean((hiatus.Height::Array{Float64,1})[t])
+            Hiatus_duration[i] = sum((hiatus.Duration::Array{Float64,1})[t])
+            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Array{Float64,1})[t].^2))
         end
 
         # Add log likelihood for hiatus duration
@@ -1389,9 +1391,10 @@
         Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
         for i=1:length(closest_hiatus_unique)
-            Hiatus_height[i] = mean((hiatus.Height::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]])
-            Hiatus_duration[i] = sum((hiatus.Duration::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]])
-            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Array{Float64,1})[closest_hiatus.==closest_hiatus_unique[i]].^2))
+            t = closest_hiatus.==closest_hiatus_unique[i]
+            Hiatus_height[i] = mean((hiatus.Height::Array{Float64,1})[t])
+            Hiatus_duration[i] = sum((hiatus.Duration::Array{Float64,1})[t])
+            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Array{Float64,1})[t].^2))
         end
 
         # Add log likelihood for hiatus duration
