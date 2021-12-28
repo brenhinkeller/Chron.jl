@@ -393,8 +393,8 @@
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
-            @. durationₚ = min(model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique], Hiatus_duration)
-            llₚ += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+            @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
+            llₚ += normcdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
@@ -497,8 +497,8 @@
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
-            @. durationₚ = min(model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique], Hiatus_duration)
-            llₚ += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+            @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
+            llₚ += normcdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
@@ -947,8 +947,8 @@
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
-            @. durationₚ = min(model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique], Hiatus_duration)
-            llₚ += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+            @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
+            llₚ += normcdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
@@ -1050,8 +1050,8 @@
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
-            @. durationₚ = min(model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique], Hiatus_duration)
-            llₚ += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+            @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
+            llₚ += normcdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
@@ -1493,8 +1493,8 @@
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
-            @. durationₚ = min(model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique], Hiatus_duration)
-            llₚ += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+            @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
+            llₚ += normcdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
@@ -1596,8 +1596,8 @@
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
-            @. durationₚ = min(model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique], Hiatus_duration)
-            llₚ += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+            @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
+            llₚ += normcdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
