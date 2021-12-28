@@ -29,18 +29,22 @@
         p[5] # skew
     """
     function bilinear_exponential(x::Number, p::AbstractVector)
-        xs = (x - p[2])/p[3]^2 # X scaled by mean and variance
+        xs = (x - p[2])/abs2(p[3]) # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-        return exp(p[1] + (p[4]^2)*(p[5]^2)*xs*v - (p[4]^2)/(p[5]^2)*xs*(1-v))
+        shp = abs2(p[4])
+        skw = abs2(p[5])
+        return exp(p[1] + shp*skw*xs*v - shp/skw*xs*(1-v))
     end
     function bilinear_exponential(x::AbstractVector, p::AbstractVector)
-        f = Array{float(eltype(x))}(undef,size(x))
-        @inbounds @simd for i = 1:length(x)
-            xs = (x[i] - p[2])/p[3]^2 # X scaled by mean and variance
+        result = Array{float(eltype(x))}(undef,size(x))
+        @turbo for i = 1:length(x)
+            xs = (x[i] - p[2])/abs2(p[3]) # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-            f[i] = exp(p[1] + (p[4]^2)*(p[5]^2)*xs*v - (p[4]^2)/(p[5]^2)*xs*(1-v))
+            shp = abs2(p[4])
+            skw = abs2(p[5])
+            result[i] = exp(p[1] + shp*skw*xs*v - shp/skw*xs*(1-v))
         end
-        return f
+        return result
     end
 
     """
@@ -58,16 +62,20 @@
     See also `bilinear_exponential`
     """
     function bilinear_exponential_ll(x::Number, p::AbstractVector)
-        xs = (x - p[2])/p[3]^2 # X scaled by mean and variance
+        xs = (x - p[2])/abs2(p[3]) # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-        return p[1] + (p[4]^2)*(p[5]^2)*xs*v - (p[4]^2)/(p[5]^2)*xs*(1-v)
+        shp = abs2(p[4])
+        skw = abs2(p[5])
+        return p[1] + shp*skw*xs*v - shp/skw*xs*(1-v)
     end
     function bilinear_exponential_ll(x::AbstractVector, p::AbstractMatrix)
         ll = 0.0
-        @inbounds @simd for i=1:length(x)
-            xs = (x[i]-p[2,i])/p[3,i]^2 # X scaled by mean and variance
+        @turbo for i=1:length(x)
+            xs = (x[i]-p[2,i])/abs2(p[3,i]) # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-            ll += p[1,i] + (p[4,i]^2)*(p[5,i]^2)*xs*v - (p[4,i]^2)/(p[5,i]^2)*xs*(1 - v)
+            shp = abs2(p[4,i])
+            skw = abs2(p[5,i])
+            ll += p[1,i] + shp*skw*xs*v - shp/skw*xs*(1-v)
         end
         return ll
     end
