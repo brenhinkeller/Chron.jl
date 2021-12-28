@@ -394,7 +394,7 @@
 
             # Add log likelihood for hiatus duration
             @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
-            llₚ += normcdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
@@ -498,7 +498,7 @@
 
             # Add log likelihood for hiatus duration
             @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
-            llₚ += normcdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
@@ -948,7 +948,7 @@
 
             # Add log likelihood for hiatus duration
             @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
-            llₚ += normcdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
@@ -1051,7 +1051,7 @@
 
             # Add log likelihood for hiatus duration
             @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
-            llₚ += normcdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
@@ -1494,7 +1494,7 @@
 
             # Add log likelihood for hiatus duration
             @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
-            llₚ += normcdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
@@ -1597,7 +1597,7 @@
 
             # Add log likelihood for hiatus duration
             @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
-            llₚ += normcdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
