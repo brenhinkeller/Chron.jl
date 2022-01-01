@@ -213,14 +213,15 @@
 
         # Crop the result
         agedist = agedist[active_height_t,:]
+        agedistₜ = copy(agedist)
 
         mdl = StratAgeModel(
             model_heights[active_height_t], # Model heights
             nanmean(agedist,dim=2), # Mean age
             nanstd(agedist,dim=2), # Standard deviation
-            nanmedian(agedist,dim=2), # Median age
-            nanpctile(agedist,2.5,dim=2), # 2.5th percentile
-            nanpctile(agedist,97.5,dim=2) # 97.5th percentile
+            nanmedian!(agedistₜ,dim=2), # Median age
+            nanpctile!(agedistₜ,2.5,dim=2), # 2.5th percentile
+            nanpctile!(agedistₜ,97.5,dim=2) # 97.5th percentile
         )
 
         return mdl, agedist, lldist
@@ -523,14 +524,15 @@
 
         # Crop the result
         agedist = agedist[active_height_t,:]
+        agedistₜ = copy(agedist)
 
         mdl = StratAgeModel(
             model_heights[active_height_t], # Model heights
             nanmean(agedist,dim=2), # Mean age
             nanstd(agedist,dim=2), # Standard deviation
-            nanmedian(agedist,dim=2), # Median age
-            nanpctile(agedist,2.5,dim=2), # 2.5th percentile
-            nanpctile(agedist,97.5,dim=2) # 97.5th percentile
+            nanmedian!(agedistₜ,dim=2), # Median age
+            nanpctile!(agedistₜ,2.5,dim=2), # 2.5th percentile
+            nanpctile!(agedistₜ,97.5,dim=2) # 97.5th percentile
         )
 
         return mdl, agedist, lldist, hiatusdist
@@ -761,14 +763,15 @@
 
         # Crop the result
         agedist = agedist[active_height_t,:]
+        agedistₜ = copy(agedist)
 
         mdl = StratAgeModel(
             model_heights[active_height_t], # Model heights
             nanmean(agedist,dim=2), # Mean age
             nanstd(agedist,dim=2), # Standard deviation
-            nanmedian(agedist,dim=2), # Median age
-            nanpctile(agedist,2.5,dim=2), # 2.5th percentile
-            nanpctile(agedist,97.5,dim=2) # 97.5th percentile
+            nanmedian!(agedistₜ,dim=2), # Median age
+            nanpctile!(agedistₜ,2.5,dim=2), # 2.5th percentile
+            nanpctile!(agedistₜ,97.5,dim=2) # 97.5th percentile
         )
 
         return mdl, agedist, lldist
@@ -1076,14 +1079,15 @@
 
         # Crop the result
         agedist = agedist[active_height_t,:]
+        agedistₜ = copy(agedist)
 
         mdl = StratAgeModel(
             model_heights[active_height_t], # Model heights
             nanmean(agedist,dim=2), # Mean age
             nanstd(agedist,dim=2), # Standard deviation
-            nanmedian(agedist,dim=2), # Median age
-            nanpctile(agedist,2.5,dim=2), # 2.5th percentile
-            nanpctile(agedist,97.5,dim=2) # 97.5th percentile
+            nanmedian!(agedistₜ,dim=2), # Median age
+            nanpctile!(agedistₜ,2.5,dim=2), # 2.5th percentile
+            nanpctile!(agedistₜ,97.5,dim=2) # 97.5th percentile
         )
 
         return mdl, agedist, lldist, hiatusdist
@@ -1308,14 +1312,15 @@
 
         # Crop the result
         agedist = agedist[active_height_t,:]
+        agedistₜ = copy(agedist)
 
         mdl = StratAgeModel(
             model_heights[active_height_t], # Model heights
             nanmean(agedist,dim=2), # Mean age
             nanstd(agedist,dim=2), # Standard deviation
-            nanmedian(agedist,dim=2), # Median age
-            nanpctile(agedist,2.5,dim=2), # 2.5th percentile
-            nanpctile(agedist,97.5,dim=2) # 97.5th percentile
+            nanmedian!(agedistₜ,dim=2), # Median age
+            nanpctile!(agedistₜ,2.5,dim=2), # 2.5th percentile
+            nanpctile!(agedistₜ,97.5,dim=2) # 97.5th percentile
         )
 
         return mdl, agedist, lldist
@@ -1622,14 +1627,15 @@
 
         # Crop the result
         agedist = agedist[active_height_t,:]
+        agedistₜ = copy(agedist)
 
         mdl = StratAgeModel(
             model_heights[active_height_t], # Model heights
             nanmean(agedist,dim=2), # Mean age
             nanstd(agedist,dim=2), # Standard deviation
-            nanmedian(agedist,dim=2), # Median age
-            nanpctile(agedist,2.5,dim=2), # 2.5th percentile
-            nanpctile(agedist,97.5,dim=2) # 97.5th percentile
+            nanmedian!(agedistₜ,dim=2), # Median age
+            nanpctile!(agedistₜ,2.5,dim=2), # 2.5th percentile
+            nanpctile!(agedistₜ,97.5,dim=2) # 97.5th percentile
         )
 
         return mdl, agedist, lldist, hiatusdist
