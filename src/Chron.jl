@@ -29,7 +29,6 @@ module Chron
     using Statistics, DelimitedFiles, SpecialFunctions
 
     # Basic statistics and UI resources
-    using StatsBase: fit, Histogram, percentile
     using ProgressMeter: @showprogress, Progress, update!
     using LsqFit: curve_fit
     using KernelDensity: kde
