@@ -113,18 +113,20 @@
         for i=1:length(Name)
             if DistType[i]==0
                 data = readdlm(joinpath(Path, Name[i]*".csv"), ',', Float64)::Array{Float64,2}
+                μ, σ = data[:,1], data[:,2]
 
                 # Maximum extent of expected analytical tail (beyond eruption/deposition)
-                maxTailLength = mean(data[:,2]) ./ smpl.inputSigmaLevel .* norm_quantile(1 - 1/(1+size(data,1)))
-                included = (data[:,1] .- minimum(data[:,1])) .>= maxTailLength
-                included .|= data[:,1] .> nanmedian(data[:,1]) # Don't exclude more than half (could only happen in underdispersed datasets)
-                included .&= .~isnan.(data[:,1]) # Exclude NaNs
+                maxTailLength = mean(σ) ./ smpl.inputSigmaLevel .* norm_quantile(1 - 1/(1+countnotnans(μ)))
+                included = (μ .- nanminimum(μ)) .>= maxTailLength
+                included .|= μ .> nanmedian(μ) # Don't exclude more than half (could only happen in underdispersed datasets)
+                included .&= .!isnan.(μ) # Exclude NaNs
 
                 # Include and scale only those data not within the expected analytical tail
                 if sum(included)>0
-                    scaled = data[included,1] .- minimum(data[included,1])
+                    μₜ = data[included,1]
+                    scaled = μₜ .- minimum(μₜ)
                     if maximum(scaled) > 0
-                        scaled = scaled ./ maximum(scaled)
+                        scaled ./= maximum(scaled)
                     end
                     append!(allscaled, scaled)
                 end
@@ -171,12 +173,13 @@
 
         # For each row of data
         for i=1:size(data,2)
+            μ, σ = data[:,i], sigma[:,i]
 
             # Maximum extent of expected analytical tail (beyond eruption/deposition/cutoff)
-            maxTailLength = nanmean(sigma[:,i]) .* norm_quantile(1 - 1/(1+count(.!isnan.(data[:,i]))))
-            included = (data[:,i] .- nanminimum(data[:,i])) .>= maxTailLength
-            included .|= data[:,i] .> nanmedian(data[:,i]) # Don't exclude more than half (could only happen in underdispersed datasets)
-            included .&= .~isnan.(data[:,i]) # Exclude NaNs
+            maxTailLength = nanmean(σ) .* norm_quantile(1 - 1/(1+countnotnans(μ))
+            included = (μ .- nanminimum(μ)) .>= maxTailLength
+            included .|= μ .> nanmedian(μ) # Don't exclude more than half (could only happen in underdispersed datasets)
+            included .&= .~isnan.(μ) # Exclude NaNs
 
             # Include and scale only those data not within the expected analytical tail
             if sum(included)>0
