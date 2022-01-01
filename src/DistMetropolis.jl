@@ -14,7 +14,7 @@
         loglikelihood = zero(float(eltype(dist)))
         datarows = length(mu)
         distrows = length(dist)
-        dist_yave = mean(dist)
+        dist_yave = nanmean(dist)
         nbins = distrows - 1
         dt = abs(tmax-tmin)
         # Cycle through each datum in dataset
@@ -81,8 +81,8 @@
         sigma_sorted = sigma[sI] # Sort uncertainty
         # These quantities will be used more than once
         datarows = length(mu_sorted)
-        tmin_obs = minimum(mu_sorted)
-        tmax_obs = maximum(mu_sorted)
+        tmin_obs = nanminimum(mu_sorted)
+        tmax_obs = nanmaximum(mu_sorted)
         # Step sigma for Gaussian proposal distributions
         dt = tmax_obs - tmin_obs + sigma_sorted[1] + sigma_sorted[end]
         tmin_step = dt / datarows
@@ -200,8 +200,8 @@
         sigma_sorted = sigma[sI] # Sort uncertainty
         # These quantities will be used more than once
         datarows = length(mu_sorted)
-        tmin_obs = minimum(mu_sorted)
-        tmax_obs = maximum(mu_sorted)
+        tmin_obs = nanminimum(mu_sorted)
+        tmax_obs = nanmaximum(mu_sorted)
         # Step sigma for Gaussian proposal distributions
         dt = tmax_obs - tmin_obs + sigma_sorted[1] + sigma_sorted[end]
         tmin_step = dt / datarows

@@ -116,7 +116,7 @@
                 μ, σ = data[:,1], data[:,2]
 
                 # Maximum extent of expected analytical tail (beyond eruption/deposition)
-                maxTailLength = mean(σ) ./ smpl.inputSigmaLevel .* norm_quantile(1 - 1/(1+countnotnans(μ)))
+                maxTailLength = nanmean(σ) ./ smpl.inputSigmaLevel .* norm_quantile(1 - 1/(1+countnotnans(μ)))
                 included = (μ .- nanminimum(μ)) .>= maxTailLength
                 included .|= μ .> nanmedian(μ) # Don't exclude more than half (could only happen in underdispersed datasets)
                 included .&= .!isnan.(μ) # Exclude NaNs
@@ -229,14 +229,15 @@
                 # (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel, burnin=burnin)
 
                 # Fill in the strat sample object with our new results
-                smpl.Age[i] = mean(tminDist)
-                smpl.Age_sigma[i] = std(tminDist)
-                smpl.Age_025CI[i] = percentile(tminDist,2.5)
-                smpl.Age_975CI[i] = percentile(tminDist,97.5)
+                tminDistₜ = copy(tminDist)
+                smpl.Age[i] = nanmean(tminDist)
+                smpl.Age_sigma[i] = nanstd(tminDist)
+                smpl.Age_025CI[i] = nanpctile!(tminDistₜ,2.5)
+                smpl.Age_975CI[i] = nanpctile!(tminDistₜ,97.5)
                 smpl.Age_Distribution[i] = tminDist
 
                 # Fit custom many-parametric distribution function to histogram
-                edges = range(minimum(tminDist),maximum(tminDist),length=101) # Vector of bin edges
+                edges = range(nanminimum(tminDist),nanmaximum(tminDist),length=101) # Vector of bin edges
                 hobj = fit(Histogram,tminDist,edges,closed=:left) # Fit histogram object
 
                 t = hobj.weights.>0 # Only look at bins with one or more results
@@ -246,8 +247,8 @@
                 # Initial guess for parameters
                 p = ones(5)
                 p[1] = log(maximum(N))
-                p[2] = mean(tminDist)
-                p[3] = std(tminDist)
+                p[2] = nanmean(tminDist)
+                p[3] = nanstd(tminDist)
 
                 # Fit nonlinear model
                 fobj = curve_fit(bilinear_exponential,bincenters,N,p)
