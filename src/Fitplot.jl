@@ -179,7 +179,7 @@
             maxTailLength = nanmean(σ) .* norm_quantile(1 - 1/(1+countnotnans(μ)))
             included = (μ .- nanminimum(μ)) .>= maxTailLength
             included .|= μ .> nanmedian(μ) # Don't exclude more than half (could only happen in underdispersed datasets)
-            included .&= .~isnan.(μ) # Exclude NaNs
+            included .&= .!isnan.(μ) # Exclude NaNs
 
             # Include and scale only those data not within the expected analytical tail
             if sum(included)>0
@@ -238,11 +238,11 @@
 
                 # Fit custom many-parametric distribution function to histogram
                 edges = range(nanminimum(tminDist),nanmaximum(tminDist),length=101) # Vector of bin edges
-                hobj = fit(Histogram,tminDist,edges,closed=:left) # Fit histogram object
+                bincounts = histcounts(tminDist, edges)
 
-                t = hobj.weights.>0 # Only look at bins with one or more results
-                N = hobj.weights[t] ./ length(tminDist) .* length(t) # Normalized number of MCMC steps per bin
-                bincenters = cntr(hobj.edges[1])[t] # Vector of bin centers
+                t = bincounts.>0 # Only look at bins with one or more results
+                N = bincounts[t] ./ length(tminDist) .* count(t) # Normalized number of MCMC steps per bin
+                bincenters = cntr(edges)[t] # Vector of bin centers
 
                 # Initial guess for parameters
                 p = ones(5)
