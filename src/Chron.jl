@@ -26,12 +26,11 @@ module Chron
     @reexport using NaNStatistics
     @reexport using StatGeochemBase
 
-    using Statistics, DelimitedFiles, SpecialFunctions
-
     # Basic statistics and UI resources
     using ProgressMeter: @showprogress, Progress, update!
     using LsqFit: curve_fit
     using KernelDensity: kde
+    using DelimitedFiles
 
     # Bilinear exponential function
     using LoopVectorization
