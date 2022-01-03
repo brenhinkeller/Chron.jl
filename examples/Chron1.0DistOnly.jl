@@ -82,7 +82,7 @@
 
     # Configure distribution model here
     distSteps = 5*10^5 # Number of steps to run in distribution MCMC
-    distBurnin = floor(Int,distSteps/2) # Number to discard
+    distBurnin = distSteps÷2 # Number to discard
 
     # Choose the form of the prior distribution to use
     # Some pre-defined possiblilities include UniformDisribution,

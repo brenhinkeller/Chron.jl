@@ -96,11 +96,16 @@
 
     """
     ```julia
-    BootstrapCrystDistributionKDE(smpl::ChronAgeData)
+    BootstrapCrystDistributionKDE(smpl::ChronAgeData; cutoff=-0.05)
     ```
-    Bootstrap an estimate of the pre-eruptive (or pre-deposition) mineral
+    Bootstrap an estimate of the pre-eruptive (or pre-depositional) mineral
     crystallization distribution shape from a Chron.ChronAgeData object containing
     data for several samples, using a kernel density estimate of stacked sample data.
+
+    ### Examples
+    ```julia
+    BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl)
+    ```
     """
     function BootstrapCrystDistributionKDE(smpl::ChronAgeData; cutoff::Number=-0.05)
         # Extact variables froms struct
@@ -142,13 +147,20 @@
 
     """
     ```julia
-    BootstrapCrystDistributionKDE(data::AbstractArray, [sigma::AbstractArray])
+    BootstrapCrystDistributionKDE(data::AbstractArray, [sigma::AbstractArray]; cutoff=-0.05)
     ```
-    Bootstrap an estimate of thq;e pre-eruptive (or pre-deposition) mineral
-    crystallization distribution shape from a 2-d array of sample ages (one row per
-    sample, one column per datum, padded with NaNs as needed) and an equivalent-size
-    array of one-sigma uncertainties,
-    using a kernel density estimate of stacked sample data.
+    Bootstrap an estimate of the pre-eruptive (or pre-depositional) mineral
+    crystallization distribution shape from a 1- or 2-d array of sample ages
+    (one row per sample, one column per datum, padded with NaNs as needed) and
+    an equivalent-size array of one-sigma uncertainties, using a kernel density
+    estimate of stacked sample data.
+
+    ### Examples
+    ```julia
+    # Bootstrap crystallization distribution for a synthetic dataset with ages
+    # [1,2,3,...10] Ma and uncertainties of 1 Ma each
+    BootstrappedDistribution = BootstrapCrystDistributionKDE(1:10, ones(10))
+    ```
     """
     function BootstrapCrystDistributionKDE(data::AbstractArray{<:Number}; cutoff::Number=-0.05)
         # Load all data points and scale from 0 to 1
@@ -202,12 +214,19 @@
 
     """
     ```julia
-    smpl = tMinDistMetropolis(smpl::ChronAgeData,nsteps::Int,burnin::Int,dist::Array{Float64})
+    tMinDistMetropolis(smpl::ChronAgeData, nsteps::Int, burnin::Int, dist::Array{Float64})
     ```
-    Calculate the minimum limiting (eruption/deposition) age of each sample in `smpl`
-    using the `metropolis_min` function, assuming mineral ages for each sample are
-    drawn from the source distribution `dist`. Fits a `bilinearexponential` function
-    to the resulting stationary distribution for each sample.
+    Calculate the minimum limiting (eruption/deposition) age of each sample defined
+    in the `smpl` struct, using the `metropolis_min` function, assuming mineral
+    ages for each sample are drawn from the source distribution `dist`. Fits a
+    `bilinear_exponential` function to the resulting stationary distribution
+    for each sample and stores the results in `smpl.Params` for use by the
+    `StratMetropolisDist` function.
+
+    ### Examples
+    ```julia
+    smpl = tMinDistMetropolis(smpl, 5*10^5, 2*10^5, TriangularDistribution)
+    ```
     """
     function tMinDistMetropolis(smpl::ChronAgeData,nsteps::Int,burnin::Int,dist::Array{Float64}; make_plots=true)
         # Extract variables from struct
