@@ -6,6 +6,7 @@ examples/*/*.pdf
 examples/*/*.svg
 examples/MyData/
 examples/agedist.csv
+screened/
 *.tar.gz
 *.jld
 *.jl.cov
