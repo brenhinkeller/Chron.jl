@@ -8,6 +8,12 @@
     Return the log-likelihood of a set of mineral ages with means `mu` and
     uncertianty `sigma` being drawn from a given source (i.e., crystallization / closure)
     distribution `dist`, with terms to prevent runaway at low N.
+
+    ### Examples
+    ```julia
+    mu, sigma = collect(100:0.1:101), 0.01*ones(11)
+    ll = check_dist_ll(MeltsVolcanicZirconDistribution, mu, sigma, 100, 101)
+    ```
     """
     function check_dist_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
         # Define some frequently used variables
@@ -71,6 +77,11 @@
     distribution `dist` using samples drawn from that distribution -- e.g.,
     estimate zircon saturation and eruption ages from a distribution of zircon
     crystallization ages.
+
+    ### Examples
+    ```julia
+    metropolis_minmax!(tmindist, tmaxdist, lldist, acceptancedist, 2*10^5, MeltsVolcanicZirconDistribution, mu, sigma, burnin=10^5)
+    ```
     """
     function metropolis_minmax!(tminDist::AbstractArray, tmaxDist::AbstractArray, llDist::AbstractArray, acceptanceDist::AbstractArray, nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
         # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
@@ -164,12 +175,17 @@
 
     """
     ```julia
-    (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
+    metropolis_minmax(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
     ```
     Run a Metropolis sampler to estimate the extrema of a finite-range source
     distribution `dist` using samples drawn from that distribution -- e.g.,
     estimate zircon saturation and eruption ages from a distribution of zircon
     crystallization ages.
+
+    ### Examples
+    ```julia
+    tmindist, tmaxdist, lldist, acceptancedist = metropolis_minmax(2*10^5, MeltsVolcanicZirconDistribution, mu, sigma, burnin=10^5)
+    ```
     """
     function metropolis_minmax(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
         # Allocate ouput arrays
@@ -190,6 +206,11 @@
     Run a Metropolis sampler to estimate the minimum of a finite-range source
     distribution `dist` using samples drawn from that distribution -- e.g., estimate
     zircon eruption ages from a distribution of zircon crystallization ages.
+
+    ### Examples
+    ```julia
+    metropolis_min!(tminDist, 2*10^5, MeltsVolcanicZirconDistribution, mu, sigma, burnin=10^5)
+    ```
     """
     function metropolis_min!(tminDist::AbstractArray, nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
         # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
@@ -285,6 +306,11 @@
     Run a Metropolis sampler to estimate the minimum of a finite-range source
     distribution `dist` using samples drawn from that distribution -- e.g., estimate
     zircon eruption ages from a distribution of zircon crystallization ages.
+
+    ### Examples
+    ```julia
+    tmindist = metropolis_min(2*10^5, MeltsVolcanicZirconDistribution, mu, sigma, burnin=10^5)
+    ```
     """
     function metropolis_min(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
         # Allocate ouput array

@@ -1,6 +1,6 @@
 ## --- Test simple metropolis_min and metropolis_minmax functions
 
-    mu = collect(100:0.1:101); sigma = 0.01*ones(11);
+    mu, sigma = collect(100:0.1:101), 0.01*ones(11);
     @test Chron.check_dist_ll(MeltsVolcanicZirconDistribution, mu, sigma, 100,101) ≈ -3.6933357793356576
 
     tmindist, tmaxdist, lldist, acceptancedist = metropolis_minmax(2*10^5, MeltsVolcanicZirconDistribution, mu, sigma, burnin=10^5)
