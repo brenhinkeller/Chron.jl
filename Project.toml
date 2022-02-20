@@ -22,7 +22,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 Distributions = "0.15 - 0.25"
-GR = "0.28 - 0.63"
+GR = "0.28 - 0.63, 0.64"
 KernelDensity = "0.4 - 0.6"
 LoopVectorization = "0.11, 0.12"
 LsqFit = "0.7 - 0.12"
