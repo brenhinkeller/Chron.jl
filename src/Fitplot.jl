@@ -237,7 +237,7 @@
 
         # Estimate the eruption/deposition distribution for each sample
         print("Estimating eruption/deposition age distributions...\n")
-        for i=1:length(Name)
+        @batch for i=1:length(Name)
             if DistType[i] == 0 # A distribution to fit properly
                 # Load data for each sample
                 data = readdlm(joinpath(Path, Name[i]*".csv"), ',', Float64)::Array{Float64,2}
