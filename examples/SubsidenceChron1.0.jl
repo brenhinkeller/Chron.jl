@@ -25,11 +25,11 @@
     strat.Thickness         .= data_csv["Thickness"] 
 
     # Run the decompaction and backstripping MC model
-    @time (Sₜ, Sμ, Sσ) = DecompactBackstrip(strat)
+    @time (Sₜ, Sμ, Sσ, model_strat_heights) = DecompactBackstrip(strat)
 
     # Plot results - tectonic subsidence in comparison with present day stratigraphic heights
     p1 = plot(1:2232, Sμ, alpha = 1, yflip = true, xflip = true, label = "Tectonic subsidence", color = "blue")
-    plot!(p1, 1:2232, reverse(model_strat_heights_m), yflip = true, label = "Present-day thickness", color = "red")
+    plot!(p1, 1:2232, reverse((model_strat_heights[2:end])*1000), yflip = true, label = "Present-day thickness", color = "red")
     plot!(p1, 1:2232, Sₜ[:,2:end], alpha = 0.01, label = "", yflip = true, color = "blue", fg_color_legend=:white)
 
 
@@ -85,7 +85,7 @@
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     # Run the stratigraphic MCMC model
-    @time (subsmdl, agedist, lldist) = SubsidenceStratMetropolis(smpl, config, therm)
+    @time (subsmdl, agedist, lldist, beta_t0dist) = SubsidenceStratMetropolis(smpl, config, therm, model_strat_heights)
 
     # Plot results (mean and 95% confidence interval for both model and data)
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(round(Int,minimum(mdl.Height)),0.5,:blue), label="model")
@@ -101,9 +101,9 @@
     plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
     savefig(hdl,"AgeDepthModel.pdf")
     display(hdl)
-
-    # More plots - NOT READY TO RUN - still need to readjust the format
     
+#=
+    # More plots - NOT READY TO RUN - still need to readjust the format
     curve_ages = similar(Sμ)
     curve_ages = τ.*log.(1 .-((Sμ.*pi)./(E₀*beta*sin(pi/beta)))).+t0
     model_strat_heights_m = copy(-model_strat_heights[2:end]).*1000
@@ -126,11 +126,12 @@
     figpath = "C:/Users/zhtia/Documents/GitHub/Chron.jl/trials/"
     savefig(age_depth_curve, figpath*"Age_depth_curve_entire_section.png")
     savefig(thermal_subs_curve, figpath*"Thermal_subs_curve_entire_section.png")    
+=#
 
-    ## --- Optional: Stratigraphic model including hiatuses
+    ## --- Optional: Stratigraphic model including hiata
 
-    # Data about hiatuses
-    nHiatuses = 2 # The number of hiatuses you have data for
+    # Data about hiata
+    nHiatuses = 2 # The number of hiata you have data for
     hiatus = NewHiatusData(nHiatuses) # Struct to hold data
     hiatus.Height         = [-371.5, -405.0 ]
     hiatus.Height_sigma   = [   0.0,    0.0 ]
@@ -138,12 +139,59 @@
     hiatus.Duration_sigma = [  30.5,    20.0]
 
     # Run the model. Note the additional `hiatus` arguments
-    @time (mdl, agedist, hiatusdist, lldist) = StratMetropolis(smpl, hiatus, config); sleep(0.5)
+    @time (subsmdl, agedist, hiatusdist, lldist, beta_t0dist) = StratMetropolis(smpl, hiatus, config, therm, model_strat_heights); sleep(0.5)
 
     # Plot results (mean and 95% confidence interval for both model and data)
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white)
     plot!(hdl, smpl.Age, smpl.Height, xerror=smpl.Age_sigma*2,label="data",seriestype=:scatter,color=:black)
     plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
+
+#=
+    # More plots - NOT READY TO RUN - still need to readjust the format
+    hdl_hiatus = plot([mdl_age_025CI; reverse(mdl_age_975CI)],[mdl_height; reverse(mdl_height)], fill=(round(Int,minimum(mdl_height)),0.5,:blue), label="Model results - 2σ error envelope")
+    plot!(hdl_hiatus, mdl_age, mdl_height, linecolor=:blue, label="Model results - mean", fg_color_legend=:white) # Center line
+    t = Age_Sidedness .== 0 # Two-sided constraints (plot in black)
+    any(t) && plot!(hdl_hiatus, Age[t], Height[t], xerror=Age_sigma[t],label="Input - age data",seriestype=:scatter,color=:black)
+    age_at_height = (mdl_height,mdl_age,-2232)
+
+    curve_ages = similar(Sμ)
+    curve_ages = τ.*log.(1 .-((Sμ.*pi)./(E₀*beta*sin(pi/beta)))).+t0
+    model_strat_heights_m = copy(-model_strat_heights[2:end]).*1000
+        
+    hiatus_thermal_subs_curve = plot(curve_ages, -Sμ, linecolor =:blue, xflip = true, label = "beta and t0", xlabel="Age (Ma) calculated based on beta and t0 from MCMC", ylabel="Thermal subsidence (m)")
+    curve_1_ages = τ.*log.(1 .-((Sμ.*pi)./(E₀*beta_025CI*sin(pi/beta_025CI)))).+t0_025CI
+    curve_2_ages = τ.*log.(1 .-((Sμ.*pi)./(E₀*beta_025CI*sin(pi/beta_025CI)))).+t0_975CI
+    curve_3_ages = τ.*log.(1 .-((Sμ.*pi)./(E₀*beta_975CI*sin(pi/beta_975CI)))).+t0_025CI
+    curve_4_ages = τ.*log.(1 .-((Sμ.*pi)./(E₀*beta_975CI*sin(pi/beta_975CI)))).+t0_975CI
+    #curve_1_ages = τ.*log.(1 .-((Sμ.*pi)./(E₀*beta_lowest_t025*sin(pi/beta_lowest_t025)))).+t0_025CI
+    #curve_2_ages = τ.*log.(1 .-((Sμ.*pi)./(E₀*beta_lowest_t975*sin(pi/beta_lowest_t975)))).+t0_975CI
+    #curve_3_ages = τ.*log.(1 .-((Sμ.*pi)./(E₀*beta_highest_t025*sin(pi/beta_highest_t025)))).+t0_025CI
+    #curve_4_ages = τ.*log.(1 .-((Sμ.*pi)./(E₀*beta_highest_t975*sin(pi/beta_highest_t975)))).+t0_975CI
+    plot!(hiatus_thermal_subs_curve, curve_1_ages, -Sμ, linecolor =:purple, label = "lowest beta and t0 at 025CI")
+    plot!(hiatus_thermal_subs_curve, curve_2_ages, -Sμ, linecolor =:red, label = "lowest beta and t0 at 975CI")
+    plot!(hiatus_thermal_subs_curve, curve_3_ages, -Sμ, linecolor =:orange, label = "beta at 975CI and t0 at 025CI")
+    plot!(hiatus_thermal_subs_curve, curve_4_ages, -Sμ, linecolor =:yellow, label = "beta at 975CI and t0 at 975CI")
+
+    hiatus_age_depth_curve = plot([curve_1_ages; reverse(curve_4_ages)], [model_strat_heights_m; reverse(model_strat_heights_m)], fill = (round(Int,minimum(mdl_height)),0.5,:white), label = "Interpolated model results - 2σ error envelope")
+    plot!(Age[2:4], Height[2:4], xerror=Age_sigma[2:4],label="Age data",seriestype=:scatter,color=:black, legend =:bottomleft, grid = false, dpi = 300)
+    plot!(hiatus_age_depth_curve, curve_2_ages, model_strat_heights_m, linecolor =:red, label = "lowest beta and t0 at 975CI")
+    plot!(hiatus_age_depth_curve, curve_3_ages, model_strat_heights_m, linecolor =:orange, label = "beta at 975CI and t0 at 025CI")
+    plot!(hiatus_age_depth_curve, curve_4_ages, model_strat_heights_m, linecolor =:yellow, label = "beta at 975CI and t0 at 975CI")
+    #plot!(age_depth_curve, mdl_age, mdl_height, linecolor=:blue, label="", fg_color_legend=:white)
+
+    Sᵣ = reverse(Sμ)
+    target_ages = [815.29, 811.51, 810.7, 788.7, 752.7, 739.9]
+    target_age_errors = [0.32, 0.25, 6.3, 0.24, 5.5, 6.1]
+    target_heights = [-(2.232-0.25), -(2.232-0.425), -(2.232-0.435), -(2.232-1.14), -(2.232-1.93), -(2.232-2.125)]
+    target_heights_m = copy(target_heights)*1000
+    target_height_errors = [0.212, 0.1, 0.05, 0.2, 0.035, 0.035]
+    target_height_errors_m = copy(target_height_errors)*1000
+    target_subs_heights = [-Sᵣ[250], -Sᵣ[425], -Sᵣ[435], -Sᵣ[1140], -Sᵣ[1930], -Sᵣ[2125]]
+    target_subs_height_errors = [(Sᵣ[250]-Sᵣ[38]), (Sᵣ[425]-Sᵣ[325]), (Sᵣ[435]-Sᵣ[385]), (Sᵣ[1140]-Sᵣ[940]), (Sᵣ[1930]-Sᵣ[1895]), (Sᵣ[2125]-Sᵣ[2090])]
+
+    scatter!(hiatus_age_depth_curve, target_ages, target_heights_m, xerr = target_age_errors, yerr = target_height_errors_m, label = "correlated ages")
+    scatter!(hiatus_thermal_subs_curve, target_ages, target_subs_heights, xerr = target_age_errors, yerr = target_subs_height_errors, label = "correlated ages")
+=#
 
 ## --- End of File
