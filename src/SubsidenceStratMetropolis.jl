@@ -1,13 +1,13 @@
 ## --- Stratigraphic MCMC model without hiatus # # # # # # # # # # # # # # # # #
 
-import Pkg;
-Pkg.add(["StatGeochem","Distributions","Plots"])
-using StatGeochem, Distributions, Plots
-using StatsBase: fit, Histogram, percentile
-using ProgressMeter: @showprogress, Progress, update!
-using LsqFit: curve_fit
-using KernelDensity: kde
-using Interpolations
+#import Pkg;
+#Pkg.add(["StatGeochem","Distributions","Plots"])
+#using StatGeochem, Distributions, Plots
+#using StatsBase: fit, Histogram, percentile
+#using ProgressMeter: @showprogress, Progress, update!
+#using LsqFit: curve_fit
+#using KernelDensity: kde
+#using Interpolations
 
 
 # Part 1: Decompaction and Backstripping 
@@ -769,7 +769,7 @@ end
 
 # Part 2c: Modified StratMetropolis for extensional basins - with hiata (when we know the duration of hiata relatively precisely)
     
-function StratMetropolis(smpl::ChronAgeData, hiatus::HiatusData, config::StratAgeModelConfiguration, therm::ThermalSubsidenceParameters, model_strat_heights)
+function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConfiguration, therm::ThermalSubsidenceParameters, model_strat_heights, hiatus::HiatusData)
         
     # Run stratigraphic MCMC model, with hiata
     print("Generating stratigraphic age-depth model...\n")

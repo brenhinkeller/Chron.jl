@@ -10,21 +10,21 @@
         using Chron
     end
 
-    import Pkg;
-    Pkg.add(["StatGeochem","Distributions","Plots","StatsBase","ProgressMeter","LsqFit","KernelDensity","Interpolations","SpecialFunctions"])
+    #import Pkg;
+    #Pkg.add(["StatGeochem","Distributions","Plots","StatsBase","ProgressMeter","LsqFit","KernelDensity","Interpolations","SpecialFunctions"])
     using StatGeochem, Distributions, Plots, Statistics, StatsBase, SpecialFunctions
-    using StatsBase: fit, Histogram, percentile
-    using ProgressMeter: @showprogress, Progress, update!
-    using LsqFit: curve_fit
-    using KernelDensity: kde
-    using Interpolations 
+    #using StatsBase: fit, Histogram, percentile
+    #using ProgressMeter: @showprogress, Progress, update!
+    #using LsqFit: curve_fit
+    #using KernelDensity: kde
+    #using Interpolations 
     using Plots; gr();
 
 
 ## --- Define properties of the stratigraphy
 
     # # # # # # # # # # # Enter stratigraphic information here! # # # # # # # # # # # #
-    data_csv = importdataset("Svalbard.csv",',')
+    data_csv = importdataset("examples/Svalbard.csv",',')
     nLayers = length(data_csv["Thickness"])
 
     strat = NewStratData(nLayers)

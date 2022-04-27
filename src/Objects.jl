@@ -99,14 +99,14 @@
 
     # A type of object to hold data about the stratigraphy
     mutable struct StratData
-        Lithology::String
+        Lithology::Array{String}
         Thickness::Array{Float64,1}
     end
     
     function NewStratData(nLayers)
         strat = StratData(
-            ("Rock Types",),
-            fill(NaN,nLayers),  
+            fill("", nLayers),
+            fill(NaN,nLayers), 
         )
         return strat
     end
