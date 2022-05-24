@@ -8,7 +8,8 @@
             xticks=[],
             xlabel="",
             color=:auto,
-            markersize=2
+            markersize=2,
+            framestyle=:box
         )
         h = plot()
         i0 = 0
@@ -20,7 +21,8 @@
                 xlabel=xlabel,
                 xticks=xticks,
                 color=color,
-                markersize=markersize
+                markersize=markersize,
+                framestyle=framestyle
         )
         return h
     end
@@ -33,7 +35,8 @@
             xlabel="",
             xticks=[],
             color=:auto,
-            markersize=2
+            markersize=2,
+            framestyle=:box
         )
         sI = sortperm(data)
         plot!(h, i0 .+ (1:length(sI))*scale,data[sI],
@@ -45,7 +48,8 @@
             ylabel=ylabel,
             xlabel=xlabel,
             xticks=xticks,
-            markersize=markersize
+            markersize=markersize,
+            framestyle=framestyle
         )
     end
 
