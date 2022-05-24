@@ -83,7 +83,7 @@
     # Interpolate log likelihood from an array
     function interpolate_ll(x::AbstractVector,p::AbstractMatrix)
         ll = 0
-        @inbounds for i = 1:length(x)
+        @inbounds for i ∈ eachindex(x)
             ll += linterp_at_index(view(p,:,i), x[i], -Inf)
         end
         return ll

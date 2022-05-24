@@ -65,7 +65,7 @@
         # Create and populate directory of screened output
         screenedpath = joinpath(Path, "screened/")
         mkpath(screenedpath)
-        for i=1:length(Name)
+        for i ∈ eachindex(Name)
             # With screening
             # Maximum offset before cutoff
             data = readdlm(joinpath(Path, Name[i]*".csv"), ',', Float64)::Array{Float64,2}
@@ -119,7 +119,7 @@
 
         # Load all data points and scale from 0 to 1
         allscaled = Array{Float64}([])
-        for i=1:length(Name)
+        for i ∈ eachindex(Name)
             if DistType[i]==0
                 data = readdlm(joinpath(Path, Name[i]*".csv"), ',', Float64)::Array{Float64,2}
                 μ, σ = data[:,1], data[:,2]
@@ -241,7 +241,7 @@
 
         # Estimate the eruption/deposition distribution for each sample
         print("Estimating eruption/deposition age distributions...\n")
-        @batch for i=1:length(Name)
+        @batch for i ∈ eachindex(Name)
             if DistType[i] == 0 # A distribution to fit properly
                 # Load data for each sample
                 data = readdlm(joinpath(Path, Name[i]*".csv"), ',', Float64)::Array{Float64,2}

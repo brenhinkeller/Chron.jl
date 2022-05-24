@@ -70,7 +70,7 @@
         sample_height = copy(Height)
         closest = findclosest(sample_height, model_heights)
         closest_model_ages = model_ages[closest]
-        @inbounds for i=1:length(Age)
+        @inbounds for i ∈ eachindex(Age)
             if Age_Sidedness[i] == sign(closest_model_ages[i] - Age[i])
                 closest_model_ages[i] = Age[i]
             end
@@ -98,7 +98,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
                     closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
                     if closestₚ[i] < 1 # Check we're still within bounds
@@ -132,7 +132,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i=1:length(Age)
+            @inbounds for i ∈ eachindex(Age)
                 closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
                 if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
                     closest_model_agesₚ[i] = Age[i]
@@ -172,7 +172,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
                     closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
                     if closestₚ[i] < 1 # Check we're still within bounds
@@ -205,7 +205,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i=1:length(Age)
+            @inbounds for i ∈ eachindex(Age)
                 closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
                 if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
                     closest_model_agesₚ[i] = Age[i]
@@ -299,7 +299,7 @@
         sample_height = copy(Height)
         closest = findclosest(sample_height, model_heights)
         closest_model_ages = model_ages[closest]
-        @inbounds for i=1:length(Age)
+        @inbounds for i ∈ eachindex(Age)
             if Age_Sidedness[i] == sign(closest_model_ages[i] - Age[i])
                 closest_model_ages[i] = Age[i]
             end
@@ -313,7 +313,7 @@
         Hiatus_height = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
-        for i=1:length(closest_hiatus_unique)
+        for i ∈ eachindex(closest_hiatus_unique)
             t = closest_hiatus.==closest_hiatus_unique[i]
             Hiatus_height[i] = mean((hiatus.Height::Array{Float64,1})[t])
             Hiatus_duration[i] = sum((hiatus.Duration::Array{Float64,1})[t])
@@ -346,7 +346,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
                     closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
                     if closestₚ[i] < 1 # Check we're still within bounds
@@ -406,7 +406,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i=1:length(Age)
+            @inbounds for i ∈ eachindex(Age)
                 closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
                 if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
                     closest_model_agesₚ[i] = Age[i]
@@ -451,7 +451,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
                     closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
                     if closestₚ[i] < 1 # Check we're still within bounds
@@ -510,7 +510,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i=1:length(Age)
+            @inbounds for i ∈ eachindex(Age)
                 closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
                 if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
                     closest_model_agesₚ[i] = Age[i]
@@ -636,7 +636,7 @@
         sample_height = copy(Height)
         closest = findclosest(sample_height, model_heights)
         closest_model_ages = model_ages[closest]
-        @inbounds for i=1:length(Age)
+        @inbounds for i ∈ eachindex(Age)
             if Age_Sidedness[i] == sign(closest_model_ages[i] - Age[i])
                 closest_model_ages[i] = Age[i]
             end
@@ -664,7 +664,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
                     closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
                     if closestₚ[i] < 1 # Check we're still within bounds
@@ -700,7 +700,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i=1:length(Age)
+            @inbounds for i ∈ eachindex(Age)
                 closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
                 if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
                     closest_model_agesₚ[i] = Age[i]
@@ -740,7 +740,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
                     closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
                     if closestₚ[i] < 1 # Check we're still within bounds
@@ -776,7 +776,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i=1:length(Age)
+            @inbounds for i ∈ eachindex(Age)
                 closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
                 if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
                     closest_model_agesₚ[i] = Age[i]
@@ -874,7 +874,7 @@
         sample_height = copy(Height)
         closest = findclosest(sample_height, model_heights)
         closest_model_ages = model_ages[closest]
-        @inbounds for i=1:length(Age)
+        @inbounds for i ∈ eachindex(Age)
             if Age_Sidedness[i] == sign(closest_model_ages[i] - Age[i])
                 closest_model_ages[i] = Age[i]
             end
@@ -888,7 +888,7 @@
         Hiatus_height = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
-        for i=1:length(closest_hiatus_unique)
+        for i ∈ eachindex(closest_hiatus_unique)
             t = closest_hiatus.==closest_hiatus_unique[i]
             Hiatus_height[i] = mean((hiatus.Height::Array{Float64,1})[t])
             Hiatus_duration[i] = sum((hiatus.Duration::Array{Float64,1})[t])
@@ -921,7 +921,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
                     closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
                     if closestₚ[i] < 1 # Check we're still within bounds
@@ -983,7 +983,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i=1:length(Age)
+            @inbounds for i ∈ eachindex(Age)
                 closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
                 if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
                     closest_model_agesₚ[i] = Age[i]
@@ -1027,7 +1027,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
                     closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
                     if closestₚ[i] < 1 # Check we're still within bounds
@@ -1086,7 +1086,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i=1:length(Age)
+            @inbounds for i ∈ eachindex(Age)
                 closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
                 if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
                     closest_model_agesₚ[i] = Age[i]
@@ -1212,7 +1212,7 @@
         sample_height = copy(Height)
         closest = findclosest(sample_height, model_heights)
         closest_model_ages = model_ages[closest]
-        @inbounds for i=1:length(Age)
+        @inbounds for i ∈ eachindex(Age)
             if Age_Sidedness[i] == sign(closest_model_ages[i] - Age[i])
                 closest_model_ages[i] = Age[i]
             end
@@ -1239,7 +1239,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
                     closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
                     if closestₚ[i] < 1 # Check we're still within bounds
@@ -1273,7 +1273,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i=1:length(Age)
+            @inbounds for i ∈ eachindex(Age)
                 closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
                 if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
                     closest_model_agesₚ[i] = Age[i]
@@ -1313,7 +1313,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
                     closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
                     if closestₚ[i] < 1 # Check we're still within bounds
@@ -1346,7 +1346,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i=1:length(Age)
+            @inbounds for i ∈ eachindex(Age)
                 closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
                 if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
                     closest_model_agesₚ[i] = Age[i]
@@ -1445,7 +1445,7 @@
         sample_height = copy(Height)
         closest = findclosest(sample_height, model_heights)
         closest_model_ages = model_ages[closest]
-        @inbounds for i=1:length(Age)
+        @inbounds for i ∈ eachindex(Age)
             if Age_Sidedness[i] == sign(closest_model_ages[i] - Age[i])
                 closest_model_ages[i] = Age[i]
             end
@@ -1459,7 +1459,7 @@
         Hiatus_height = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
-        for i=1:length(closest_hiatus_unique)
+        for i ∈ eachindex(closest_hiatus_unique)
             t = closest_hiatus.==closest_hiatus_unique[i]
             Hiatus_height[i] = mean((hiatus.Height::Array{Float64,1})[t])
             Hiatus_duration[i] = sum((hiatus.Duration::Array{Float64,1})[t])
@@ -1492,7 +1492,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
                     closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
                     if closestₚ[i] < 1 # Check we're still within bounds
@@ -1552,7 +1552,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i=1:length(Age)
+            @inbounds for i ∈ eachindex(Age)
                 closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
                 if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
                     closest_model_agesₚ[i] = Age[i]
@@ -1596,7 +1596,7 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i=1:length(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
                     closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
                     if closestₚ[i] < 1 # Check we're still within bounds
@@ -1655,7 +1655,7 @@
             # Calculate log likelihood of proposal
             # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
             # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i=1:length(Age)
+            @inbounds for i ∈ eachindex(Age)
                 closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
                 if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
                     closest_model_agesₚ[i] = Age[i]
