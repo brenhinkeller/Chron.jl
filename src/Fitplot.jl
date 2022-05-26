@@ -53,6 +53,26 @@
         )
     end
 
+## --- Utility function for file IO
+
+    @inline function readclean(filepath, delim, T)
+        io = open(filepath, "r")
+        if read(io, Char) == '\ufeff'
+            @warn """Skipping hidden \'\\ufeff\' (U+FEFF) character at start of input file.
+
+            This character is often added to CSV files by Microsoft Excel (and some other
+            Microsoft products) as what appears to be what we might call an "extension",
+            which would would cause file parsing to fail if we didn't manually remove it.
+
+            Try using open software like LibreOffice instead of Excel to make this warning go away.
+            """
+        else
+            seekstart(io)
+        end
+        data = readdlm(io, delim, T)
+        close(io)
+        return data
+    end
 
 ## --- Remove outliers
 
@@ -70,21 +90,7 @@
             # Maximum offset before cutoff
             # Read data for each sample from file
             filepath = joinpath(Path, Name[i]*".csv")
-            io = open(filepath, "r")
-            if read(io, Char) == '\ufeff'
-                @warn """Skipping hidden \'\\ufeff\' (U+FEFF) character at start of input file.
-
-                This character is often added to CSV files by Microsoft Excel (and some other
-                Microsoft products) as what appears to be what we might call an "extension",
-                which would would cause file parsing to fail if we didn't manually remove it.
-
-                Try using open software like LibreOffice instead of Excel to make this warning go away.
-                """
-            else
-                seekstart(io)
-            end
-            data_raw = readdlm(io, ',', Float64)::Array{Float64,2}
-            close(io)
+            data_raw = readclean(filepath, ',', Float64)::Array{Float64,2}
             # Sort ages in ascending order
             data = sortslices(data_raw, dims=1)
             nAnalyses = size(data,1)
@@ -140,21 +146,7 @@
             if DistType[i]==0
                 # Read data for each sample from file
                 filepath = joinpath(Path, Name[i]*".csv")
-                io = open(filepath, "r")
-                if read(io, Char) == '\ufeff'
-                    @warn """Skipping hidden \'\\ufeff\' (U+FEFF) character at start of input file.
-
-                    This character is often added to CSV files by Microsoft Excel (and some other
-                    Microsoft products) as what appears to be what we might call an "extension",
-                    which would would cause file parsing to fail if we didn't manually remove it.
-
-                    Try using open software like LibreOffice instead of Excel to make this warning go away.
-                    """
-                else
-                    seekstart(io)
-                end
-                data = readdlm(io, ',', Float64)::Array{Float64,2}
-                close(io)
+                data = readclean(filepath, ',', Float64)::Array{Float64,2}
                 # First column should be means, second should be standard deviation
                 μ, σ = data[:,1], data[:,2]
 
@@ -279,21 +271,7 @@
             if DistType[i] == 0 # A distribution to fit properly
                 # Read data for each sample from file
                 filepath = joinpath(Path, Name[i]*".csv")
-                io = open(filepath, "r")
-                if read(io, Char) == '\ufeff'
-                    @warn """Skipping hidden \'\\ufeff\' (U+FEFF) character at start of input file.
-
-                    This character is often added to CSV files by Microsoft Excel (and some other
-                    Microsoft products) as what appears to be what we might call an "extension",
-                    which would would cause file parsing to fail if we didn't manually remove it.
-
-                    Try using open software like LibreOffice instead of Excel to make this warning go away.
-                    """
-                else
-                    seekstart(io)
-                end
-                data = readdlm(io, ',', Float64)::Array{Float64,2}
-                close(io)
+                data = readclean(filepath, ',', Float64)::Array{Float64,2}
                 print(i, ": ", Name[i], "\n") # Display progress
 
                 # Run MCMC to estimate saturation and eruption/deposition age distributions
@@ -349,21 +327,7 @@
             elseif DistType[i] == 1 # A single Gaussian
                 # Read data for each sample from file
                 filepath = joinpath(Path, Name[i]*".csv")
-                io = open(filepath, "r")
-                if read(io, Char) == '\ufeff'
-                    @warn """Skipping hidden \'\\ufeff\' (U+FEFF) character at start of input file.
-
-                    This character is often added to CSV files by Microsoft Excel (and some other
-                    Microsoft products) as what appears to be what we might call an "extension",
-                    which would would cause file parsing to fail if we didn't manually remove it.
-
-                    Try using open software like LibreOffice instead of Excel to make this warning go away.
-                    """
-                else
-                    seekstart(io)
-                end
-                data = readdlm(io, ',', Float64)::Array{Float64,2}
-                close(io)
+                data = readclean(filepath, ',', Float64)::Array{Float64,2}
                 print(i, ": ", Name[i], "\n") # Display progress
                 μ = data[1,1]
                 σ = data[1,2]
