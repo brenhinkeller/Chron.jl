@@ -1,7 +1,7 @@
 name = "Chron"
 uuid = "68885b1f-77b5-52a7-b2e7-6a8014c56b98"
 authors = ["C. Brenhin Keller <cbkeller@dartmouth.edu>"]
-version = "0.3.3"
+version = "0.3.4"
 
 [deps]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
