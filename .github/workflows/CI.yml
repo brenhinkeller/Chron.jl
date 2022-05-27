@@ -1,15 +1,14 @@
 name: CI
 on:
   push:
+    branches:
+      - '**'
     paths-ignore:
-      - 'LICENSE'
       - 'README.md'
-    tags: '*'
   pull_request:
     branches:
       - main
     paths-ignore:
-      - 'LICENSE'
       - 'README.md'
 jobs:
   test:
