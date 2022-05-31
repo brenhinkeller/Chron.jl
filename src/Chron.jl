@@ -18,8 +18,6 @@
 #                                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-__precompile__()
-
 module Chron
 
     using Reexport
