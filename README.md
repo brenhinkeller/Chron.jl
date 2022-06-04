@@ -4,7 +4,9 @@
 [![Build Status][ci-img]][ci-url]
 [![codecov.io][codecov-img]][codecov-url]
 
-A two-part framework for any combination of (1) estimating eruption/deposition age distributions from complex mineral age spectra and/or (2) subsequently building a stratigraphic age model based on those distributions. Each step relies on a Markov-Chain Monte Carlo model, and either step can be run as a standalone model if you do not need both components.
+_A Bayesian framework for integrated eruption age and age-depth modelling_
+
+Chron.jl is a two-part framework for any combination of (1) estimating eruption/deposition age distributions from complex mineral age spectra and/or (2) subsequently building a stratigraphic age model based on those distributions. Each step relies on a Markov-Chain Monte Carlo model, and either step can be run as a standalone model if you do not need both components.
 
 The first (distribution) MCMC model is based on the work of [Keller, Schoene, and Samperton (2018)]( https://doi.org/10.7185/geochemlet.1826) and uses information about the possible shape of the true mineral crystallization (or closure) age distribution (e.g., no crystallization possible after eruption or deposition). In this first model, the true eruption or deposition age is a parameter of this scaled crystallization distribution. The stationary distribution of this first MCMC model then gives an estimate of the eruption/deposition age.
 
