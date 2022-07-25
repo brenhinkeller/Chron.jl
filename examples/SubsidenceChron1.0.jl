@@ -20,37 +20,52 @@
     #using Interpolations 
     using Plots; gr();
 
-
 ## --- Define properties of the stratigraphy
 
     # # # # # # # # # # # Enter stratigraphic information here! # # # # # # # # # # # #
-    data_csv = importdataset("examples/Svalbard.csv",',')
+    data_csv = importdataset("examples/Test_DB_PerfectSubsidence.csv",',')
     nLayers = length(data_csv["Thickness"])
 
     strat = NewStratData(nLayers)
     strat.Lithology          = data_csv["Lithology"] 
     strat.Thickness         .= data_csv["Thickness"] 
 
-    # Run the decompaction and backstripping MC model
-    @time (Sₜ, Sμ, Sσ, model_strat_heights) = DecompactBackstrip(strat)
+    nsims = 1000
+    res = 0.02
+
+## --- Run the decompaction and backstripping MC model
+    @time (Sₜ, Sμ, Sσ, model_strat_heights) = DecompactBackstrip(strat, nsims, res)
 
     # Plot results - tectonic subsidence in comparison with present day stratigraphic heights
-    p1 = plot(1:2232, Sμ, alpha = 1, yflip = true, xflip = true, label = "Tectonic subsidence", color = "blue")
-    plot!(p1, 1:2232, reverse((model_strat_heights[2:end])*1000), yflip = true, label = "Present-day thickness", color = "red")
-    plot!(p1, 1:2232, Sₜ[:,2:end], alpha = 0.01, label = "", yflip = true, color = "blue", fg_color_legend=:white)
+    p1 = plot(1:541, Sμ, alpha = 1, yflip = true, xflip = true, label = "Tectonic subsidence", color = "blue")
+    plot!(p1, 1:541, reverse((model_strat_heights)*1000), yflip = true, label = "Present-day thickness", color = "red")
+    plot!(p1, 1:541, Sₜ[:,2:end], alpha = 0.01, label = "", yflip = true, color = "blue", fg_color_legend=:white)
 
+    #Test Plot 1: how the distribution of Sₜ compare with target mean value?
+    using DelimitedFiles
+    Sₜ_test = readdlm("St_test.txt", ',', Float64)*1000
+    testplot1_1 = histogram(Sₜ[1,:], label = "Distribution from MC", linecolor = "white")
+    vline!(testplot1_1, [Sₜ_test[1]], label = "Target value", linecolor = "black", linewidth = 2)
+    testplot1_2 = histogram(Sₜ[121,:], label = "Distribution from MC", linecolor = "white")
+    vline!(testplot1_2, [Sₜ_test[121]], label = "Target value", linecolor = "black", linewidth = 2)
+    testplot1_3 = histogram(Sₜ[361,:], label = "Distribution from MC", linecolor = "white")
+    vline!(testplot1_3, [Sₜ_test[361]], label = "Target value", linecolor = "black", linewidth = 2)
+    testplot1_4 = histogram(Sₜ[501,:], label = "Distribution from MC", linecolor = "white")
+    vline!(testplot1_4, [Sₜ_test[501]], label = "Target value", linecolor = "black", linewidth = 2)
+    testplot1 = plot(testplot1_1, testplot1_2, testplot1_3, testplot1_4, layout = 4, title = ["0 Ma" "80 Ma" "145 Ma" "245 Ma"], size = (1000, 1000))
+    png(testplot1, "Test1_DecompactBackstripMC")
 
 ## --- Define properties of age constraints
 
     # # # # # # # # # # # Enter age constraint (sample) information here! # # # # # # # # # # # #
     # Input the number of samples we wish to model (must match below)
-    nSamples = 3
+    nSamples = 4
     # Make an instance of a ChronSection object for nSamples
     smpl = NewChronAgeData(nSamples)
-    smpl.Name          = ("Sample 1", "Sample 2", "Sample 3") # Et cetera
-    smpl.Age          .= [ 791.1,  737.5,  717] # Measured ages
-    smpl.Age_sigma    .= [  2.45,    4.8,  0.4] # Measured 1-σ uncertainties
-    smpl.Height       .= [ -1283,   -120,    0] # Depths below surface should be negative
+    smpl.Name          = ("Sample 1", "Sample 2", "Sample 3", "Sample 4") # Et cetera
+    smpl.Age          .= [ 388.7,  362.8,  327.0,  106.8] # Measured ages
+    smpl.Age_sigma    .= [  0.2,    0.2,    0.2,    0.2] # Measured 1-σ uncertainties
+    smpl.Height       .= [ -1700,   -1100,   -700,   -100] # Depths below surface should be negative
     smpl.Height_sigma .= fill(0.01, nSamples) # Usually assume little or no sample height uncertainty
     smpl.Age_Sidedness .= zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
     smpl.Age_Unit = "Ma" # Unit of measurement for ages
@@ -66,10 +81,10 @@
 
     # # # # # # # # # # Enter thermal subsidence parameter priors here! # # # # # # # # # #
     # Enter initial guesses for the beta factor and thermal subsidence onset age and their uncertainties
-    Beta = 1.3
+    Beta = 1.4
     Beta_sigma = 0.2
-    T0 = 820
-    T0_sigma = 20
+    T0 = 400
+    T0_sigma = 50
 
     therm = NewThermalSubsidenceParameters()
     therm.Param = [Beta, T0] 
@@ -82,40 +97,141 @@
     # Configure the stratigraphic Monte Carlo model
     config = NewStratAgeModelConfiguration()
     # If you in doubt, you can probably leave these parameters as-is
-    config.resolution = 1 # Same units as sample height. Smaller is slower!
+    config.resolution = res*1000 # Same units as sample height. Smaller is slower!
     config.bounding = 0.1 # how far away do we place runaway bounds, as a fraction of total section height. Larger is slower.
-    #(bottom, top) = extrema(smpl.Height)
+    (bottom, top) = extrema(smpl.Height)
     npoints_approx = round(Int,length(bottom:config.resolution:top) * (1 + 2*config.bounding))
-    config.nsteps = 1500 # Number of steps to run in distribution MCMC #!!TRIAL RUN SETTING!! ACTUAL RUNS SHOULD BE 15000
-    config.burnin = 3000*npoints_approx # Number to discard #!!TRIAL RUN SETTING!! ACTUAL RUNS SHOULD BE 10000
-    config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
+    config.nsteps = 15000 # Number of steps to run in distribution MCMC #!!TRIAL RUN SETTING!! ACTUAL RUNS SHOULD BE 15000
+    config.burnin = 30000*npoints_approx # Number to discard #!!TRIAL RUN SETTING!! ACTUAL RUNS SHOULD BE 10000
+    config.sieve = round(Int,npoints_approx)*10 # Record one out of every nsieve steps
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-    # Run the stratigraphic MCMC model
-    @time (subsmdl, agedist, lldist, beta_t0dist) = SubsidenceStratMetropolis(smpl, config, therm, model_strat_heights)
+    ## --- Option 1: Stratigraphic MCMC model (without hiatus)
+        #Run the model
+        @time (subsmdl, agedist, lldist, beta_t0dist, lldist_age, lldist_height, lldist_tsparam, lldist_subs) = SubsidenceStratMetropolis(smpl, config, therm, model_strat_heights, Sμ, Sσ, 0.05, -5)
 
-    # Plot results (mean and 95% confidence interval for both model and data)
-    hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(round(Int,minimum(mdl.Height)),0.5,:blue), label="model")
-    plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white) # Center line
-    t = smpl.Age_Sidedness .== 0 # Two-sided constraints (plot in black)
-    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(smpl.Age[t]-smpl.Age_025CI[t],smpl.Age_975CI[t]-smpl.Age[t]),label="data",seriestype=:scatter,color=:black)
-    t = smpl.Age_Sidedness .== 1 # Minimum ages (plot in cyan)
-    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(smpl.Age[t]-smpl.Age_025CI[t],zeros(count(t))),label="",seriestype=:scatter,color=:cyan,msc=:cyan)
-    any(t) && zip(smpl.Age[t], smpl.Age[t].+nanmean(smpl.Age_sigma[t])*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:cyan)
-    t = smpl.Age_Sidedness .== -1 # Maximum ages (plot in orange)
-    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(zeros(count(t)),smpl.Age_975CI[t]-smpl.Age[t]),label="",seriestype=:scatter,color=:orange,msc=:orange)
-    any(t) && zip(smpl.Age[t], smpl.Age[t].-nanmean(smpl.Age_sigma[t])*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:orange)
-    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
-    savefig(hdl,"AgeDepthModel.pdf")
-    display(hdl)
+        #Calculate modeled ages for target horizons
+        target_height = [0.36, 0.98, 1.311, 1.84]
+        target_index = findclosest(target_height, model_strat_heights)
+        target_subs = copy(Sₜ[target_index,:])
+        #target_subs_rand = Array{Float64,2}(undef, length(target_index), 20)
+        #t_subset = Array{Float64,1}(undef, 20)
+        beta_t0dist_filter = Array{Float64,2}(undef, 2, config.nsteps)
+        idx = 1
+        for i = 1:config.nsteps
+            if beta_t0dist[1,i]<=subsmdl.Beta_975CI[1] && beta_t0dist[1,i]>=subsmdl.Beta_025CI[1] && beta_t0dist[2,i]<=subsmdl.T0_975CI[1] && beta_t0dist[2,i]>=subsmdl.T0_025CI[1]
+                beta_t0dist_filter[1,idx] = beta_t0dist[1,i]
+                beta_t0dist_filter[2,idx] = beta_t0dist[2,i]
+                idx += 1
+            end
+        end
+        beta_t0dist_95CI = beta_t0dist_filter[:,1:(idx-1)]
+        
+        beta_t0_sample_size = div((idx-1),30)
+        Sₜ_sample_size = 30
+        beta_t0_sampled = Array{Float64,2}(undef, 2, beta_t0_sample_size)
+        predicted_ages = Array{Float64,2}(undef, length(target_index), beta_t0_sample_size*Sₜ_sample_size)
+        τ = 50
+        E₀ = 3165.6475782289444
+        using ProgressMeter
+        pgrs = Progress(beta_t0_sample_size, desc="Progress...")
+        pgrs_interval = ceil(Int,sqrt(beta_t0_sample_size))
+        for i = 1:beta_t0_sample_size
+            beta_t0_sampled[:,i] = beta_t0dist_95CI[:,(rand(1:(idx-1)))] 
+            print(beta_t0_sampled[:,i])
+            for j = 1:length(target_index)
+                k = 1
+                while k <= Sₜ_sample_size
+                    random_draw = rand(target_subs[j,:])
+                    temp_calc = (random_draw*pi)/(E₀*beta_t0_sampled[1,i]*sin(pi/beta_t0_sampled[1,i]))
+                    if temp_calc<1
+                        predicted_ages[j,k+(i-1)*Sₜ_sample_size] = τ*log(1-temp_calc)+beta_t0_sampled[2,i]
+                        k += 1
+                    end
+                end
+            end
+            mod(i,pgrs_interval)==0 && update!(pgrs, i)
+        end
+        update!(pgrs, beta_t0_sample_size)
+
+        # Plot results (mean and 95% confidence interval for both model and data)
+        hdl = plot([subsmdl.Age_025CI; reverse(subsmdl.Age_975CI)],[subsmdl.Height; reverse(subsmdl.Height)], fill=(round(Int,minimum(subsmdl.Height)),0.5,:blue), label="model")
+        plot!(hdl, subsmdl.Age, subsmdl.Height, linecolor=:blue, label="", fg_color_legend=:white) # Center line
+        t = smpl.Age_Sidedness .== 0 # Two-sided constraints (plot in black)
+        any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(smpl.Age[t]-smpl.Age_025CI[t],smpl.Age_975CI[t]-smpl.Age[t]),label="data",seriestype=:scatter,color=:black)
+        t = smpl.Age_Sidedness .== 1 # Minimum ages (plot in cyan)
+        any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(smpl.Age[t]-smpl.Age_025CI[t],zeros(count(t))),label="",seriestype=:scatter,color=:cyan,msc=:cyan)
+        any(t) && zip(smpl.Age[t], smpl.Age[t].+nanmean(smpl.Age_sigma[t])*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:cyan)
+        t = smpl.Age_Sidedness .== -1 # Maximum ages (plot in orange)
+        any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(zeros(count(t)),smpl.Age_975CI[t]-smpl.Age[t]),label="",seriestype=:scatter,color=:orange,msc=:orange)
+        any(t) && zip(smpl.Age[t], smpl.Age[t].-nanmean(smpl.Age_sigma[t])*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:orange)
+        plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
+        #plot!(hdl, [smpl.Age[1], smpl.Height[1]],[smpl.Age[3], smpl.Height[3]])
+        savefig(hdl,"AgeDepthModel_test6-3_0721.pdf")
+        #display(hdl)
+
+        #Test Plot 2 (to see how well the model predicted beta and t0 matches the actual values):
+        beta_range = 1:0.005:therm.Param[1]+therm.Sigma[1]*3 #three sigmas
+        t0_range = therm.Param[2]-therm.Sigma[2]*3:1:therm.Param[2]+therm.Sigma[2]*3 #three sigmas
+        beta_pdf = pdf.(Normal(Beta, Beta_sigma), beta_range)
+        t0_pdf = pdf.(Normal(T0, T0_sigma), t0_range)
+        testplot2_1 = plot(beta_range, beta_pdf, linecolor = "red", label = "prior", legend=:topright)
+        vline!([Beta], label = "prior mean (= actual t0)", linecolor = "red", linewidth = 2) #1.4+/-0.2
+        histogram!(twinx(), beta_t0dist[1,:], label = "posterior", color ="blue", alpha = 0.5, legend=:topleft)
+        vline!([nanmean(beta_t0dist,dims=2)[1]], label = "posterior mean", linecolor = "blue", linewidth = 2)
+        vline!([1.4], label = "actual beta", linecolor = "black", linewidth =2)
+        savefig(testplot2_1,"beta_test6-3_0721.pdf")
+
+        testplot2_2 = histogram(beta_t0dist[2,:], label = "posterior", color = "blue", alpha = 0.5, legend=:topright)
+        vline!([nanmean(beta_t0dist,dims=2)[2]], label = "posterior mean", linecolor = "blue", linewidth = 2) #120+/-20
+        plot!(twinx(), t0_range, t0_pdf, linecolor = "red", label = "prior", legend=:topleft)
+        vline!([T0], label = "prior mean", linecolor = "red", linewidth = 2)
+        vline!([400], label = "actual beta", linecolor = "black", linewidth =2)
+        savefig(testplot2_2,"t0_test6-3_0721.pdf")
+
+        #Test Plot 3 (to see how ll and the different ll components change throughout the whole run):
+        testplot3_1 = plot(lldist_subs, label = "Subsidence" , legend=:bottomright)
+        plot!(testplot3_1, lldist_age, label = "Age")
+        plot!(testplot3_1, lldist_tsparam, label = "TS Parameters")
+        plot!(testplot3_1, lldist_height, label = "Height")
+        png(testplot3_1, "Test1_1_LL_components")
+
+        testplot3_2 = plot(lldist, label = "ll of accepted proposals" , legend=:bottomright)
+        png(testplot3_2, "Test1_1_LL")
+
+        #Test Plot 4 (to see how well is the model doing matching the ideal subsidence curve)
+        Sₜ_025CI = nanpctile(Sₜ, 2.5, dims = 2)[6:86]
+        Sₜ_975CI = nanpctile(Sₜ, 97.5, dims = 2)[6:86]
+        Sμ_crop = Sμ[6:86]
+        Sμ_sample = [Sμ[6],Sμ[36],Sμ[56],Sμ[86]]
+        testplot4 = plot([subsmdl.Age; reverse(subsmdl.Age)],[reverse(Sₜ_025CI); Sₜ_975CI], fill=(round(Int,minimum(Sₜ_025CI)),0.4,:blue), label="model")
+        plot!(testplot4, subsmdl.Age, reverse(Sμ_crop), linecolor=:blue, label="", fg_color_legend=:white) # Center line
+        t = smpl.Age_Sidedness .== 0 # Two-sided constraints (plot in black)
+        any(t) && plot!(testplot4, smpl.Age[t], reverse(Sμ_sample)[t], xerror=(smpl.Age[t]-smpl.Age_025CI[t],smpl.Age_975CI[t]-smpl.Age[t]), label="data",seriestype=:scatter,color=:black)
+        t = smpl.Age_Sidedness .== 1 # Minimum ages (plot in cyan)
+        any(t) && plot!(testplot4, smpl.Age[t], reverse(Sμ_sample)[t], xerror=(smpl.Age[t]-smpl.Age_025CI[t],zeros(count(t))),label="",seriestype=:scatter,color=:cyan,msc=:cyan)
+        any(t) && zip(smpl.Age[t], smpl.Age[t].+nanmean(smpl.Age_sigma[t])*4, reverse(Sμ_sample[t])) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:cyan)
+        t = smpl.Age_Sidedness .== -1 # Maximum ages (plot in orange)
+        any(t) && plot!(testplot4, smpl.Age[t], reverse(Sμ_sample)[t], xerror=(zeros(count(t)),smpl.Age_975CI[t]-smpl.Age[t]),label="",seriestype=:scatter,color=:orange,msc=:orange)
+        any(t) && zip(smpl.Age[t], smpl.Age[t].-nanmean(smpl.Age_sigma[t])*4, reverse(Sμ_sample)[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:orange)
+        plot!(testplot4, xlabel="Age ($(smpl.Age_Unit))", ylabel="Tectonic Subsidence ($(smpl.Height_Unit))")
+        E₀ = 3165.6475782289444
+        beta = nanmean(beta_t0dist, dims=2)[1]
+        t0 = nanmean(beta_t0dist, dims=2)[2]
+        Sμ_calculated = (E₀*beta/pi)*sin(pi/beta).*(1 .-exp.(-(t0 .-subsmdl.Age)./50))
+        plot!(testplot4, subsmdl.Age, Sμ_calculated, linecolor=:purple, label="TS curve based on posterior")
+        Sμ_ideal = (E₀*1.4/pi)*sin(pi/1.4).*(1 .-exp.(-(400 .-subsmdl.Age)./50))
+        plot!(testplot4, subsmdl.Age, Sμ_ideal, linecolor=:red, label="actual TS curve")
+        savefig(testplot4, "SubsidenceCurveComparison_test6_1_0721.pdf")
     
+        #Test Plot 5 (to see how the predicted ages for horizons-of-interest match the true values)
+        testplot5 = histogram(predicted_ages[1,:], label = "predicted age for horizon 1", color ="blue", alpha = 0.5, legend=:topleft)
+        vline!([282.60], label = "actual age for horizon 1", linecolor = "black", linewidth = 2) 
+        vline!([nanmedian(predicted_ages,dims=2)[1]], label = "posterior median", linecolor = "blue", linewidth = 2)
+        savefig(testplot5,"PredictedAge_h1_test6-1_0724.pdf")
+
 #=
-    # More plots - NOT READY TO RUN - still need to readjust the format
-    curve_ages = similar(Sμ)
-    curve_ages = τ.*log.(1 .-((Sμ.*pi)./(E₀*beta*sin(pi/beta)))).+t0
-    model_strat_heights_m = copy(-model_strat_heights[2:end]).*1000
-    plot!(hdl, curve_ages, model_strat_heights_m, linecolor =:blue, label = "beta and t0", xlabel="Age (Ma) calculated based on beta and t0 from MCMC", ylabel="Thermal subsidence (m)")
-    savefig(hdl, figpath*"Age_depth_curve_upper_section_comparison.png")
+    # More plots - For Svalbard - still need to readjust the format
 
     Sᵣ = reverse(Sμ)
     target_ages = [815.29, 811.51, 810.7, 788.7, 752.7, 739.9]
@@ -135,24 +251,46 @@
     savefig(thermal_subs_curve, figpath*"Thermal_subs_curve_entire_section.png")    
 =#
 
-    ## --- Optional: Stratigraphic model including hiata
+    ## --- Option 2: Stratigraphic MCMC model including a hiatus with unknown duration
+        #Input strat height of hiatus
+        hiatus_height = -500
 
-    # Data about hiata
-    nHiatuses = 2 # The number of hiata you have data for
-    hiatus = NewHiatusData(nHiatuses) # Struct to hold data
-    hiatus.Height         = [-371.5, -405.0 ]
-    hiatus.Height_sigma   = [   0.0,    0.0 ]
-    hiatus.Duration       = [ 100.0,   123.0]
-    hiatus.Duration_sigma = [  30.5,    20.0]
+        #Run the model with the additional term of "hiatus_height"
+        @time (subsmdl, agedist, lldist, beta_t0dist) = SubsidenceStratMetropolis(smpl, config, therm, model_strat_heights, Sμ, Sσ, hiatus_height, 0.05, -0.5)
 
-    # Run the model. Note the additional `hiatus` arguments
-    @time (subsmdl, agedist, hiatusdist, lldist, beta_t0dist) = StratMetropolis(smpl, hiatus, config, therm, model_strat_heights); sleep(0.5)
+        # Plot results (mean and 95% confidence interval for both model and data)
+        hdl = plot([subsmdl.Age_025CI; reverse(subsmdl.Age_975CI)],[subsmdl.Height; reverse(subsmdl.Height)], fill=(round(Int,minimum(subsmdl.Height)),0.5,:blue), label="model")
+        plot!(hdl, subsmdl.Age, subsmdl.Height, linecolor=:blue, label="", fg_color_legend=:white) # Center line
+        t = smpl.Age_Sidedness .== 0 # Two-sided constraints (plot in black)
+        any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(smpl.Age[t]-smpl.Age_025CI[t],smpl.Age_975CI[t]-smpl.Age[t]),label="data",seriestype=:scatter,color=:black)
+        t = smpl.Age_Sidedness .== 1 # Minimum ages (plot in cyan)
+        any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(smpl.Age[t]-smpl.Age_025CI[t],zeros(count(t))),label="",seriestype=:scatter,color=:cyan,msc=:cyan)
+        any(t) && zip(smpl.Age[t], smpl.Age[t].+nanmean(smpl.Age_sigma[t])*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:cyan)
+        t = smpl.Age_Sidedness .== -1 # Maximum ages (plot in orange)
+        any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(zeros(count(t)),smpl.Age_975CI[t]-smpl.Age[t]),label="",seriestype=:scatter,color=:orange,msc=:orange)
+        any(t) && zip(smpl.Age[t], smpl.Age[t].-nanmean(smpl.Age_sigma[t])*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:orange)
+        plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
+        savefig(hdl,"AgeDepthModel_hiatus_test7-1_0724.pdf")
+        display(hdl)
 
-    # Plot results (mean and 95% confidence interval for both model and data)
-    hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
-    plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white)
-    plot!(hdl, smpl.Age, smpl.Height, xerror=smpl.Age_sigma*2,label="data",seriestype=:scatter,color=:black)
-    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
+
+    ## --- Option 3: Stratigraphic MCMC model including hiata with known durations
+        # Data about hiata
+        nHiatuses = 2 # The number of hiata you have data for
+        hiatus = NewHiatusData(nHiatuses) # Struct to hold data
+        hiatus.Height         = [-371.5, -405.0 ]
+        hiatus.Height_sigma   = [   0.0,    0.0 ]
+        hiatus.Duration       = [ 100.0,   123.0]
+        hiatus.Duration_sigma = [  30.5,    20.0]
+
+        # Run the model. Note the additional `hiatus` arguments
+        @time (subsmdl, agedist, hiatusdist, lldist, beta_t0dist) = StratMetropolis(smpl, config, therm, model_strat_heights, Sμ, Sσ, hiatus); sleep(0.5)
+
+        # Plot results (mean and 95% confidence interval for both model and data)
+        hdl = plot([subsmdl.Age_025CI; reverse(subsmdl.Age_975CI)],[subsmdl.Height; reverse(subsmdl.Height)], fill=(minimum(subsmdl.Height),0.5,:blue), label="model")
+        plot!(hdl, subsmdl.Age, subsmdl.Height, linecolor=:blue, label="", fg_color_legend=:white)
+        plot!(hdl, smpl.Age, smpl.Height, xerror=smpl.Age_sigma*2,label="data",seriestype=:scatter,color=:black)
+        plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
 
 #=
     # More plots - NOT READY TO RUN - still need to readjust the format

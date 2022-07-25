@@ -46,6 +46,8 @@ module Chron
     include("DistMetropolis.jl")
     # Functions for stratigraphic modelling
     include("StratMetropolis.jl")
+    #Functions for subsidence modeling
+    include("SubsidenceStratMetropolis.jl")
 
     using Plots; gr();
     include("Fitplot.jl")

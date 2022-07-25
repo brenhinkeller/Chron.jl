@@ -1,17 +1,9 @@
 ## --- Stratigraphic MCMC model without hiatus # # # # # # # # # # # # # # # # #
 
-#import Pkg;
-#Pkg.add(["StatGeochem","Distributions","Plots"])
-#using StatGeochem, Distributions, Plots
-#using StatsBase: fit, Histogram, percentile
-#using ProgressMeter: @showprogress, Progress, update!
-#using LsqFit: curve_fit
-#using KernelDensity: kde
-#using Interpolations
-
 
 # Part 1: Decompaction and Backstripping 
-function DecompactBackstrip(strat::StratData)
+
+function DecompactBackstrip(strat::StratData, nsims, res)
 
     # Define the decompaction function
     function decompact!(yₚ, y, ϕ₀, c, n, m; niterations = 10)
@@ -32,7 +24,7 @@ function DecompactBackstrip(strat::StratData)
         lithology_inputs = strat.Lithology
         height_inputs = cumsum([0; strat.Thickness])
         nlayer_input = length(strat.Thickness)
-        model_strat_heights = [0:0.001:maximum(height_inputs);]
+        model_strat_heights = [0:res:maximum(height_inputs);]
         model_nlayer = length(model_strat_heights)-1
 
     # Allocate parameters as distributions; each element/distribution represents a layer
@@ -47,32 +39,32 @@ function DecompactBackstrip(strat::StratData)
     for i = 1:nlayer_input
         if lithology_inputs[i] == "Shale"
             # c has a lower bound of 0 b/c porosity at depth should not be greater than porosity at surface
-            c_dist[i] = truncated(LogNormal(log(0.51),0.15), 0, Inf)
+            c_dist[i] = truncated(Normal(0.51, 0.15), 0, Inf)
             # ϕ₀ has a lower bound of 0 and an upper bound of 1 b/c of the definition of porosity
             ϕ₀_dist[i] = truncated(Normal(0.63, 0.15), 0, 1)
-            ρg[i] = 2660
+            ρg[i] = 2720
         elseif lithology_inputs[i] == "Sandstone"
-            c_dist[i] = truncated(LogNormal(log(0.27), 0.1), 0, Inf)
+            c_dist[i] = truncated(Normal(0.27, 0.1), 0, Inf)
             ϕ₀_dist[i] = truncated(Normal(0.49, 0.1), 0, 1)
             ρg[i] = 2650
-        #elseif lithology_inputs[i] == "Chalk"
-            #c_dist[i] = truncated(LogNormal(log(0.71), 0.15), 0, Inf)
-            #ϕ₀_dist[i] = truncated(Normal(0.7, 0.15), 0, 1)
-            #ρg[i] = 2710
+        elseif lithology_inputs[i] == "Chalk"
+            c_dist[i] = truncated(Normal(0.71, 0.15), 0, Inf)
+            ϕ₀_dist[i] = truncated(Normal(0.7, 0.15), 0, 1)
+            ρg[i] = 2710
         elseif lithology_inputs[i] == "Limestone"
-            c_dist[i] = truncated(LogNormal(log(0.6), 0.2), 0, Inf)
+            c_dist[i] = truncated(Normal(0.6, 0.2), 0, Inf)
             ϕ₀_dist[i] = truncated(Normal(0.4, 0.17), 0, 1)
             ρg[i] = 2710
         elseif lithology_inputs[i] == "Dolostone"
-            c_dist[i] = truncated(LogNormal(log(0.6), 0.2), 0, Inf)
+            c_dist[i] = truncated(Normal(0.6, 0.2), 0, Inf)
             ϕ₀_dist[i] = truncated(Normal(0.2, 0.1), 0, 1)
             ρg[i] = 2870
-        #elseif lithology_inputs[i] == "Anhydrite"
-            #c_dist[i] = truncated(LogNormal(log(0.2), 0.1), 0, Inf)
-            #ϕ₀_dist[i] = truncated(Normal(0.05, 0.05), 0, 1)
-            #ρg[i] = 2960
+        elseif lithology_inputs[i] == "Anhydrite"
+            c_dist[i] = truncated(Normal(0.2, 0.1), 0, Inf)
+            ϕ₀_dist[i] = truncated(Normal(0.05, 0.05), 0, 1)
+            ρg[i] = 2960
         elseif lithology_inputs[i] == "Quartzite"
-            c_dist[i] = truncated(LogNormal(log(0.3), 0.1), 0, Inf)
+            c_dist[i] = truncated(Normal(0.3, 0.1), 0, Inf)
             ϕ₀_dist[i] = truncated(Normal(0.2, 0.1), 0, 1)
             ρg[i] = 2650
         end
@@ -80,16 +72,15 @@ function DecompactBackstrip(strat::StratData)
 
     # Prep for decompaction and backstripping MC
         # Define parameters for decompaction (number of simulations; water and mantle densities)
-        nsims = 1000
-        ρw = 1030
+        ρw = 1000
         ρm = 3330
            
         # Allocate depth matricies (rows are strat horizons, columns are timesteps)
         # decompacted depth
-        Y = fill(1E-18, (model_nlayer+1, model_nlayer))
+        Y = fill(1E-18, (model_nlayer+1, model_nlayer+1))
         # decompacted depth after applying varies corrections
-        Y_corr = fill(1E-18, (model_nlayer+1, model_nlayer))
-        Y_max = fill(1E-18, (nsims, model_nlayer))
+        Y_corr = fill(1E-18, (model_nlayer+1, model_nlayer+1))
+        #Y_max = fill(1E-18, (nsims, model_nlayer))
 
         c_highres = Array{Float64,1}(undef, model_nlayer)
         ϕ₀_highres = Array{Float64,1}(undef, model_nlayer)
@@ -97,15 +88,15 @@ function DecompactBackstrip(strat::StratData)
         
         #Allocate porosity, density and tectonic subsidence matricies   
         # porosity of a strat unit at any depth
-        ϕ_avg = fill(1E-18, (model_nlayer, model_nlayer))
+        ϕ_avg = fill(1E-18, (model_nlayer, model_nlayer+1))
         # bulk density of a single layer
-        ρ_bulk = fill(1E-18, (mmodel_nlayer, model_nlayer))
+        ρ_bulk = fill(1E-18, (model_nlayer, model_nlayer+1))
         # intermediate step - bulk density*thickness of a single layer
-        m_bulk = fill(1E-18, (model_nlayer, model_nlayer))
+        m_bulk = fill(1E-18, (model_nlayer, model_nlayer+1))
         # bulk density of the entire column
-        ρ_bulk_column = Array{Float64,1}(undef, model_nlayer)
+        ρ_bulk_column = Array{Float64,1}(undef, model_nlayer+1)
         # tectonic subsidence # this is the only one that will need to propagate outside of the loop
-        Sₜ_km = Array{Float64,2}(undef, model_nlayer, nsims)
+        Sₜ_km = Array{Float64,2}(undef, model_nlayer+1, nsims)
     
     # MC for decompaction and backstripping
         print("Decompaction and Backstripping: ", nsims, " steps\n")
@@ -142,25 +133,48 @@ function DecompactBackstrip(strat::StratData)
 
             # Apply decompaction corrections
             # vector for paleo sea-level corrections (each element represents a time step)
-            paleo_sl = zeros(1, model_nlayer) #using zeros for now but should turn this into a distribution
+            paleo_sl = fill(0,nlayer_input+1) #using zeros for now but should turn this into a distribution
             # vector for paleo water-depth corrections (each element represents a time step)
-            paleo_wd = zeros(1, model_nlayer) #using zeros for now but should correlate with lithology?
-            Y_corr[:,:] .= Y[:,:].-paleo_sl.*(ρw/(ρm-ρw)).+paleo_wd.-paleo_sl
-            Y_max[sim, :] = maximum(Y_corr, dims = 1)
+            paleo_wd = fill(0,nlayer_input+1)  #using zeros for now but should correlate with lithology?
+            
+            paleo_sl_highres = Array{Float64,1}(undef, model_nlayer+1)
+            paleo_wd_highres = Array{Float64,1}(undef, model_nlayer+1)
+            paleo_sl_highres[1] = paleo_sl[1]
+            paleo_wd_highres[1] = paleo_wd[1]
+
+
+            for i = 1:nlayer_input+1
+                for j = 1:model_nlayer+1
+                    if model_strat_heights[j]>height_inputs[i]
+                        paleo_sl_highres[j]=paleo_sl[i+1]
+                        paleo_wd_highres[j]=paleo_wd[i+1]
+                    end
+                end
+            end
+            
+            #Y_corr[end] = 0-paleo_sl_highres[end]*(ρw/(ρm-ρw))+paleo_wd_highres[end]-paleo_sl_highres[end]
+            #Sₜ_km[end,:] .= copy(Y_corr[end])*(ρm/(ρm-ρw))
+            #Y_max[sim, :] = maximum(Y_corr, dims = 1)
             
             # Remove the effect of sediment load - same indexing logic as the decompaction loop
             # i = time steps (columns) = 1:layer_count b/c need to calculate these parameters for the present day column/layers
             # j = layer number = i:layer_count b/c the ith column begins with y₁' of layer i
-            for i = 1:model_nlayer
+            for i = 1:model_nlayer+1
                 for j = i:model_nlayer
-                    ϕ_avg[j-i+1,i] = (ϕ₀_highres[j]/c_highres[j])*(exp(-c_highres[j]*Y_corr[j-i+1,i])-exp(-c_highres[j]*Y_corr[j-i+2,i]))/(Y_corr[j-i+2,i]-Y_corr[j-i+1,i])
+                    ϕ_avg[j-i+1,i] = (ϕ₀_highres[j]/c_highres[j])*(exp(-c_highres[j]*Y[j-i+1,i])-exp(-c_highres[j]*Y[j-i+2,i]))/(Y[j-i+2,i]-Y[j-i+1,i])
                     ρ_bulk[j-i+1,i] = ρw*ϕ_avg[j-i+1,i]+(1-ϕ_avg[j-i+1,i])*ρg_highres[j]
-                    m_bulk[j-i+1,i] = (Y_corr[j-i+2,i]-Y_corr[j-i+1,i])*ρ_bulk[j-i+1,i]
+                    m_bulk[j-i+1,i] = (Y[j-i+2,i]-Y[j-i+1,i])*ρ_bulk[j-i+1,i]
                 end
-                    # maximum(Y_corr[:,i]) = total depth of column at time step i
-                    ρ_bulk_column[i] = sum(m_bulk[:,i])/maximum(Y_corr[:,i])
-                    Sₜ_km[i,sim] = maximum(Y_corr[:,i])*((ρm-ρ_bulk_column[i])/(ρm-ρw))        
             end
+            
+            m_bulk[:,end] .= 0
+            for i = 1:model_nlayer+1        
+                # maximum(Y_corr[:,i]) = total depth of column at time step i
+                ρ_bulk_column[i] = sum(m_bulk[:,i])/maximum(Y[:,i])
+                Y_corr[:,i] = copy(Y[:,i]).-paleo_sl_highres[i]*(ρw/(ρm-ρw)).+paleo_wd_highres[i].-paleo_sl_highres[i]
+                Sₜ_km[i,sim] = copy(Y_corr[model_nlayer+2-i,i])*((ρm-ρ_bulk_column[i])/(ρm-ρw))        
+            end
+
             mod(sim,pgrs_interval)==0 && update!(pgrs, sim)
         end
         update!(pgrs,nsims)
@@ -176,7 +190,7 @@ end
 
 # Part 2a: Modified StratMetropolis for extensional basins - without hiatus
 
-function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConfiguration, therm::ThermalSubsidenceParameters, model_strat_heights)
+function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConfiguration, therm::ThermalSubsidenceParameters, model_strat_heights, Sμ, Sσ, beta_ip, t0_ip)
 
     # Run stratigraphic MCMC model
     print("Generating stratigraphic age-depth model...\n")
@@ -251,8 +265,10 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
             end
         end
 
-        ll = normpdf_ll(Age, Age_sigma, closest_model_ages)
-        ll += normpdf_ll(Height, Height_sigma, sample_height)
+        ll_age = normpdf_ll(Age, Age_sigma, closest_model_ages)
+        ll = ll_age
+        ll_height = normpdf_ll(Height, Height_sigma, sample_height)
+        ll += ll_height
 
     # STEP 2: calculate log likelihood of the subsidence model parameters in the initial proposal
         # Define thermal subsidence model parameters 
@@ -260,12 +276,18 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
         ideal_subs_parameters_sigma = therm.Sigma
                 
         # Initial proposal for subsidence parameters - randomly pick a set of values from the distribution
-        subs_parameters = [ideal_subs_parameters[1]+0.01, ideal_subs_parameters[2]-1]
+        subs_parameters = [ideal_subs_parameters[1]+beta_ip, ideal_subs_parameters[2]+t0_ip]
         # Calculate log likelihood of this initial proposal for subsidence parameters
-        ll += normpdf_ll(ideal_subs_parameters, ideal_subs_parameters_sigma, subs_parameters)
+        ll_tsparam = normpdf_ll(ideal_subs_parameters, ideal_subs_parameters_sigma, subs_parameters)
+        ll += ll_tsparam
 
     # STEP 3: calculate log likelihood for the fit of the thermal subsidence curve in the initial proposal
-        ll += subsidence_ll(Sμ, Sσ, model_ages, subs_parameters)/(length(model_strat_heights)-1)
+        ts_model_ages = reverse(model_ages[active_height_t])
+        model_heights_all = copy(-model_strat_heights).*1000
+        ts_Sμ = Sμ[(model_heights_all .>= bottom) .& (model_heights_all .<= top)]
+        ts_Sσ = Sσ[(model_heights_all .>= bottom) .& (model_heights_all .<= top)]
+        ll_subs = subsidence_ll(ts_Sμ, ts_Sσ, ts_model_ages, subs_parameters)/(length(ts_Sμ))
+        ll += ll_subs
 
     # Preallocate variables for MCMC proposals
         llₚ = ll
@@ -288,7 +310,7 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
             copyto!(subs_parametersₚ, subs_parameters)
 
             # Propose adjustment to subsidence_parametersₚ
-            subs_parametersₚ += randn() *ideal_subs_parameters_sigma
+            subs_parametersₚ .+= randn.() .* ideal_subs_parameters_sigma
 
             if rand() < 0.1
                 # Adjust heights
@@ -335,8 +357,10 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
             end
             llₚ = normpdf_ll(Age, Age_sigma, closest_model_agesₚ)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
-            llₚ += subsidence_ll(Sμ, Sσ, model_agesₚ, subs_parametersₚ)/(length(model_strat_heights)-1)
             llₚ += normpdf_ll(ideal_subs_parameters, ideal_subs_parameters_sigma, subs_parametersₚ)
+            
+            ts_model_agesₚ = reverse(model_agesₚ[active_height_t])
+            llₚ += subsidence_ll(ts_Sμ, ts_Sσ, ts_model_agesₚ, subs_parametersₚ)/(length(ts_Sμ))
             
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
@@ -358,6 +382,10 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
         agedist = Array{Float64}(undef,npoints,nsteps)
         lldist = Array{Float64}(undef,nsteps)
         beta_t0dist = Array{Float64}(undef,2,nsteps)
+        lldist_age = Array{Float64}(undef,nsteps)
+        lldist_height = Array{Float64}(undef,nsteps)
+        lldist_tsparam = Array{Float64}(undef,nsteps)
+        lldist_subs = Array{Float64}(undef,nsteps)
 
     # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
@@ -370,7 +398,7 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
             copyto!(subs_parametersₚ, subs_parameters)
 
             # Propose adjustment to subsidence_parametersₚ
-            subs_parametersₚ += randn() *ideal_subs_parameters_sigma
+            subs_parametersₚ .+= randn.() .*ideal_subs_parameters_sigma
 
             if rand() < 0.1
                 # Adjust heights
@@ -413,14 +441,24 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
                     closest_model_agesₚ[i] = Age[i]
                 end
             end
-            llₚ = normpdf_ll(Age, Age_sigma, closest_model_agesₚ)
-            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
-            llₚ += subsidence_ll(Sμ, Sσ, model_agesₚ, subs_parametersₚ)/(length(model_strat_heights)-1)
-            llₚ += normpdf_ll(ideal_subs_parameters, ideal_subs_parameters_sigma, subs_parametersₚ)
+            ll_ageₚ = normpdf_ll(Age, Age_sigma, closest_model_agesₚ)
+            llₚ = ll_ageₚ
+            ll_heightₚ = normpdf_ll(Height, Height_sigma, sample_heightₚ)
+            llₚ += ll_heightₚ
+            ll_tsparamₚ = normpdf_ll(ideal_subs_parameters, ideal_subs_parameters_sigma, subs_parametersₚ)
+            llₚ += ll_tsparamₚ
+
+            ts_model_agesₚ = reverse(model_agesₚ[active_height_t])
+            ll_subsₚ = subsidence_ll(ts_Sμ, ts_Sσ, ts_model_agesₚ, subs_parametersₚ)/(length(ts_Sμ))
+            llₚ += ll_subsₚ
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
                 ll = llₚ
+                ll_age = ll_ageₚ
+                ll_height = ll_heightₚ
+                ll_tsparam = ll_tsparamₚ
+                ll_subs = ll_subsₚ
                 copyto!(model_ages, model_agesₚ)
                 copyto!(closest, closestₚ)
                 copyto!(sample_height, sample_heightₚ)
@@ -432,8 +470,12 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
                 lldist[n÷sieve] = ll
                 agedist[:,n÷sieve] .= model_ages
                 beta_t0dist[:,n÷sieve] .= subs_parameters
+                lldist_age[n÷sieve] = ll_age
+                lldist_height[n÷sieve] = ll_height
+                lldist_tsparam[n÷sieve] = ll_tsparam
+                lldist_subs[n÷sieve] = ll_subs
                 #predicted_ages[n÷sieve] = beta_t0dist[2]+τ*log(1-(Sμ[?]*pi)/(E₀*beta_t0dist[1]*sin(pi/beta_t0dist[2])))
-            end
+            end 
 
             # Update progress meter every `pgrs_interval` steps
             mod(n,pgrs_interval)==0 && update!(pgrs, n)
@@ -450,26 +492,26 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
             nanmedian(agedist,dim=2), # Median age
             nanpctile(agedist,2.5,dim=2), # 2.5th percentile
             nanpctile(agedist,97.5,dim=2), # 97.5th percentile
-            nanmean(beta_t0dist[1,:],dim=2), # Mean beta
-            nanstd(beta_t0dist[1,:],dim=2), # Standard deviation
-            nanmedian(beta_t0dist[1,:],dim=2), # Median beta
-            nanpctile(beta_t0dist[1,:],2.5,dim=2), # 2.5th percentile
-            nanpctile(beta_t0dist[1,:],97.5,dim=2), # 97.5th percentile
-            nanmean(beta_t0dist[2,:],dim=2), # Mean T0
-            nanstd(beta_t0dist[2,:],dim=2), # Standard deviation
-            nanmedian(beta_t0dist[2,:],dim=2), # Median T0
-            nanpctile(beta_t0dist[2,:],2.5,dim=2), # 2.5th percentile
-            nanpctile(beta_t0dist[2,:],97.5,dim=2) # 97.5th percentile
+            nanmean(beta_t0dist[1,:],dim=1), # Mean beta
+            nanstd(beta_t0dist[1,:],dim=1), # Standard deviation
+            nanmedian(beta_t0dist[1,:],dim=1), # Median beta
+            nanpctile(beta_t0dist[1,:],2.5,dim=1), # 2.5th percentile
+            nanpctile(beta_t0dist[1,:],97.5,dim=1), # 97.5th percentile
+            nanmean(beta_t0dist[2,:],dim=1), # Mean T0
+            nanstd(beta_t0dist[2,:],dim=1), # Standard deviation
+            nanmedian(beta_t0dist[2,:],dim=1), # Median T0
+            nanpctile(beta_t0dist[2,:],2.5,dim=1), # 2.5th percentile
+            nanpctile(beta_t0dist[2,:],97.5,dim=1) # 97.5th percentile
         )
 
-    return subsmdl, agedist, lldist, beta_t0dist
+    return subsmdl, agedist, lldist, beta_t0dist, lldist_age, lldist_height, lldist_tsparam, lldist_subs
 end
 
 
 
 # Part 2b: Modified StratMetropolis for extensional basins - with hiatus (when we only know the strat height and do not have any previous knowledge about the duration)
 
-function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConfiguration, therm::ThermalSubsidenceParameters, model_strat_heights, hiatus_height)
+function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConfiguration, therm::ThermalSubsidenceParameters, model_strat_heights, Sμ, Sσ, hiatus_height, beta_ip, t0_ip)
 
     # Run stratigraphic MCMC model
     print("Generating stratigraphic age-depth model...\n")
@@ -553,15 +595,17 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
         ideal_subs_parameters_sigma = therm.Sigma
                 
         # Initial proposal for subsidence parameters - randomly pick a set of values from the distribution
-        subs_parameters = [ideal_subs_parameters[1]+0.01, ideal_subs_parameters[2]-1]
+        subs_parameters = [ideal_subs_parameters[1]+beta_ip, ideal_subs_parameters[2]+t0_ip]
         # Calculate log likelihood of this initial proposal for subsidence parameters
         ll += normpdf_ll(ideal_subs_parameters, ideal_subs_parameters_sigma, subs_parameters)
 
     # STEP 3: calculate log likelihood for the fit of the thermal subsidence curve in the initial proposal
-        Sμ_hiatus = copy(Sμ[model_heights .> hiatus_height]) #because heights are now negative
-        Sσ_hiatus = copy(Sσ[model_heights .> hiatus_height])
-        model_ages_hiatus = copy(model_ages[Height .> hiatus height])
-        ll += subsidence_ll(Sμ_hiatus, Sσ_hiatus, model_ages_hiatus, subs_parameters)/(length(Sμ_hiatus))
+        active_height_t_hiatus = (model_heights .>= bottom) .& (model_heights .< hiatus_height)
+        ts_model_ages_hiatus = reverse(model_ages[active_height_t_hiatus])
+        model_heights_all = copy(-model_strat_heights).*1000
+        ts_Sμ_hiatus = Sμ[(model_heights_all .>= bottom) .& (model_heights_all .< hiatus_height)]
+        ts_Sσ_hiatus = Sσ[(model_heights_all .>= bottom) .& (model_heights_all .< hiatus_height)]
+        ll += subsidence_ll(ts_Sμ_hiatus, ts_Sσ_hiatus, ts_model_ages_hiatus, subs_parameters)/(length(ts_Sμ_hiatus))
 
     # Preallocate variables for MCMC proposals
         llₚ = ll
@@ -584,7 +628,7 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
             copyto!(subs_parametersₚ, subs_parameters)
 
             # Propose adjustment to subsidence_parametersₚ
-            subs_parametersₚ += randn() *ideal_subs_parameters_sigma
+            subs_parametersₚ .+= randn.() .*ideal_subs_parameters_sigma
 
             if rand() < 0.1
                 # Adjust heights
@@ -631,10 +675,10 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
             end
             llₚ = normpdf_ll(Age, Age_sigma, closest_model_agesₚ)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
-
-            model_ages_hiatusₚ = copy(model_agesₚ[Height .> hiatus height])
-            llₚ += subsidence_ll(Sμ_hiatus, Sσ_hiatus, model_ages_hiatusₚ, subs_parametersₚ)/(length(Sμ_hiatus))
             llₚ += normpdf_ll(ideal_subs_parameters, ideal_subs_parameters_sigma, subs_parametersₚ)
+
+            ts_model_ages_hiatusₚ = reverse(model_agesₚ[active_height_t_hiatus])
+            llₚ += subsidence_ll(ts_Sμ_hiatus, ts_Sσ_hiatus, ts_model_ages_hiatusₚ, subs_parametersₚ)/(length(ts_Sμ_hiatus))
             
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
@@ -668,7 +712,7 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
             copyto!(subs_parametersₚ, subs_parameters)
 
             # Propose adjustment to subsidence_parametersₚ
-            subs_parametersₚ += randn() *ideal_subs_parameters_sigma
+            subs_parametersₚ .+= randn.() .*ideal_subs_parameters_sigma
 
             if rand() < 0.1
                 # Adjust heights
@@ -713,10 +757,10 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
             end
             llₚ = normpdf_ll(Age, Age_sigma, closest_model_agesₚ)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
-        
-            model_ages_hiatusₚ = copy(model_agesₚ[Height .> hiatus height])
-            llₚ += subsidence_ll(Sμ_hiatus, Sσ_hiatus, model_ages_hiatusₚ, subs_parametersₚ)/(length(Sμ_hiatus))
             llₚ += normpdf_ll(ideal_subs_parameters, ideal_subs_parameters_sigma, subs_parametersₚ)
+            
+            ts_model_ages_hiatusₚ = reverse(model_agesₚ[active_height_t_hiatus])
+            llₚ += subsidence_ll(ts_Sμ_hiatus, ts_Sσ_hiatus, ts_model_ages_hiatusₚ, subs_parametersₚ)/(length(ts_Sμ_hiatus))
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
@@ -750,16 +794,16 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
             nanmedian(agedist,dim=2), # Median age
             nanpctile(agedist,2.5,dim=2), # 2.5th percentile
             nanpctile(agedist,97.5,dim=2), # 97.5th percentile
-            nanmean(beta_t0dist[1,:],dim=2), # Mean beta
-            nanstd(beta_t0dist[1,:],dim=2), # Standard deviation
-            nanmedian(beta_t0dist[1,:],dim=2), # Median beta
-            nanpctile(beta_t0dist[1,:],2.5,dim=2), # 2.5th percentile
-            nanpctile(beta_t0dist[1,:],97.5,dim=2), # 97.5th percentile
-            nanmean(beta_t0dist[2,:],dim=2), # Mean T0
-            nanstd(beta_t0dist[2,:],dim=2), # Standard deviation
-            nanmedian(beta_t0dist[2,:],dim=2), # Median T0
-            nanpctile(beta_t0dist[2,:],2.5,dim=2), # 2.5th percentile
-            nanpctile(beta_t0dist[2,:],97.5,dim=2) # 97.5th percentile
+            nanmean(beta_t0dist[1,:],dim=1), # Mean beta
+            nanstd(beta_t0dist[1,:],dim=1), # Standard deviation
+            nanmedian(beta_t0dist[1,:],dim=1), # Median beta
+            nanpctile(beta_t0dist[1,:],2.5,dim=1), # 2.5th percentile
+            nanpctile(beta_t0dist[1,:],97.5,dim=1), # 97.5th percentile
+            nanmean(beta_t0dist[2,:],dim=1), # Mean T0
+            nanstd(beta_t0dist[2,:],dim=1), # Standard deviation
+            nanmedian(beta_t0dist[2,:],dim=1), # Median T0
+            nanpctile(beta_t0dist[2,:],2.5,dim=1), # 2.5th percentile
+            nanpctile(beta_t0dist[2,:],97.5,dim=1) # 97.5th percentile
         )
 
     return subsmdl, agedist, lldist, beta_t0dist
@@ -769,7 +813,7 @@ end
 
 # Part 2c: Modified StratMetropolis for extensional basins - with hiata (when we know the duration of hiata relatively precisely)
     
-function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConfiguration, therm::ThermalSubsidenceParameters, model_strat_heights, hiatus::HiatusData)
+function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConfiguration, therm::ThermalSubsidenceParameters, model_strat_heights, Sμ, Sσ, hiatus::HiatusData)
         
     # Run stratigraphic MCMC model, with hiata
     print("Generating stratigraphic age-depth model...\n")
@@ -897,7 +941,7 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
             copyto!(subs_parametersₚ, subs_parameters)
 
             # Propose adjustment to subsidence_parametersₚ
-            subs_parametersₚ += randn() *ideal_subs_parameters_sigma
+            subs_parametersₚ .+= randn.() .*ideal_subs_parameters_sigma
 
             if rand() < 0.1
                 # Adjust heights
@@ -1012,7 +1056,7 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
             copyto!(subs_parametersₚ, subs_parameters)
 
             # Propose adjustment to subsidence_parametersₚ
-            subs_parametersₚ += randn() *ideal_subs_parameters_sigma
+            subs_parametersₚ .+= randn.() .*ideal_subs_parameters_sigma
 
             if rand() < 0.1
                 # Adjust heights
@@ -1126,17 +1170,18 @@ function SubsidenceStratMetropolis(smpl::ChronAgeData, config::StratAgeModelConf
             nanmedian(agedist,dim=2), # Median age
             nanpctile(agedist,2.5,dim=2), # 2.5th percentile
             nanpctile(agedist,97.5,dim=2), # 97.5th percentile
-            nanmean(beta_t0dist[1,:],dim=2), # Mean beta
-            nanstd(beta_t0dist[1,:],dim=2), # Standard deviation
-            nanmedian(beta_t0dist[1,:],dim=2), # Median beta
-            nanpctile(beta_t0dist[1,:],2.5,dim=2), # 2.5th percentile
-            nanpctile(beta_t0dist[1,:],97.5,dim=2), # 97.5th percentile
-            nanmean(beta_t0dist[2,:],dim=2), # Mean T0
-            nanstd(beta_t0dist[2,:],dim=2), # Standard deviation
-            nanmedian(beta_t0dist[2,:],dim=2), # Median T0
-            nanpctile(beta_t0dist[2,:],2.5,dim=2), # 2.5th percentile
-            nanpctile(beta_t0dist[2,:],97.5,dim=2) # 97.5th percentile
+            nanmean(beta_t0dist[1,:],dim=1), # Mean beta
+            nanstd(beta_t0dist[1,:],dim=1), # Standard deviation
+            nanmedian(beta_t0dist[1,:],dim=1), # Median beta
+            nanpctile(beta_t0dist[1,:],2.5,dim=1), # 2.5th percentile
+            nanpctile(beta_t0dist[1,:],97.5,dim=1), # 97.5th percentile
+            nanmean(beta_t0dist[2,:],dim=1), # Mean T0
+            nanstd(beta_t0dist[2,:],dim=1), # Standard deviation
+            nanmedian(beta_t0dist[2,:],dim=1), # Median T0
+            nanpctile(beta_t0dist[2,:],2.5,dim=1), # 2.5th percentile
+            nanpctile(beta_t0dist[2,:],97.5,dim=1) # 97.5th percentile
         )
     return subsmdl, agedist, lldist, hiatusdist, beta_t0dist
 end
 
+## --- End of File

@@ -119,7 +119,7 @@
     end
     
     function NewThermalSubsidenceParameters()
-        therm = StrThermalSubsidenceParametersatData(
+        therm = ThermalSubsidenceParameters(
             fill(NaN,2),
             fill(NaN,2), 
         )
