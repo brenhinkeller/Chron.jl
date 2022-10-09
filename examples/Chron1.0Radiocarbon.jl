@@ -35,27 +35,31 @@
 
 ## --- Calculate and plot calendar age PDFs for each sample
 
-    smpl.Params = fill(NaN, length(intcal13["Age_Calendar"]), nSamples)
+    # Choice of radiocarbon calibration
+    # Options include: intcal13, intcal20, shcal20
+    calibration = intcal20
+
+    smpl.Params = fill(NaN, length(calibration.Age_Calendar), nSamples)
     for i = 1:nSamples
         # The likelihood that a measured 14C age could result from a sample of
         # a given calendar age is proportional to the intergral of the product
         # of the two respective distributions
-        likelihood = normproduct.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], intcal13["Age_14C"], intcal13["Age_sigma"])
-        likelihood ./= sum(likelihood) * intcal13["dt"] # Normalize
+        likelihood = normproduct.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], calibration.Age_14C, calibration.Age_sigma)
+        likelihood ./= sum(likelihood) * calibration.dt # Normalize
 
         # Estimate mean and standard deviation by drawing samples from distribution
-        samples = draw_from_distribution(likelihood, 10^6) .* maximum(intcal13["Age_Calendar"])
+        samples = draw_from_distribution(likelihood, 10^6) .* maximum(calibration.Age_Calendar)
         smpl.Age[i] = mean(samples)
         smpl.Age_sigma[i] = std(samples)
         smpl.Age_025CI[i] = percentile(samples,2.5)
         smpl.Age_975CI[i] = percentile(samples,97.5)
 
         # Populate smpl.Params with log likelihood for each sample
-        smpl.Params[:,i] = normproduct_ll.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], intcal13["Age_14C"], intcal13["Age_sigma"])
+        smpl.Params[:,i] = normproduct_ll.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], calibration.Age_14C, calibration.Age_sigma)
 
         # Plot likelihood vector for each sample
-        t = (intcal13["Age_Calendar"] .> smpl.Age[i] - 5*smpl.Age_sigma[i]) .& (intcal13["Age_Calendar"] .< smpl.Age[i] + 5*smpl.Age_sigma[i])
-        plot(intcal13["Age_Calendar"][t], likelihood[t], label=smpl.Name[i], xlabel="Calendar Age", ylabel="Likelihood")
+        t = (calibration.Age_Calendar .> smpl.Age[i] - 5*smpl.Age_sigma[i]) .& (calibration.Age_Calendar .< smpl.Age[i] + 5*smpl.Age_sigma[i])
+        plot(calibration.Age_Calendar[t], likelihood[t], label=smpl.Name[i], xlabel="Calendar Age", ylabel="Likelihood")
         savefig("$(smpl.Name[i])_CalendarAge.pdf")
     end
 

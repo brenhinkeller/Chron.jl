@@ -1194,8 +1194,8 @@
             Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
             boundsigma = nanmean(Age_sigma)/10
-            pl = normpdf_ll.(oldest + offset*dt_dH, boundsigma, 1:50000)
-            pu = normpdf_ll.(youngest - offset*dt_dH, boundsigma, 1:50000)
+            pl = normpdf_ll.(oldest + offset*dt_dH, boundsigma, 1:size(smpl.Params,1))
+            pu = normpdf_ll.(youngest - offset*dt_dH, boundsigma, 1:size(smpl.Params,1))
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
@@ -1427,8 +1427,8 @@
             Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
             boundsigma = nanmean(Age_sigma)/10
-            pl = normpdf_ll.(oldest + offset*dt_dH, boundsigma, 1:50000)
-            pu = normpdf_ll.(youngest - offset*dt_dH, boundsigma, 1:50000)
+            pl = normpdf_ll.(oldest + offset*dt_dH, boundsigma, 1:size(smpl.Params,1))
+            pu = normpdf_ll.(youngest - offset*dt_dH, boundsigma, 1:size(smpl.Params,1))
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
