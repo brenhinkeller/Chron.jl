@@ -15,6 +15,18 @@ The second (stratigraphic) MCMC model, developed for use in [Schoene et al. (201
 
 In addition to the functions defined and exported here directly, Chron.jl also reexports (and depends upon internally) both [StatGeochemBase.jl](https://github.com/brenhinkeller/StatGeochemBase.jl) and [NaNStatistics.jl](https://github.com/brenhinkeller/NaNStatistics.jl)
 
+### Citation
+You may cite Chron.jl as:
+> Keller, C.B. (2018). *Chron.jl: A Bayesian framework for integrated eruption age and age-depth modelling*. https://doi.org/10.17605/osf.io/TQX3F
+
+Eruption age estimation:
+> Keller, C.B., Schoene, B., & Samperton, K.M. (2018). A Stochastic Sampling Approach to Zircon Eruption Age Interpretation. *Geochemical Persectives Letters* 8, 31–35
+
+Age-depth modelling:
+> Schoene, B., Eddy, M.P., Samperton, K.M., Keller, C.B., Keller, G., Adatte, T., & Khadri, S.F.R. (2019). U-Pb constraints on pulsed eruption of the Deccan Traps across the end-Cretaceous mass extinction. *Science* 363 (6429), 862–866.
+
+> Deino, A.L., Dommain, R., Keller, C.B., Potts, R., Behrensmeyer, A.K., Beverly, E.J., King, J., Heil, C.W., Stockhecke, M., Brown, E.T., Moerman, J., de Menocal, P., Levin, N.E., & ODP Scientific Team. (2019). Chronostratigraphic model of a high-resolution drill core record of the past million years from the Koora Basin, south Kenya Rift: Overcoming the difficulties of variable sedimentation rate and hiatuses. *Quaternary Science Reviews* 215, 213–231.
+
 ## Installation
 Chron.jl is written in the [Julia programming language](https://julialang.org/), and is registered on the General registry. To install, enter the Julia package manager (type ] in the REPL) and type:
 ```Julia
