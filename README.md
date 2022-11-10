@@ -1,7 +1,8 @@
 # Chron.jl
 [![DOI](readme_figures/osf_io_TQX3F.svg)](https://doi.org/10.17605/OSF.IO/TQX3F)
-[![Dev][docs-dev-img]][docs-dev-url]
-[![Build Status][ci-img]][ci-url]
+[![Docs][docs-dev-img]][docs-dev-url]
+[![CI][ci-img]][ci-url]
+[![CI (julia nightly)][ci-nightly-img]][ci-nightly-url]
 [![codecov.io][codecov-img]][codecov-url]
 
 _A Bayesian framework for integrated eruption age and age-depth modelling_
@@ -350,9 +351,12 @@ plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)")
 
 ![png](readme_figures/output_19_4.png)
 
+
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://brenhinkeller.github.io/Chron.jl/dev/
 [ci-img]: https://github.com/brenhinkeller/Chron.jl/workflows/CI/badge.svg
-[ci-url]: https://github.com/brenhinkeller/Chron.jl/actions?query=workflow%3ACI
+[ci-url]: https://github.com/brenhinkeller/Chron.jl/actions/workflows/CI.yml
+[ci-nightly-img]:https://github.com/brenhinkeller/Chron.jl/workflows/CI%20(Julia%20nightly)/badge.svg
+[ci-nightly-url]:https://github.com/brenhinkeller/Chron.jl/actions/workflows/CI-julia-nightly.yml
 [codecov-img]: http://codecov.io/github/brenhinkeller/Chron.jl/coverage.svg?branch=main
 [codecov-url]: http://codecov.io/github/brenhinkeller/Chron.jl?branch=main
