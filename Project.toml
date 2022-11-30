@@ -1,7 +1,7 @@
 name = "Chron"
 uuid = "68885b1f-77b5-52a7-b2e7-6a8014c56b98"
 authors = ["C. Brenhin Keller <cbkeller@dartmouth.edu>"]
-version = "0.4.1"
+version = "0.4.2"
 
 [deps]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
@@ -20,6 +20,7 @@ StatGeochemBase = "61e559cd-58b4-4257-8528-26bb26ff2b9a"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+VectorizedStatistics = "3b853605-1c98-4422-8364-4bd93ee0529e"
 
 [compat]
 Distributions = "0.15 - 0.25"
@@ -35,4 +36,5 @@ Reexport = "0.2, 1.0"
 SpecialFunctions = "0.5 - 0.10, 1, 2"
 StatGeochemBase = "0.3.2, 0.4"
 StatsBase = "0.28 - 0.33"
+VectorizedStatistics = "0.5"
 julia = "1"
