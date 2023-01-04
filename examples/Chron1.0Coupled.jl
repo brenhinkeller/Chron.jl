@@ -16,16 +16,8 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 ## --- Load the Chron package - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    try
-        using Chron
-    catch
-        using Pkg
-        Pkg.add("Chron")
-        using Chron
-    end
-
-    using Statistics, StatsBase, DelimitedFiles, SpecialFunctions, ProgressMeter
-    using Plots; gr();
+    using Chron
+    using Statistics, DelimitedFiles, ProgressMeter, Plots
 
 ## --- Define sample properties - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -263,24 +255,17 @@
         dhdt_im[:,i] .= fit(Histogram, dhdt_dist[i, .~ isnan.(view(dhdt_dist,i,:))], edges, closed=:left).weights
     end
 
-    # Rescale image to fit in UInt8 (0-255)
-    using IndirectArrays: IndirectArray
-    imSc = dhdt_im./nanpctile(dhdt_im[:],97.5)*256 # Rescale to include 97.5 CI (may need ot adjust)
-    imSc[imSc.>255] .= 255 # Cut off to fit in Uint8
-
-    # Apply colormap. Available colormaps include viridis, inferno, plasma, fire
-    A = IndirectArray(floor.(UInt8,imSc) .+ 1, inferno)
+    # Apply colormap. Available colormaps include viridis, inferno, plasma, fire, etc.
+    img = imsc(dhdt_im, inferno, nanpctile(dhdt_im, 2.5), nanpctile(dhdt_im, 97.5))
 
     # Plot image
-    scale=1e-5
-    img = plot(bincenters,cntr(edges)*scale,A,yflip=false,xflip=false, colorbar=:right)
-    plot!(img, xlabel="Age ($(smpl.Age_Unit))", ylabel="Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) * $scale, $binwidth $(smpl.Age_Unit) Bin)")
-    savefig(img,"AccumulationRateModelHeatmap.pdf")
-    display(img)
-
-    # dhdt_im_log = copy(dhdt_im)
-    # dhdt_im_log[dhdt_im .>0] = log10.(dhdt_im[dhdt_im .>0])
-    # heatmap(bincenters,cntr(edges),dhdt_im_log, xlabel="Age ($smpl.Age_Unit)", ylabel="Rate ($smpl.Height_Unit / $smpl.Age_Unit, $binwidth $smpl.Age_Unit Bin)")
+    h = plot(bincenters, cntr(edges), img, yflip=false, xflip=false, colorbar=:right, framestyle=:box)
+    plot!(h, xlabel="Age ($(smpl.Age_Unit))", ylabel="Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit), $binwidth $(smpl.Age_Unit) Bin)")
+    xrange = abs(last(bincenters)-first(bincenters))
+    yrange = abs(last(edges) - first(edges))
+    plot!(h, ylims = extrema(cntr(edges)), size=(600,400), aspectratio=2/3/(yrange/xrange))
+    savefig(h,"AccumulationRateModelHeatmap.pdf")
+    display(h)
 
 ## --- Probability that a given interval of stratigraphy was deposited entirely before/after a given time
 

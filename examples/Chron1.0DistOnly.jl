@@ -16,16 +16,8 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 ## --- Load the Chron package - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    try
-        using Chron
-    catch
-        using Pkg
-        Pkg.add("Chron")
-        using Chron
-    end
-
-    using Statistics, StatsBase, DelimitedFiles, SpecialFunctions
-    using Plots; gr();
+    using Chron
+    using Statistics, Plots
 
 ## --- Define sample properties - - - - - - - - - - - - - - - - - - - - - - - -
 
