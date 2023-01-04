@@ -22,7 +22,7 @@
         Height_Unit::String
     end
 
-    function NewChronAgeData(nSamples)
+    function ChronAgeData(nSamples::Integer)
         smpl = ChronAgeData(
             ("Sample Names",),
             fill(NaN,nSamples),  # Sample heights
@@ -44,11 +44,14 @@
         )
         return smpl
     end
+    # For backwards compatibility
+    const NewChronAgeData = ChronAgeData
     export NewChronAgeData
-
-    # Just for backwards compatibility (hopefully not neccessary)
-    NewStratAgeData = NewChronAgeData
+    const NewStratAgeData = ChronAgeData
     export NewStratAgeData
+    const StratAgeData = ChronAgeData
+    export StratAgeData
+
 
     # A type of object to hold data about hiatuses
     mutable struct HiatusData
@@ -60,7 +63,7 @@
         Height_Unit::String
     end
 
-    function NewHiatusData(nHiatuses)
+    function HiatusData(nHiatuses::Integer)
         hiatus = HiatusData(
             fill(NaN,nHiatuses),  # Height
             fill(NaN,nHiatuses),  # Height_sigma
@@ -71,6 +74,7 @@
         )
         return hiatus
     end
+    const NewHiatusData = HiatusData
     export NewHiatusData
 
     # A type of object to specify the configuration of the stratigraphic model
@@ -82,9 +86,10 @@
         bounding::Float64
     end
 
-    function NewStratAgeModelConfiguration()
+    function StratAgeModelConfiguration()
         return StratAgeModelConfiguration(NaN, 0, 0, 0, NaN)
     end
+    const NewStratAgeModelConfiguration = StratAgeModelConfiguration
     export NewStratAgeModelConfiguration
 
 

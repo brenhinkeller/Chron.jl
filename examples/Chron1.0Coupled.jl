@@ -27,7 +27,7 @@
     # doi: 10.1016/j.epsl.2016.07.041
 
     nSamples = 5 # The number of samples you have data for
-    smpl = NewChronAgeData(nSamples)
+    smpl = ChronAgeData(nSamples)
     smpl.Name      =  ("KJ08-157", "KJ04-75", "KJ09-66", "KJ04-72", "KJ04-70",)
     smpl.Height   .=  [     -52.0,      44.0,      54.0,      82.0,      93.0,]
     smpl.Height_sigma .= [    3.0,       1.0,       3.0,       3.0,       3.0,]

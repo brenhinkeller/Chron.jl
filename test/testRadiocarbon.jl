@@ -9,7 +9,7 @@
 # Input the number of samples we wish to model (must match below)
 nSamples = 4
 # Make an instance of a ChronSection object for nSamples
-smpl = NewChronAgeData(nSamples)
+smpl = ChronAgeData(nSamples)
 smpl.Name           = ("Sample 1", "Sample 2", "Sample 3", "Sample 4") # Et cetera
 smpl.Age_14C       .= [ 6991,  7088,  7230,  7540,] # Measured ages
 smpl.Age_14C_sigma .= [   30,    70,    50,    50,] # Measured 1-σ uncertainties
@@ -42,7 +42,7 @@ end
 
 # Run stratigraphic model
 # Configure the stratigraphic Monte Carlo model
-config = NewStratAgeModelConfiguration()
+config = StratAgeModelConfiguration()
 # If you in doubt, you can probably leave these parameters as-is
 config.resolution = 5 # Same units as sample height. Smaller is slower!
 config.bounding = 0.5 # how far away do we place runaway bounds, as a fraction of total section height
@@ -66,7 +66,7 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 
 # Data about hiatuses
 nHiatuses = 2 # The number of hiatuses you have data for
-hiatus = NewHiatusData(nHiatuses) # Struct to hold data
+hiatus = HiatusData(nHiatuses) # Struct to hold data
 hiatus.Height         = [-371.5, -405.0 ]
 hiatus.Height_sigma   = [   0.0,    0.0 ]
 hiatus.Duration       = [ 100.0,  123.0 ]
@@ -107,7 +107,7 @@ end
 
 # Run stratigraphic model
 # Configure the stratigraphic Monte Carlo model
-config = NewStratAgeModelConfiguration()
+config = StratAgeModelConfiguration()
 # If you in doubt, you can probably leave these parameters as-is
 config.resolution = 5 # Same units as sample height. Smaller is slower!
 config.bounding = 0.5 # how far away do we place runaway bounds, as a fraction of total section height
@@ -131,7 +131,7 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 
 # Data about hiatuses
 nHiatuses = 2 # The number of hiatuses you have data for
-hiatus = NewHiatusData(nHiatuses) # Struct to hold data
+hiatus = HiatusData(nHiatuses) # Struct to hold data
 hiatus.Height         = [-371.5, -405.0 ]
 hiatus.Height_sigma   = [   0.0,    0.0 ]
 hiatus.Duration       = [ 100.0,  123.0 ]

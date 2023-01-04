@@ -1,5 +1,5 @@
 nSamples = 5 # The number of samples you have data for
-smpl = NewChronAgeData(nSamples)
+smpl = ChronAgeData(nSamples)
 smpl.Name      =  ("KJ08-157", "KJ04-75", "KJ09-66",  "KJ04-72", "KJ04-70",)
 smpl.Height   .=  [     -52.0,      44.0,      54.0,      82.0,      93.0,]
 smpl.Height_sigma .= [    3.0,       1.0,       3.0,       3.0,       3.0,]
@@ -27,7 +27,7 @@ distBurnin = floor(Int,distSteps/2) # Number to discard
 
 # Run stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - - -
 # Configure the stratigraphic Monte Carlo model
-config = NewStratAgeModelConfiguration()
+config = StratAgeModelConfiguration()
 # If you in doubt, you can probably leave these parameters as-is
 config.resolution = 10.0 # Same units as sample height. Smaller is slower!
 config.bounding = 0.5 # how far away do we place runaway bounds, as a fraction of total section height
@@ -49,7 +49,7 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 
 # Data about hiatuses
 nHiatuses = 2 # The number of hiatuses you have data for
-hiatus = NewHiatusData(nHiatuses) # Struct to hold data
+hiatus = HiatusData(nHiatuses) # Struct to hold data
 hiatus.Height         = [-7.0, 35.0 ]
 hiatus.Height_sigma   = [ 0.0,  0.0 ]
 hiatus.Duration       = [ 0.3,  0.3 ]
