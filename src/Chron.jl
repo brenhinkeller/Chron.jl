@@ -63,7 +63,9 @@ module Chron
 
 
     # Distributions
-    export UniformDistribution, TriangularDistribution, HalfNormalDistribution, TruncatedNormalDistribution,
-        EllisDistribution, MeltsZirconDistribution, MeltsVolcanicZirconDistribution
+    export UniformDistribution, TriangularDistribution,
+        HalfNormalDistribution, TruncatedNormalDistribution,
+        MeltsZirconDistribution, MeltsVolcanicZirconDistribution,
+        ExponentialDistribution, EllisDistribution, ArClosureDistribution
 
 end # module
