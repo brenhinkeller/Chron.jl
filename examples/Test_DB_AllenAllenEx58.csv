@@ -1,0 +1,11 @@
+layer,Thickness,Lithology
+10,0.2,Shale
+9,0.25,Sandstone
+8,0.75,Shale
+7,1.3,Chalk
+6,0.9,Sandstone
+5,0.2,Limestone
+4,0.4,Dolostone
+3,0.25,Sandstone
+2,0.75,Anhydrite
+1,0.4,Quartzite
