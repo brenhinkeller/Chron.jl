@@ -7,6 +7,7 @@ examples/*/*.svg
 examples/MyData/
 examples/agedist.csv
 screened/
+IntCal/
 *.tar.gz
 *.jld
 *.jl.cov
