@@ -1,15 +1,7 @@
 ## --- Load required pacages, install Chron if required
 
-    try
-        using Chron
-    catch
-        using Pkg
-        Pkg.add("Chron")
-        using Chron
-    end
-
-    using Statistics, StatsBase, SpecialFunctions
-    using Plots; gr();
+    using Chron
+    using Plots
 
 ## --- Define sample properties
 
@@ -49,10 +41,10 @@
 
         # Estimate mean and standard deviation by drawing samples from distribution
         samples = draw_from_distribution(likelihood, 10^6) .* maximum(calibration.Age_Calendar)
-        smpl.Age[i] = mean(samples)
-        smpl.Age_sigma[i] = std(samples)
-        smpl.Age_025CI[i] = percentile(samples,2.5)
-        smpl.Age_975CI[i] = percentile(samples,97.5)
+        smpl.Age[i] = nanmean(samples)
+        smpl.Age_sigma[i] = nanstd(samples)
+        smpl.Age_025CI[i] = nanpctile(samples,2.5)
+        smpl.Age_975CI[i] = nanpctile(samples,97.5)
 
         # Populate smpl.Params with log likelihood for each sample
         smpl.Params[:,i] = normproduct_ll.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], calibration.Age_14C, calibration.Age_sigma)

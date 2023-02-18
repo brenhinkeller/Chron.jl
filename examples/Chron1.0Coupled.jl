@@ -11,13 +11,11 @@
 #      You may have to adjust the path below which specifies the location of    #
 #  the CSV data files for each sample, depending on what you want to run.       #
 #                                                                               #
-#   Last modified by C. Brenhin Keller 2020-05-25                               #
-#                                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 ## --- Load the Chron package - - - - - - - - - - - - - - - - - - - - - - - - -
 
     using Chron
-    using Statistics, DelimitedFiles, ProgressMeter, Plots
+    using Plots
 
 ## --- Define sample properties - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -348,21 +346,21 @@
     #
     # # Calculate the means and 95% confidence intervals for different levels of systematic uncertainties
     #
-    # age_dist_X_mean = mean(age_dist_X,2) # Mean age
-    # age_dist_X_std =  std(age_dist_X,2) # Standard deviation
-    # age_dist_X_median = median(age_dist_X,2) # Median age
+    # age_dist_X_mean = nanmean(age_dist_X,2) # Mean age
+    # age_dist_X_std =  nanstd(age_dist_X,2) # Standard deviation
+    # age_dist_X_median = nanmedian(age_dist_X,2) # Median age
     # age_dist_X_025p = nanpctile(age_dist_X,2.5,dim=2) # 2.5th percentile
     # age_dist_X_975p = nanpctile(age_dist_X,97.5,dim=2) # 97.5th percentile
     #
-    # age_dist_XY_mean = mean(age_dist_XY,2) # Mean age
-    # age_dist_XY_std =  std(age_dist_XY,2) # Standard deviation
-    # age_dist_XY_median = median(age_dist_XY,2) # Median age
+    # age_dist_XY_mean = nanmean(age_dist_XY,2) # Mean age
+    # age_dist_XY_std =  nanstd(age_dist_XY,2) # Standard deviation
+    # age_dist_XY_median = nanmedian(age_dist_XY,2) # Median age
     # age_dist_XY_025p = nanpctile(age_dist_XY,2.5,dim=2) # 2.5th percentile
     # age_dist_XY_975p = nanpctile(age_dist_XY,97.5,dim=2) # 97.5th percentile
     #
-    # age_dist_XYZ_mean = mean(age_dist_XYZ,2) # Mean age
-    # age_dist_XYZ_std =  std(age_dist_XYZ,2) # Standard deviation
-    # age_dist_XYZ_median = median(age_dist_XYZ,2) # Median age
+    # age_dist_XYZ_mean = nanmean(age_dist_XYZ,2) # Mean age
+    # age_dist_XYZ_std =  nanstd(age_dist_XYZ,2) # Standard deviation
+    # age_dist_XYZ_median = nanmedian(age_dist_XYZ,2) # Median age
     # age_dist_XYZ_025p = nanpctile(age_dist_XYZ,2.5,dim=2) # 2.5th percentile
     # age_dist_XYZ_975p = nanpctile(age_dist_XYZ,97.5,dim=2) # 97.5th percentile
     #

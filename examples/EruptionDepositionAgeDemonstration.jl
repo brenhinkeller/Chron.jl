@@ -1,16 +1,7 @@
 ## --- Load (and install if necessary) the Chron.jl package
 
-    try
-        using Chron
-    catch
-        using Pkg
-        Pkg.add("Chron")
-        using Chron
-    end
-
-    using Statistics, StatsBase, DelimitedFiles, SpecialFunctions
-    using KernelDensity: kde
-    using Plots; gr(); default(fmt = :png)
+    using Chron
+    using Plots
 
 ## --- Test Bayesian eruption age estimation with a synthetic dataset
 
@@ -35,7 +26,7 @@
     # Bootstrap the crystallization distribution,
     # accounting for any expected analytical "tail" beyond eruption/deposition
     dist = BootstrapCrystDistributionKDE(ages, uncert)
-    dist ./= mean(dist) # Normalize
+    dist ./= nanmean(dist) # Normalize
 
     # Plot bootstrapped distribution
     plot(range(0,1.3,length=length(dist)),dist, label="bootstrapped", ylabel="Probability Density", xlabel="Time before eruption (scaled)", legend=:bottomleft, fg_color_legend=:white)
@@ -50,8 +41,8 @@
     tminDist = metropolis_min(nsteps,dist,ages,uncert)
 
     # Print results
-    AgeEst = mean(tminDist[burnin:end]);
-    AgeEst_sigma = std(tminDist[burnin:end]);
+    AgeEst = nanmean(tminDist[burnin:end]);
+    AgeEst_sigma = nanstd(tminDist[burnin:end]);
     print("\nEstimated eruption age of synthetic dataset:\n $AgeEst +/- $(2*AgeEst_sigma) Ma (2σ)\n (True synthetic age 0 Ma)")
 
     # Plot results
@@ -75,7 +66,7 @@
     # Bootstrap the crystallization distribution,
     # accounting for any expected analytical "tail" beyond eruption/deposition
     dist = BootstrapCrystDistributionKDE(ages, uncert)
-    dist ./= mean(dist) # Normalize
+    dist ./= nanmean(dist) # Normalize
 
     # Plot bootstrapped distribution
     plot(range(0,1,length=length(dist)),dist, label="bootstrapped f_xtal", ylabel="Probability Density", xlabel="Time before eruption (unitless)", fg_color_legend=:white)
@@ -94,8 +85,8 @@
     # tminDist = metropolis_min(nsteps,MeltsVolcanicZirconDistribution,ages,uncert);
 
     # Print results
-    AgeEst = mean(tminDist[burnin:end]);
-    AgeEst_sigma = std(tminDist[burnin:end]);
+    AgeEst = nanmean(tminDist[burnin:end]);
+    AgeEst_sigma = nanstd(tminDist[burnin:end]);
     print("\nEstimated eruption age:\n $AgeEst +/- $(2*AgeEst_sigma) Ma (2σ)\n")
 
     # Plot results

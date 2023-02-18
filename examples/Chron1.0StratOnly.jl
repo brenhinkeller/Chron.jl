@@ -1,15 +1,7 @@
 ## --- Load required pacages, install Chron if required
 
-    try
-        using Chron
-    catch
-        using Pkg
-        Pkg.add("Chron")
-        using Chron
-    end
-
-    using Statistics, StatsBase, SpecialFunctions
-    using Plots; gr();
+    using Chron
+    using Plots
 
 ## --- Define sample properties
 

@@ -11,13 +11,11 @@
 #     You may have to adjust the path below which specifies the location of     #
 #  the CSV data files for each sample, depending on what you want to run.       #
 #                                                                               #
-#   Last modified by C. Brenhin Keller 2020-05-25                               #
-#                                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 ## --- Load the Chron package - - - - - - - - - - - - - - - - - - - - - - - - -
 
     using Chron
-    using Statistics, Plots
+    using Plots
 
 ## --- Define sample properties - - - - - - - - - - - - - - - - - - - - - - - -
 
