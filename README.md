@@ -15,6 +15,8 @@ The second (stratigraphic) MCMC model, developed for use in [Schoene et al. (201
 
 In addition to the functions defined and exported here directly, Chron.jl also reexports (and depends upon internally) both [StatGeochemBase.jl](https://github.com/brenhinkeller/StatGeochemBase.jl) and [NaNStatistics.jl](https://github.com/brenhinkeller/NaNStatistics.jl)
 
+For Chron.jl-style age-depth modelling combined with subsidence analysis, see [SubsidenceChron.jl](https://github.com/JuliaGeochronology/SubsidenceChron.jl)
+
 ## Citation
 You may cite Chron.jl as:
 > Keller, C.B. (2018). *Chron.jl: A Bayesian framework for integrated eruption age and age-depth modelling*. https://doi.org/10.17605/osf.io/TQX3F
