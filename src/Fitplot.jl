@@ -320,7 +320,7 @@
                     h2 = plot(bincenters,N,label="Histogram",fg_color_legend=:white,framestyle=:box)
                     plot!(h2,bincenters, bilinear_exponential(bincenters,smpl.Params[:,i]), label="Curve fit")
                     plot!(h2,legend=:topleft, xlabel="Age ($(Age_Unit))", ylabel="Probability density")
-                    savefig(h2,joinpath(Path, Name[i]*"_distribution.pdf"))
+                    savefig(h2,joinpath(Path, Name[i]*"_distribution.svg"))
                     savefig(h2,joinpath(Path, Name[i]*"_distribution.pdf"))
                 end
 
