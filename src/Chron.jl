@@ -33,7 +33,7 @@ module Chron
 
     # Bilinear exponential function
     using LoopVectorization
-    using Polyester: @batch
+    # using Polyester: @batch
     include("Utilities.jl")
     # Functions for propagating systematic uncertainties
     using Distributions

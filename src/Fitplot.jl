@@ -267,7 +267,7 @@
 
         # Estimate the eruption/deposition distribution for each sample
         print("Estimating eruption/deposition age distributions...\n")
-        @batch for i ∈ eachindex(Name)
+        for i ∈ eachindex(Name)
             if DistType[i] == 0 # A distribution to fit properly
                 # Read data for each sample from file
                 filepath = joinpath(Path, Name[i]*".csv")
