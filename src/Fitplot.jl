@@ -258,7 +258,7 @@
     smpl = tMinDistMetropolis(smpl, 5*10^5, 2*10^5, TriangularDistribution)
     ```
     """
-    function tMinDistMetropolis(smpl::ChronAgeData,nsteps::Int,burnin::Int,dist::Array{Float64}; make_plots=true)
+    function tMinDistMetropolis(smpl::ChronAgeData,nsteps::Int,burnin::Int,dist::DenseArray{Float64}; make_plots=true)
         # Extract variables from struct
         Name = collect(smpl.Name)::Array{String,1}
         Path = smpl.Path::String
@@ -358,5 +358,10 @@
 
         return smpl
     end
+    # Automatically do what people probably want if given improper types
+    function tMinDistMetropolis(smpl::ChronAgeData, nsteps::Number, burnin::Number, dist::AbstractArray{Number}; make_plots=true)
+        tMinDistMetropolis(smpl,Int(nsteps), Int(burnin), Float64.(dist); make_plots)
+    end
+
 
 ## ---
