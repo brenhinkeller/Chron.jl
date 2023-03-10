@@ -74,11 +74,13 @@
     distSteps = 5*10^5 # Number of steps to run in distribution MCMC
     distBurnin = distSteps÷2 # Number to discard
 
-    # Choose the form of the prior distribution to use
-    # Some pre-defined possiblilities include UniformDisribution,
-    # TriangularDistribution, and MeltsVolcanicZirconDistribution
-    # or you can define your own as with BootstrappedDistribution above
+    # Choose the form of the prior closure/crystallization distribution to use
     dist = BootstrappedDistribution
+    ## You might alternatively consider:
+    # dist = UniformDistribution              # A reasonable default
+    # dist = MeltsVolcanicZirconDistribution  # A single magmatic pulse, truncated by eruption
+    # dist = ExponentialDistribution          # Applicable for survivorship processes, potentially including inheritance/dispersion in Ar-Ar dates
+
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
