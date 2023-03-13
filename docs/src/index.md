@@ -4,7 +4,7 @@ CurrentModule = Chron
 
 # Chron
 
-Documentation for [Chron](https://github.com/brenhinkeller/Chron.jl).
+Documentation for the [Chron.jl](https://github.com/brenhinkeller/Chron.jl) package.
 
 ```@index
 ```
