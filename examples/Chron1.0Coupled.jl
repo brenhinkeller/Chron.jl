@@ -64,8 +64,13 @@
     # distribution using a KDE of stacked sample data from each data file
     BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl)
     x = range(0,1,length=length(BootstrappedDistribution))
-    h = plot(x, BootstrappedDistribution, label="Bootstrapped distribution",
-         xlabel="Time (arbitrary units)", ylabel="Probability Density", fg_color_legend=:white)
+    h = plot(x, BootstrappedDistribution,
+        label="Bootstrapped distribution",
+        xlabel="Time (arbitrary units)",
+        ylabel="Probability Density",
+        fg_color_legend=:white,
+        framestyle=:box
+    )
     savefig(h, joinpath(smpl.Path,"BootstrappedDistribution.pdf"))
     display(h)
 
@@ -139,8 +144,13 @@
 ## --- Plot stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - -
 
     # Plot results (mean and 95% confidence interval for both model and data)
-    hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(round(Int,minimum(mdl.Height)),0.5,:blue), label="model")
-    plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white) # Center line
+    hdl = plot(framestyle=:box,
+        fg_color_legend=:white,
+        xlabel="Age ($(smpl.Age_Unit))",
+        ylabel="Height ($(smpl.Height_Unit))",
+    )
+    plot!(hdl, [mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(round(Int,minimum(mdl.Height)),0.5,:blue), label="model") # Age-depth model CI
+    plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="") # Center line
     t = smpl.Age_Sidedness .== 0 # Two-sided constraints (plot in black)
     any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(smpl.Age[t]-smpl.Age_025CI[t],smpl.Age_975CI[t]-smpl.Age[t]),label="data",seriestype=:scatter,color=:black)
     t = smpl.Age_Sidedness .== 1 # Minimum ages (plot in cyan)
@@ -149,9 +159,9 @@
     t = smpl.Age_Sidedness .== -1 # Maximum ages (plot in orange)
     any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(zeros(count(t)),smpl.Age_975CI[t]-smpl.Age[t]),label="",seriestype=:scatter,color=:orange,msc=:orange)
     any(t) && zip(smpl.Age[t], smpl.Age[t].-nanmean(smpl.Age_sigma[t])*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:orange)
-    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
     savefig(hdl,"AgeDepthModel.pdf")
     display(hdl)
+
 
 ## --- Interpolate model age at a specific stratigraphic height - - - - - - - -
 
@@ -168,7 +178,7 @@
     for i=1:size(agedist,2)
         interpolated_distribution[i] = linterp1s(mdl.Height,agedist[:,i],interp_height)
     end
-    hdl = histogram(interpolated_distribution, nbins=50, label="")
+    hdl = histogram(interpolated_distribution, nbins=50, label="", framestyle=:box)
     plot!(hdl, xlabel="Age ($(smpl.Age_Unit)) at height=$interp_height", ylabel="Likelihood (unnormalized)")
     savefig(hdl, "Interpolated age distribution.pdf")
     display(hdl)
@@ -207,10 +217,14 @@
     dhdt_84p = nanpctile(dhdt_dist,84.135,dim=2) # Plus 1-sigma (84.135th percentile)
 
     # Plot results
-    hdl = plot(bincenters,dhdt, label="Mean", color=:black, linewidth=2)
+    hdl = plot(framestyle=:box,
+        fg_color_legend=:white,
+        xlabel="Age ($(smpl.Age_Unit))",
+        ylabel="Accumulation Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))",
+    )
+    plot!(hdl, bincenters, dhdt, label="Mean", color=:black, linewidth=2)
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(0,0.4,:darkblue), linealpha=0, label="68% CI")
     plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
-    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Accumulation Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))", fg_color_legend=:white)
     savefig(hdl,"AccumulationRateModel.pdf")
     display(hdl)
 
@@ -230,7 +244,12 @@
     dhdt_55p = nanpctile(dhdt_dist,55,dim=2)
 
     # Plot results
-    hdl = plot(bincenters,dhdt, label="Mean", color=:black, linewidth=2)
+    hdl = plot(framestyle=:box,
+        fg_color_legend=:white,
+        xlabel="Age ($(smpl.Age_Unit))",
+        ylabel="Accumulation Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))",
+    )
+    plot!(hdl, bincenters, dhdt, label="Mean", color=:black, linewidth=2)
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(0,0.2,:darkblue), linealpha=0, label="68% CI")
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_20p; reverse(dhdt_80p)], fill=(0,0.2,:darkblue), linealpha=0, label="")
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_25p; reverse(dhdt_75p)], fill=(0,0.2,:darkblue), linealpha=0, label="")
@@ -239,7 +258,7 @@
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_40p; reverse(dhdt_60p)], fill=(0,0.2,:darkblue), linealpha=0, label="")
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_45p; reverse(dhdt_55p)], fill=(0,0.2,:darkblue), linealpha=0, label="")
     plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
-    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Accumulation Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))", fg_color_legend=:white)
+    plot!(hdl, )
     savefig(hdl,"AccumulationRateModelCI.pdf")
     display(hdl)
 
@@ -308,7 +327,7 @@
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white)
     plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
-    plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)")
+    plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)", framestyle=:box)
 
 ## --- (Optional) Add systematic uncertainties for U-Pb data
 

@@ -16,6 +16,7 @@
     smpl.Height       .= [ -355,  -380,-397.0,-411.5,] # Depths below surface should be negative
     smpl.Height_sigma .= fill(0.01, nSamples) # Usually assume little or no sample height uncertainty
     smpl.Age_Sidedness .= zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+    smpl.inputSigmaLevel = 1
     smpl.Age_Unit = "Years BP" # Unit of measurement for ages
     smpl.Height_Unit = "m" # Unit of measurement for Height and Height_sigma
 
@@ -44,18 +45,22 @@
     # Run the stratigraphic MCMC model
     @time (mdl, agedist, lldist) = StratMetropolis(smpl, config)
 
-    # Plot results (mean and 95% confidence interval for both model and data)
-    hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(round(Int,minimum(mdl.Height)),0.5,:blue), label="model")
-    plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white) # Center line
+    # Plot results (mean and 95% CI for model / 2-sigma for data)
+    hdl = plot(framestyle=:box,
+        fg_color_legend=:white,
+        xlabel="Age ($(smpl.Age_Unit))",
+        ylabel="Height ($(smpl.Height_Unit))",
+    )
+    plot!(hdl, [mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(round(Int,minimum(mdl.Height)),0.5,:blue), label="model")
+    plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="") # Center line
     t = smpl.Age_Sidedness .== 0 # Two-sided constraints (plot in black)
-    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(smpl.Age[t]-smpl.Age_025CI[t],smpl.Age_975CI[t]-smpl.Age[t]),label="data",seriestype=:scatter,color=:black)
+    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=2*smpl.Age_sigma[t],label="data",seriestype=:scatter,color=:black)
     t = smpl.Age_Sidedness .== 1 # Minimum ages (plot in cyan)
-    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(smpl.Age[t]-smpl.Age_025CI[t],zeros(count(t))),label="",seriestype=:scatter,color=:cyan,msc=:cyan)
+    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(2*smpl.Age_sigma[t],zeros(count(t))),label="",seriestype=:scatter,color=:cyan,msc=:cyan)
     any(t) && zip(smpl.Age[t], smpl.Age[t].+nanmean(smpl.Age_sigma[t])*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:cyan)
     t = smpl.Age_Sidedness .== -1 # Maximum ages (plot in orange)
-    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(zeros(count(t)),smpl.Age_975CI[t]-smpl.Age[t]),label="",seriestype=:scatter,color=:orange,msc=:orange)
+    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(zeros(count(t)),2*smpl.Age_sigma[t]),label="",seriestype=:scatter,color=:orange,msc=:orange)
     any(t) && zip(smpl.Age[t], smpl.Age[t].-nanmean(smpl.Age_sigma[t])*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:orange)
-    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
     savefig(hdl,"AgeDepthModel.pdf")
     display(hdl)
 

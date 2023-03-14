@@ -14,4 +14,4 @@ using Plots
 m = ones(nAnalyses).*tmin_mu
 l = ones(nAnalyses).*(tmin_mu-tmin_sigma)
 u = ones(nAnalyses).*(tmin_mu+tmin_sigma)
-plot!(1:nAnalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="")
+plot!(1:nAnalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="", framestyle=:box)

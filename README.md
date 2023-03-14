@@ -65,7 +65,8 @@ with or without hiatuses.
 ### Standalone eruption/deposition age modelling
 
 To run an eruption/deposition age estimate, without any age-depth modelling, try the notebook for
-* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/EruptionDepositionAgeDemonstration.ipynb) [Standalone eruption/deposition age modelling](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/EruptionDepositionAgeDemonstration.ipynb)
+* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0DistOnly.ipynb) [Standalone eruption/deposition age modelling](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0DistOnly.ipynb)
+* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/EruptionDepositionAgeDemonstration.ipynb) [Eruption/deposition age demo](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/EruptionDepositionAgeDemonstration.ipynb)
 
 ## Standard Usage
 After installing [Julia](https://julialang.org/downloads/) with or without [Juno](http://junolab.org/), and Chron.jl (above), run [examples/Chron1.0Coupled.jl](examples/Chron1.0Coupled.jl) to see how the code works. It should look something like this:

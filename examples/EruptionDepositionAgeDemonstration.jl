@@ -16,7 +16,12 @@
     # Calculate the weighted mean age
     (wx, wsigma, mswd) = awmean(ages, uncert)
 
-    h = plot(ylabel="Time before eruption (sigma)", xlabel="N", fg_color_legend=:white, legend=:topleft)
+    h = plot(xlabel="N",
+        ylabel="Time before eruption (sigma)",
+        fg_color_legend=:white,
+        legend=:topleft,
+        framestyle=:box
+    )
     plot!(h,1:length(ages),sort(ages),yerror=uncert*2,seriestype=:scatter, label="Synthetic zircon ages")
     plot!(h,collect(xlims()), [0,0], label="Eruption age")
     plot!(h,collect(xlims()), [wx,wx], label="Weighted mean, MSWD $(round(mswd,sigdigits=2))")
@@ -29,7 +34,15 @@
     dist ./= nanmean(dist) # Normalize
 
     # Plot bootstrapped distribution
-    plot(range(0,1.3,length=length(dist)),dist, label="bootstrapped", ylabel="Probability Density", xlabel="Time before eruption (scaled)", legend=:bottomleft, fg_color_legend=:white)
+    x = range(0,1.3,length=length(dist))
+    plot(x, dist,
+        label="bootstrapped",
+        xlabel="Time before eruption (scaled)",
+        ylabel="Probability Density",
+        fg_color_legend=:white,
+        legend=:bottomleft,
+        framestyle=:box
+    )
     plot!(range(0,1,length=100),MeltsVolcanicZirconDistribution,label="original")
 
 ## ---  Run MCMC to estimate eruption/deposition age distribution of synthetic dataset
@@ -46,7 +59,7 @@
     print("\nEstimated eruption age of synthetic dataset:\n $AgeEst +/- $(2*AgeEst_sigma) Ma (2σ)\n (True synthetic age 0 Ma)")
 
     # Plot results
-    h = histogram(tminDist[burnin:end],nbins=50,label="Posterior distribution",xlabel="Eruption Age (Ma)",ylabel="N")
+    h = histogram(tminDist[burnin:end],nbins=50,label="Posterior distribution",xlabel="Eruption Age (Ma)",ylabel="N",framestyle=:box)
     plot!(h,[0,0],collect(ylims()),line=(3),label="True (synthetic) age",fg_color_legend=:white)
     plot!(h,[wx,wx],collect(ylims()),line=(3),label="Weighted mean age",legend=:topright)
     display(h)
@@ -69,7 +82,13 @@
     dist ./= nanmean(dist) # Normalize
 
     # Plot bootstrapped distribution
-    plot(range(0,1,length=length(dist)),dist, label="bootstrapped f_xtal", ylabel="Probability Density", xlabel="Time before eruption (unitless)", fg_color_legend=:white)
+    plot(range(0,1,length=length(dist)),dist,
+        label="Bootstrapped f_xtal",
+        ylabel="Probability Density",
+        xlabel="Time before eruption (unitless)",
+        fg_color_legend=:white,
+        framestyle=:box
+    )
 
 ## --  Run MCMC to estimate eruption age
     # Configure model
@@ -90,12 +109,25 @@
     print("\nEstimated eruption age:\n $AgeEst +/- $(2*AgeEst_sigma) Ma (2σ)\n")
 
     # Plot results
-    h = histogram(tminDist[burnin:end],nbins=100,label="Posterior distribution",xlabel="Eruption Age (Ma)",ylabel="N",legend=:topleft,fg_color_legend=:white)
+    h = histogram(tminDist[burnin:end],nbins=100,
+        label="Posterior distribution",
+        xlabel="Eruption Age (Ma)",
+        ylabel="N",
+        legend=:topleft,
+        fg_color_legend=:white,
+        framestyle=:box
+    )
     # plot!(h,[wx,wx],collect(ylims()),line=(3),label="Weighted mean age",legend=:topleft)
     display(h)
 
 ## ---  Plot eruption age estimate relative to rank-order plot of raw zircon ages
-    h = plot(ylabel="Age (Ma)", xlabel="N", legend=:topleft, fg_color_legend=:white)
+
+    h = plot(xlabel="N",
+        ylabel="Age (Ma)",
+        legend=:topleft,
+        fg_color_legend=:white,
+        framestyle=:box
+    )
     plot!(h,1:length(ages),ages,yerror=uncert*2,seriestype=:scatter, markerstrokecolor=:auto, label="Observed ages")
     plot!(h,[length(ages)],[AgeEst],yerror=2*AgeEst_sigma, markerstrokecolor=:auto, label="Bayesian eruption age estimate",color=:red)
     plot!(h,collect(xlims()),[AgeEst,AgeEst],color=:red, label="")

@@ -51,7 +51,12 @@
 
         # Plot likelihood vector for each sample
         t = (calibration.Age_Calendar .> smpl.Age[i] - 5*smpl.Age_sigma[i]) .& (calibration.Age_Calendar .< smpl.Age[i] + 5*smpl.Age_sigma[i])
-        plot(calibration.Age_Calendar[t], likelihood[t], label=smpl.Name[i], xlabel="Calendar Age", ylabel="Likelihood")
+        plot(calibration.Age_Calendar[t], likelihood[t],
+            label=smpl.Name[i],
+            xlabel="Calendar Age",
+            ylabel="Likelihood",
+            framestyle=:box
+        )
         savefig("$(smpl.Name[i])_CalendarAge.pdf")
     end
 
@@ -74,10 +79,13 @@
     @time (mdl, agedist, lldist) = StratMetropolis14C(smpl, config)
 
     # Plot results (mean and 95% confidence interval for both model and data)
-    hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
+    hdl = plot(framestyle=:box,
+        xlabel="Age ($(smpl.Age_Unit))",
+        ylabel="Height ($(smpl.Height_Unit))",
+    )
+    plot!(hdl, [mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="")
     plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
-    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
     savefig(hdl,"AgeDepthModel.pdf");
     display(hdl)
 
@@ -96,7 +104,7 @@
     for i=1:size(agedist,2)
         interpolated_distribution[i] = linterp1s(mdl.Height,agedist[:,i],height)
     end
-    hdl = histogram(interpolated_distribution, nbins=50, label="")
+    hdl = histogram(interpolated_distribution, nbins=50, label="", framestyle=:box)
     plot!(hdl, xlabel="Age ($(smpl.Age_Unit)) at height=$height", ylabel="Likelihood (unnormalized)")
     savefig(hdl, "Interpolated age distribution.pdf")
     display(hdl)
@@ -138,7 +146,12 @@
     dhdt_55p = nanpctile(dhdt_dist,55,dim=2)
 
     # Plot results
-    hdl = plot(bincenters,dhdt, label="Mean", color=:black, linewidth=2)
+    hdl = plot(framestyle=:box,
+        fg_color_legend=:white,
+        xlabel="Age ($(smpl.Age_Unit))",
+        ylabel="Depositional Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))",
+    )
+    plot!(hdl, bincenters,dhdt, label="Mean", color=:black, linewidth=2)
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(0,0.2,:darkblue), linealpha=0, label="68% CI")
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_20p; reverse(dhdt_80p)], fill=(0,0.2,:darkblue), linealpha=0, label="")
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_25p; reverse(dhdt_75p)], fill=(0,0.2,:darkblue), linealpha=0, label="")
@@ -147,7 +160,6 @@
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_40p; reverse(dhdt_60p)], fill=(0,0.2,:darkblue), linealpha=0, label="")
     plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_45p; reverse(dhdt_55p)], fill=(0,0.2,:darkblue), linealpha=0, label="")
     plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
-    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Depositional Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))", fg_color_legend=:white)
     # savefig(hdl,"DepositionRateModelCI.pdf")
     display(hdl)
 
@@ -165,9 +177,12 @@
     @time (mdl, agedist, hiatusdist, lldist) = StratMetropolis14C(smpl, hiatus, config)
 
     # Plot results (mean and 95% confidence interval for both model and data)
-    hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
+    hdl = plot(framestyle=:box,
+        xlabel="Age ($(smpl.Age_Unit))",
+        ylabel="Height ($(smpl.Height_Unit))",
+    )
+    plot!(hdl, [mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white)
     plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
-    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
 
 ## --- End of File
