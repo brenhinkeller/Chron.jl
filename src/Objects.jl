@@ -2,8 +2,8 @@
 
     # Define a type of struct object to hold data about geochron samples from
     # a region or stratigraphic section of interest
-    mutable struct ChronAgeData
-        Name::Tuple
+    mutable struct ChronAgeData{N}
+        Name::NTuple{N, String}
         Height::Array{Float64,1}
         Height_sigma::Array{Float64,1}
         Age::Array{Float64,1}
@@ -14,7 +14,8 @@
         Age_14C_sigma::Array{Float64,1}
         Age_Sidedness::Array{Float64,1}
         Age_DistType::Array{Float64,1}
-        Age_Distribution::Array{<:Array,1}
+        Age_Distribution::Vector{Vector{Float64}}
+        Chronometer::NTuple{N, Symbol}
         Params::Array{Float64,2}
         Path::String
         inputSigmaLevel::Int
@@ -23,8 +24,8 @@
     end
 
     function ChronAgeData(nSamples::Integer)
-        smpl = ChronAgeData(
-            ("Sample Names",),
+        smpl = ChronAgeData{nSamples}(
+            ntuple(i->"Sample name", nSamples),
             fill(NaN,nSamples),  # Sample heights
             fill(NaN,nSamples),  # Height_sigma
             fill(NaN,nSamples),  # Sample ages
@@ -35,7 +36,8 @@
             fill(NaN,nSamples),  # Sample 14C uncertainties
             zeros(nSamples), # Sidedness (zeros by default, geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
             zeros(nSamples), # DistType (for Distribution-fitting only: 0=distribution to be fit, 1=single Gaussian)
-            Array{Array}(undef,nSamples), # Stationary distribution of eruption age
+            Vector{Vector{Float64}}(undef,nSamples), # Stationary distribution of eruption age
+            ntuple(i->:Chronometer, nSamples), # Age Types (e.g., :UPb or :ArAr)
             fill(NaN,5,nSamples), # Sample age distribution parameters
             "./", # Relative path where we can find .csv data files
             2, # i.e., are the data files 1-sigma or 2-sigma
@@ -52,6 +54,13 @@
     const StratAgeData = ChronAgeData
     export StratAgeData
 
+    # One-sigma systematic uncertainty
+    mutable struct SystematicUncertainty
+        UPb::Float64
+        ArAr::Float64
+    end
+    SystematicUncertainty() = SystematicUncertainty(NaN, NaN)
+    export SystematicUncertainty
 
     # A type of object to hold data about hiatuses
     mutable struct HiatusData

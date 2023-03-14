@@ -39,7 +39,24 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Run the stratigraphic MCMC model
+println("StratMetropolisDist:")
 @time (mdl, agedist, lldist) = StratMetropolisDist(smpl, config)
+
+# Test that results match expectation, within some tolerance
+@test isa(mdl.Age, Array{Float64,1})
+@test isapprox(mdl.Age, [66.06, 66.05, 66.03, 66.02, 66.01, 66.0, 65.98, 65.97, 65.96, 65.94, 65.94, 65.93, 65.93, 65.9], atol=0.1)
+@test isapprox(mdl.Age_025CI, [66.0, 65.98, 65.96, 65.95, 65.94, 65.93, 65.93, 65.92, 65.92, 65.91, 65.91, 65.89, 65.88, 65.82], atol=0.15)
+@test isapprox(mdl.Age_975CI, [66.09, 66.09, 66.08, 66.08, 66.07, 66.07, 66.05, 66.04, 66.02, 65.97, 65.97, 65.96, 65.96, 65.95], atol=0.15)
+
+# Try adding systematic uncertainties too
+smpl.Chronometer = (:UPb, :UPb, :ArAr, :UPb, :UPb)
+systematic=SystematicUncertainty()
+systematic.ArAr = 0.005/2 # One-sigma
+systematic.UPb = 0.005/2 # One-sigma
+
+# Run the stratigraphic MCMC model
+println("StratMetropolisDist with systematic uncertainties:")
+@time (mdl, agedist, lldist) = StratMetropolisDist(smpl, config, systematic)
 
 # Test that results match expectation, within some tolerance
 @test isa(mdl.Age, Array{Float64,1})
@@ -56,6 +73,7 @@ hiatus.Duration       = [ 0.3,  0.3 ]
 hiatus.Duration_sigma = [ 0.05, 0.05]
 
 # Run the model. Note the additional `hiatus` arguments
+println("StratMetropolisDist with hiata:")
 @time (mdl, agedist, hiatusdist, lldist) = StratMetropolisDist(smpl, hiatus, config)
 
 # Test that results match expectation, within some tolerance
@@ -73,6 +91,7 @@ smpl.Age_DistType.=1
 @time tMinDistMetropolis(smpl,distSteps,distBurnin,BootstrappedDistribution; make_plots=false)
 
 # Run the stratigraphic MCMC model
+println("StratMetropolisDist with fitted Gaussians:")
 @time (mdl, agedist, lldist) = StratMetropolisDist(smpl, config)
 @test isa(mdl.Age, Array{Float64,1})
 @test isapprox(mdl.Age, [65.97, 65.97, 65.96, 65.95, 65.95, 65.94, 65.93, 65.92, 65.92, 65.91, 65.9, 65.89, 65.87, 65.85], atol=0.1)

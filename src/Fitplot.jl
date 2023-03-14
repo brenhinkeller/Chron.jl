@@ -258,7 +258,10 @@
     smpl = tMinDistMetropolis(smpl, 5*10^5, 2*10^5, TriangularDistribution)
     ```
     """
-    function tMinDistMetropolis(smpl::ChronAgeData,nsteps::Int,burnin::Int,dist::DenseArray{Float64}; make_plots=true)
+    function tMinDistMetropolis(smpl::ChronAgeData,nsteps::Int,burnin::Int,dist::DenseArray{Float64};
+            include=ntuple(i->true, length(smpl.Name)),
+            make_plots=true,
+        )
         # Extract variables from struct
         Name = collect(smpl.Name)::Array{String,1}
         Path = smpl.Path::String
@@ -268,6 +271,7 @@
         # Estimate the eruption/deposition distribution for each sample
         print("Estimating eruption/deposition age distributions...\n")
         for i ∈ eachindex(Name)
+            include[i] || continue # Only calculate if include is true
             if DistType[i] == 0 # A distribution to fit properly
                 # Read data for each sample from file
                 filepath = joinpath(Path, Name[i]*".csv")
