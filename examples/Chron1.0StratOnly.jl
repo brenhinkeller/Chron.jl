@@ -16,7 +16,6 @@
     smpl.Height       .= [ -355,  -380,-397.0,-411.5,] # Depths below surface should be negative
     smpl.Height_sigma .= fill(0.01, nSamples) # Usually assume little or no sample height uncertainty
     smpl.Age_Sidedness .= zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
-    smpl.inputSigmaLevel = 1
     smpl.Age_Unit = "Years BP" # Unit of measurement for ages
     smpl.Height_Unit = "m" # Unit of measurement for Height and Height_sigma
 
