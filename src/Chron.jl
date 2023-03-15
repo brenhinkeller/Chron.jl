@@ -10,11 +10,9 @@
 #  times of first (i.e., saturation) and last  mineral crystallization (i.e.,   #
 #  eruption/deposition).                                                        #
 #                                                                               #
-#    The second model uses the estimated (posterior) eruption/deposition ages   #
+#    The second model uses the estimated (posterior) eruption/deposition age    #
 #  distributions along with the constraint of stratigraphic superposition to    #
 #  produce an age-depth model                                                   #
-#                                                                               #
-#   Last modified by C. Brenhin Keller 2021-05-05                               #
 #                                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
