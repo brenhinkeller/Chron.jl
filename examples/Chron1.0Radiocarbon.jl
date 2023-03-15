@@ -1,9 +1,16 @@
-## --- Load required pacages, install Chron if required
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                           Chron1.0Radiocarbon.jl                              #
+#                                                                               #
+#     Illustrates the use of the Chron.jl package for the production of a       #
+#  stratigraphic age-depth model based on radiocarbon ages                      #
+#                                                                               #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## --- Load required packages - - - - - - - - - - - - - - - - - - - - - - - - -
 
     using Chron
     using Plots
 
-## --- Define sample properties
+## --- Define sample properties - - - - - - - - - - - - - - - - - - - - - - - -
 
     # # # # # # # # # # # Enter sample information here! # # # # # # # # # # # #
     # Input the number of samples we wish to model (must match below)
@@ -25,7 +32,7 @@
     # numbers.
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-## --- Calculate and plot calendar age PDFs for each sample
+## --- Calculate and plot calendar age PDFs for each sample - - - - - - - - - -
 
     # Choice of radiocarbon calibration
     # Options include: intcal13, intcal20, shcal20
@@ -60,7 +67,7 @@
         savefig("$(smpl.Name[i])_CalendarAge.pdf")
     end
 
-## --- Run stratigraphic model
+## --- Run stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - - -
 
     # # # # # # # # # # Configure stratigraphic model here! # # # # # # # # # #
     # Configure the stratigraphic Monte Carlo model
@@ -89,7 +96,7 @@
     savefig(hdl,"AgeDepthModel.pdf");
     display(hdl)
 
-## --- Interpolate results at a specific height
+## --- Interpolate results at a specific height - - - - - - - - - - - - - - - -
 
     # Stratigraphic height at which to interpolate
     height = -404
@@ -163,7 +170,7 @@
     # savefig(hdl,"DepositionRateModelCI.pdf")
     display(hdl)
 
-## --- Optional: Stratigraphic model including hiatuses
+## --- Optional: Stratigraphic model including hiatuses - - - - - - - - - - - -
 
     # Data about hiatuses
     nHiatuses = 2 # The number of hiatuses you have data for
@@ -185,4 +192,4 @@
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white)
     plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
 
-## --- End of File
+## --- End of File - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

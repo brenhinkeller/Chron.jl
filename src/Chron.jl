@@ -47,7 +47,7 @@ module Chron
     # Functions for stratigraphic modelling
     include("StratMetropolis.jl")
 
-    using Plots; gr();
+    using Plots
     include("Fitplot.jl")
 
     # Structs

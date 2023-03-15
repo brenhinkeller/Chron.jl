@@ -1,18 +1,15 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#                             Chron1.0Coupled.jl                                #
+#                       Chron1.0CoupledSystematic.jl                            #
 #                                                                               #
 #     Illustrates the use of the Chron.jl package for eruption/deposition       #
-#  age estimation and production of a stratigraphic age model.                  #
-#                                                                               #
-#     This file uses code cells (denoted by "## ---"). To evaluate a cell in    #
-#  the Julia REPL and move to the next cell, the default shortcut in Atom is    #
-#  alt-shift-enter.                                                             #
+#  age estimation and production of a stratigraphic age-depth model,            #
+#  including systematic uncertainty, from U-Pb or Ar-Ar data.                   #
 #                                                                               #
 #      You may have to adjust the path below which specifies the location of    #
 #  the CSV data files for each sample, depending on what you want to run.       #
 #                                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-## --- Load the Chron package - - - - - - - - - - - - - - - - - - - - - - - - -
+## --- Load required packages - - - - - - - - - - - - - - - - - - - - - - - - -
 
     using Chron
     using Plots
@@ -81,13 +78,13 @@
     distSteps = 5*10^5 # Number of steps to run in distribution MCMC
     distBurnin = distSteps÷2 # Number to discard
 
-    # Choose the form of the prior distribution to use
-    # Some pre-defined possiblilities include UniformDisribution,
-    # TriangularDistribution, and MeltsVolcanicZirconDistribution
-    # or you can define your own as with BootstrappedDistribution above
+    # Choose the form of the prior closure/crystallization distribution to use
     dist = BootstrappedDistribution
+    ## You might alternatively consider:
+    # dist = UniformDistribution              # A reasonable default
+    # dist = MeltsVolcanicZirconDistribution  # A single magmatic pulse, truncated by eruption
+    # dist = ExponentialDistribution          # Applicable for survivorship processes, potentially including inheritance/dispersion in Ar-Ar dates
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     # Run MCMC to estimate saturation and eruption/deposition age distributions
     @time tMinDistMetropolis(smpl,distSteps,distBurnin,dist, include=smpl.Chronometer.===:UPb)
@@ -105,10 +102,9 @@
 
 ## --- Run stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    # # (Optional) Load the saved sample struct
+    # # (Optional) Load the saved sample struct (requires JLD.jl)
     # @load "smpl.jld" smpl
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Configure the stratigraphic Monte Carlo model
     config = NewStratAgeModelConfiguration()
     # If you in doubt, you can probably leave these parameters as-is
@@ -272,28 +268,6 @@
     savefig(hdl,"AccumulationRateModelCI.pdf")
     display(hdl)
 
-## --- Make heatmap - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    rateplotmax = 3*maximum(dhdt) # May want to adjust this -- this is just a guess
-    using StatsBase: fit, Histogram
-    edges = range(0, rateplotmax, length=length(ages)-spacing+1)
-    dhdt_im = Array{Float64}(undef,length(ages)-spacing,length(ages)-spacing)
-    for i=1:length(ages)-spacing
-        dhdt_im[:,i] .= fit(Histogram, dhdt_dist[i, .~ isnan.(view(dhdt_dist,i,:))], edges, closed=:left).weights
-    end
-
-    # Apply colormap. Available colormaps include viridis, inferno, plasma, fire, etc.
-    img = imsc(dhdt_im, inferno, nanpctile(dhdt_im, 2.5), nanpctile(dhdt_im, 97.5))
-
-    # Plot image
-    h = plot(bincenters, cntr(edges), img, yflip=false, xflip=false, colorbar=:right, framestyle=:box)
-    plot!(h, xlabel="Age ($(smpl.Age_Unit))", ylabel="Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit), $binwidth $(smpl.Age_Unit) Bin)")
-    xrange = abs(last(bincenters)-first(bincenters))
-    yrange = abs(last(edges) - first(edges))
-    plot!(h, ylims = extrema(cntr(edges)), size=(600,400), aspectratio=2/3/(yrange/xrange))
-    savefig(h,"AccumulationRateModelHeatmap.pdf")
-    display(h)
-
 ## --- Probability that a given interval of stratigraphy was deposited entirely before/after a given time
 
     # Stratigraphic height and absoltue age/uncert to test
@@ -319,82 +293,4 @@
     prob_older = sum(test_prob_older .* prob_norm)
     print("$(prob_older*100) % chance that $(mdl.Height[nearest]) $(smpl.Height_Unit) was deposited before $testAge +/- $testAge_sigma $(smpl.Age_Unit) Gaussian")
 
-
-## --- (Optional) If your section has hiata / exposure surfaces of known duration, try this:
-
-    # Data about hiatuses
-    nHiatuses = 2 # The number of hiatuses you have data for
-    hiatus = NewHiatusData(nHiatuses) # Struct to hold data
-    hiatus.Height         = [-7.0, 35.0 ]
-    hiatus.Height_sigma   = [ 0.0,  0.0 ]
-    hiatus.Duration       = [ 0.3,  0.3 ]
-    hiatus.Duration_sigma = [ 0.05, 0.05]
-
-    # Run the model. Note the additional `hiatus` arguments
-    @time (mdl, agedist, hiatusdist, lldist) = StratMetropolisDist(smpl, hiatus, config)
-
-    # Plot results (mean and 95% confidence interval for both model and data)
-    hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
-    plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white)
-    plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
-    plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)", framestyle=:box)
-
-## --- (Optional) Add systematic uncertainties for U-Pb data
-
-    # # Tracer (ET2535) uncertainty converted from per cent to relative
-    # unc_tracer = 0.03/2/100
-    #
-    # # U-238 Decay constant and uncertainty, Myr^-1
-    # lambda238 = 1.55125e-10 * 1e6
-    # unc_lambda238 = 0.107/2/100 # converted from per cent to relative
-    #
-    # # Consider only the distribution of ages at model nodes where we have an ash bed
-    # age_dist_X = Array{Float64}(undef,length(smpl.Height),size(agedist,2))
-    # for i = 1:length(smpl.Height)
-    #    closest_model_node = argmin(abs.(mdl.Height-smpl.Height[i]))
-    #    age_dist_X[i,:] = agedist[closest_model_node,:]
-    # end
-    #
-    # # Convert ages to 206Pb/238U ratios of the distribution
-    # ratio_dist = exp.(age_dist_X.*lambda238)-1
-    #
-    # # Add tracer uncertainty
-    # ratio_dist_tracerunc = Array{Float64}(undef,size(ratio_dist))
-    # for i=1:size(ratio_dist,2)
-    #     ratio_dist_tracerunc[:,i] = ratio_dist[:,i].*(1 + unc_tracer*randn())
-    # end
-    #
-    # # Convert 206/238 ratios back to ages, in Ma
-    # age_dist_XY = log.(ratio_dist_tracerunc+1)./lambda238
-    #
-    # # Add decay constant uncertainty
-    # age_dist_XYZ = Array{Float64}(undef,size(ratio_dist))
-    # for i=1:size(ratio_dist,2)
-    #     age_dist_XYZ[:,i] = log.(ratio_dist_tracerunc[:,i]+1)./(lambda238.*(1 + unc_lambda238.*randn()))
-    # end
-    #
-    # # Calculate the means and 95% confidence intervals for different levels of systematic uncertainties
-    #
-    # age_dist_X_mean = nanmean(age_dist_X,2) # Mean age
-    # age_dist_X_std =  nanstd(age_dist_X,2) # Standard deviation
-    # age_dist_X_median = nanmedian(age_dist_X,2) # Median age
-    # age_dist_X_025p = nanpctile(age_dist_X,2.5,dim=2) # 2.5th percentile
-    # age_dist_X_975p = nanpctile(age_dist_X,97.5,dim=2) # 97.5th percentile
-    #
-    # age_dist_XY_mean = nanmean(age_dist_XY,2) # Mean age
-    # age_dist_XY_std =  nanstd(age_dist_XY,2) # Standard deviation
-    # age_dist_XY_median = nanmedian(age_dist_XY,2) # Median age
-    # age_dist_XY_025p = nanpctile(age_dist_XY,2.5,dim=2) # 2.5th percentile
-    # age_dist_XY_975p = nanpctile(age_dist_XY,97.5,dim=2) # 97.5th percentile
-    #
-    # age_dist_XYZ_mean = nanmean(age_dist_XYZ,2) # Mean age
-    # age_dist_XYZ_std =  nanstd(age_dist_XYZ,2) # Standard deviation
-    # age_dist_XYZ_median = nanmedian(age_dist_XYZ,2) # Median age
-    # age_dist_XYZ_025p = nanpctile(age_dist_XYZ,2.5,dim=2) # 2.5th percentile
-    # age_dist_XYZ_975p = nanpctile(age_dist_XYZ,97.5,dim=2) # 97.5th percentile
-    #
-    # age_X_95p = [age_dist_X_mean age_dist_X_975p-age_dist_X_mean age_dist_X_mean-age_dist_X_025p]
-    # age_XY_95p = [age_dist_XY_mean age_dist_XY_975p-age_dist_XY_mean age_dist_XY_mean-age_dist_XY_025p]
-    # age_XYZ_95p = [age_dist_XYZ_mean age_dist_XYZ_975p-age_dist_XYZ_mean age_dist_XYZ_mean-age_dist_XYZ_025p]
-
-## ---
+## --- End of File  - - - - - - - - - - - - - - - - - - - - - - - - -

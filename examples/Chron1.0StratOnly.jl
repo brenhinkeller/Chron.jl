@@ -1,9 +1,16 @@
-## --- Load required pacages, install Chron if required
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                            Chron1.0StratOnly.jl                               #
+#                                                                               #
+#     Illustrates the use of the Chron.jl package for the production of a       #
+#  stratigraphic age-depth model based on any Gaussian age constraints          #
+#                                                                               #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## --- Load required pacages, install Chron if required - - - - - - - - - - - -
 
     using Chron
     using Plots
 
-## --- Define sample properties
+## --- Define sample properties - - - - - - - - - - - - - - - - - - - - - - - -
 
     # # # # # # # # # # # Enter sample information here! # # # # # # # # # # # #
     # Input the number of samples we wish to model (must match below)
@@ -26,7 +33,7 @@
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-## --- Run stratigraphic model
+## --- Run stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - - -
 
     # # # # # # # # # # Configure stratigraphic model here! # # # # # # # # # #
     # Configure the stratigraphic Monte Carlo model
@@ -63,7 +70,7 @@
     savefig(hdl,"AgeDepthModel.pdf")
     display(hdl)
 
-## --- Interpolate results at a specific height
+## --- Interpolate results at a specific height - - - - - - - - - - - - - - - -
 
     # Stratigraphic height at which to interpolate
     height = -404
@@ -83,7 +90,7 @@
     savefig(hdl, "Interpolated age distribution.pdf")
     display(hdl)
 
-## --- Calculate deposition rate binned by age  - - - - - - - - - - - - - - - -
+## --- Calculate deposition rate binned by age - - - - - - - - - - - - - - - - -
 
     # Set bin width and spacing
     binwidth = round(nanrange(mdl.Age)/10,sigdigits=1) # Can also set manually, commented out below
@@ -133,7 +140,7 @@
     # savefig(hdl,"DepositionRateModelCI.pdf")
     display(hdl)
 
-## --- Optional: Stratigraphic model including hiatuses
+## --- Optional: Stratigraphic model including hiatuses - - - - - - - - - - - -
 
     # Data about hiatuses
     nHiatuses = 2 # The number of hiatuses you have data for
@@ -152,4 +159,4 @@
     plot!(hdl, smpl.Age, smpl.Height, xerror=smpl.Age_sigma*2,label="data",seriestype=:scatter,color=:black)
     plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
 
-## --- End of File
+## --- End of File - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -2,17 +2,13 @@
 #                            Chron1.0DistOnly.jl                                #
 #                                                                               #
 #     Illustrates the use of the Chron.jl package to estimate eruption          #
-#  and/or deposition ages.                                                      #
-#                                                                               #
-#     This file uses code cells (denoted by "## ---"). To evaluate a cell in    #
-#  the Julia REPL and move to the next cell, the default shortcut in Atom is    #
-#  alt-shift-enter.                                                             #
+#  and/or deposition ages from U-Pb or Ar-Ar crystallization or closure ages.   #
 #                                                                               #
 #     You may have to adjust the path below which specifies the location of     #
 #  the CSV data files for each sample, depending on what you want to run.       #
 #                                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-## --- Load the Chron package - - - - - - - - - - - - - - - - - - - - - - - - -
+## --- Load required packages - - - - - - - - - - - - - - - - - - - - - - - - -
 
     using Chron
     using Plots
@@ -88,8 +84,6 @@
     # dist = ExponentialDistribution          # Applicable for survivorship processes, potentially including inheritance/dispersion in Ar-Ar dates
 
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
     # Run MCMC to estimate saturation and eruption/deposition age distributions
     @time tMinDistMetropolis(smpl,distSteps,distBurnin,dist)
 
@@ -97,4 +91,4 @@
     # csv file -- you can find them in smpl.Path
 
 
-## ---
+## --- End of File - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

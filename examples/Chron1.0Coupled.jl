@@ -4,10 +4,6 @@
 #     Illustrates the use of the Chron.jl package for eruption/deposition       #
 #  age estimation and production of a stratigraphic age model.                  #
 #                                                                               #
-#     This file uses code cells (denoted by "## ---"). To evaluate a cell in    #
-#  the Julia REPL and move to the next cell, the default shortcut in Atom is    #
-#  alt-shift-enter.                                                             #
-#                                                                               #
 #      You may have to adjust the path below which specifies the location of    #
 #  the CSV data files for each sample, depending on what you want to run.       #
 #                                                                               #
@@ -80,13 +76,13 @@
     distSteps = 5*10^5 # Number of steps to run in distribution MCMC
     distBurnin = distSteps÷2 # Number to discard
 
-    # Choose the form of the prior distribution to use
-    # Some pre-defined possiblilities include UniformDisribution,
-    # TriangularDistribution, and MeltsVolcanicZirconDistribution
-    # or you can define your own as with BootstrappedDistribution above
+    # Choose the form of the prior closure/crystallization distribution to use
     dist = BootstrappedDistribution
+    ## You might alternatively consider:
+    # dist = UniformDistribution              # A reasonable default
+    # dist = MeltsVolcanicZirconDistribution  # A single magmatic pulse, truncated by eruption
+    # dist = ExponentialDistribution          # Applicable for survivorship processes, potentially including inheritance/dispersion in Ar-Ar dates
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     # Run MCMC to estimate saturation and eruption/deposition age distributions
     @time tMinDistMetropolis(smpl,distSteps,distBurnin,dist)
@@ -100,10 +96,9 @@
 
 ## --- Run stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    # # (Optional) Load the saved sample struct
+    # # (Optional) Load the saved sample struct (requires JLD.jl)
     # @load "smpl.jld" smpl
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Configure the stratigraphic Monte Carlo model
     config = NewStratAgeModelConfiguration()
     # If you in doubt, you can probably leave these parameters as-is
