@@ -90,7 +90,7 @@
             # Maximum offset before cutoff
             # Read data for each sample from file
             filepath = joinpath(Path, Name[i]*".csv")
-            data_raw = readclean(filepath, ',', Float64)::Array{Float64,2}
+            data_raw = readclean(filepath, ',', Float64)::Matrix{Float64}
             # Sort ages in ascending order
             data = sortslices(data_raw, dims=1)
             nAnalyses = size(data,1)
@@ -138,7 +138,7 @@
         # Extact variables froms struct
         Name = collect(smpl.Name)::Array{String,1}
         Path = smpl.Path::String
-        DistType = smpl.Age_DistType::Array{Float64,1}
+        DistType = smpl.Age_DistType::Vector{Float64}
 
         # Load all data points and scale from 0 to 1
         allscaled = Array{Float64}([])
@@ -146,7 +146,7 @@
             if DistType[i]==0
                 # Read data for each sample from file
                 filepath = joinpath(Path, Name[i]*".csv")
-                data = readclean(filepath, ',', Float64)::Array{Float64,2}
+                data = readclean(filepath, ',', Float64)::Matrix{Float64}
                 # First column should be means, second should be standard deviation
                 μ, σ = view(data,:,1), view(data, :, 2)
 
@@ -266,7 +266,7 @@
         Name = collect(smpl.Name)::Array{String,1}
         Path = smpl.Path::String
         Age_Unit = smpl.Age_Unit::String
-        DistType = smpl.Age_DistType::Array{Float64,1}
+        DistType = smpl.Age_DistType::Vector{Float64}
 
         # Estimate the eruption/deposition distribution for each sample
         print("Estimating eruption/deposition age distributions...\n")
@@ -275,7 +275,7 @@
             if DistType[i] == 0 # A distribution to fit properly
                 # Read data for each sample from file
                 filepath = joinpath(Path, Name[i]*".csv")
-                data = readclean(filepath, ',', Float64)::Array{Float64,2}
+                data = readclean(filepath, ',', Float64)::Matrix{Float64}
                 print(i, ": ", Name[i], "\n") # Display progress
 
                 # Run MCMC to estimate saturation and eruption/deposition age distributions
@@ -333,7 +333,7 @@
             elseif DistType[i] == 1 # A single Gaussian
                 # Read data for each sample from file
                 filepath = joinpath(Path, Name[i]*".csv")
-                data = readclean(filepath, ',', Float64)::Array{Float64,2}
+                data = readclean(filepath, ',', Float64)::Matrix{Float64}
                 print(i, ": ", Name[i], "\n") # Display progress
                 μ = data[1,1]
                 σ = data[1,2]/smpl.inputSigmaLevel

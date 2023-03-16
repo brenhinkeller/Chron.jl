@@ -4,19 +4,19 @@
     # a region or stratigraphic section of interest
     mutable struct ChronAgeData{N}
         Name::NTuple{N, String}
-        Height::Array{Float64,1}
-        Height_sigma::Array{Float64,1}
-        Age::Array{Float64,1}
-        Age_sigma::Array{Float64,1}
-        Age_025CI::Array{Float64,1}
-        Age_975CI::Array{Float64,1}
-        Age_14C::Array{Float64,1}
-        Age_14C_sigma::Array{Float64,1}
-        Age_Sidedness::Array{Float64,1}
-        Age_DistType::Array{Float64,1}
+        Height::Vector{Float64}
+        Height_sigma::Vector{Float64}
+        Age::Vector{Float64}
+        Age_sigma::Vector{Float64}
+        Age_025CI::Vector{Float64}
+        Age_975CI::Vector{Float64}
+        Age_14C::Vector{Float64}
+        Age_14C_sigma::Vector{Float64}
+        Age_Sidedness::Vector{Float64}
+        Age_DistType::Vector{Float64}
         Age_Distribution::Vector{Vector{Float64}}
         Chronometer::NTuple{N, Symbol}
-        Params::Array{Float64,2}
+        Params::Matrix{Float64}
         Path::String
         inputSigmaLevel::Int
         Age_Unit::String
@@ -64,10 +64,10 @@
 
     # A type of object to hold data about hiatuses
     mutable struct HiatusData
-        Height::Array{Float64,1}
-        Height_sigma::Array{Float64,1}
-        Duration::Array{Float64,1}
-        Duration_sigma::Array{Float64,1}
+        Height::Vector{Float64}
+        Height_sigma::Vector{Float64}
+        Duration::Vector{Float64}
+        Duration_sigma::Vector{Float64}
         Age_Unit::String
         Height_Unit::String
     end
@@ -103,10 +103,10 @@
 
 
     struct StratAgeModel
-        Height::Array{Float64,1}
-        Age::Array{Float64,1}
-        Age_sigma::Array{Float64,1}
-        Age_Median::Array{Float64,1}
-        Age_025CI::Array{Float64,1}
-        Age_975CI::Array{Float64,1}
+        Height::Vector{Float64}
+        Age::Vector{Float64}
+        Age_sigma::Vector{Float64}
+        Age_Median::Vector{Float64}
+        Age_025CI::Vector{Float64}
+        Age_975CI::Vector{Float64}
     end

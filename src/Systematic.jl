@@ -1,13 +1,13 @@
 ## --- Dealing with systematic uncertainty
 
-    function add_systematic_uncert_UPb(agedistmyr::Array{Float64,1})
+    function add_systematic_uncert_UPb(agedistmyr::Vector{Float64})
         λ238 = log(2)/44683 # Jaffey decay constant, 1/Myr
         λ238_ = log(2)./(44683 .+ 24 .* randn(size(agedistmyr))) # Jaffey decay with uncertainty 1/Myr
         σtracer = 1 .+ (0.03/2/100) .* randn(size(agedistmyr)) # Earthtime tracer uncertainty
         r = exp.(agedistmyr .* λ238) .- 1
         return log.(r .* σtracer .+ 1) ./ λ238_
     end
-    function add_systematic_uncert_UPb(agedistmyr::Array{Float64,2})
+    function add_systematic_uncert_UPb(agedistmyr::Matrix{Float64})
         λ238 = log(2)/44683 # Jaffey decay constant, 1/Myr
         λ238_ = log(2)./(44683 .+ 24 .* randn(1, size(agedistmyr,2))) # Jaffey decay with uncertainty 1/Myr
         σtracer = 1 .+ (0.03/2/100) .* randn(1, size(agedistmyr,2)) # Earthtime tracer uncertainty
@@ -17,7 +17,7 @@
 
     export add_systematic_uncert_UPb
 
-    function add_systematic_uncert_ArAr(agedistmyr::Array{Float64,1})
+    function add_systematic_uncert_ArAr(agedistmyr::Vector{Float64})
         # Optimization intercalibration values from Renne 2011 reply
         # Values
         κ = 1.6417E-03
@@ -52,7 +52,7 @@
         λ_ = λβ_ .+ λϵ_
         return log.(Rdist.*κ_.*λ_./λϵ_ .+ 1)./(λ_.*1000000)
     end
-    function add_systematic_uncert_ArAr(agedistmyr::Array{Float64,2})
+    function add_systematic_uncert_ArAr(agedistmyr::Matrix{Float64})
         # Optimization intercalibration values from Renne 2011 reply
         # Values
         κ = 1.6417E-03

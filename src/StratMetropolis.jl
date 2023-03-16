@@ -34,11 +34,11 @@
         bounding = config.bounding
 
         # Stratigraphic age constraints
-        Age = copy(smpl.Age)::Array{Float64,1}
-        Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
-        Height = copy(smpl.Height)::Array{Float64,1}
-        Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-        Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
+        Age = copy(smpl.Age)::Vector{Float64}
+        Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
+        Height = copy(smpl.Height)::Vector{Float64}
+        Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
+        Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
         (bottom, top) = extrema(Height)
         (youngest, oldest) = extrema(Age)
         dt_dH = (oldest-youngest)/(top-bottom)
@@ -263,11 +263,11 @@
         bounding = config.bounding
 
         # Stratigraphic age constraints. Type assertions for stability
-        Age = copy(smpl.Age)::Array{Float64,1}
-        Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
-        Height = copy(smpl.Height)::Array{Float64,1}
-        Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-        Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
+        Age = copy(smpl.Age)::Vector{Float64}
+        Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
+        Height = copy(smpl.Height)::Vector{Float64}
+        Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
+        Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
         (youngest, oldest) = extrema(Age)
         aveuncert = nanmean(Age_sigma)
         (bottom, top) = extrema(Height)
@@ -308,16 +308,16 @@
         ll += normpdf_ll(Height, Height_sigma, sample_height)
 
         # Ensure there is only one effective hiatus at most for each height node
-        closest_hiatus = findclosestabove((hiatus.Height::Array{Float64,1}),model_heights)
+        closest_hiatus = findclosestabove((hiatus.Height::Vector{Float64}),model_heights)
         closest_hiatus_unique = unique(closest_hiatus)
         Hiatus_height = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
         for i ∈ eachindex(closest_hiatus_unique)
             t = closest_hiatus.==closest_hiatus_unique[i]
-            Hiatus_height[i] = mean((hiatus.Height::Array{Float64,1})[t])
-            Hiatus_duration[i] = sum((hiatus.Duration::Array{Float64,1})[t])
-            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Array{Float64,1})[t].^2))
+            Hiatus_height[i] = mean((hiatus.Height::Vector{Float64})[t])
+            Hiatus_duration[i] = sum((hiatus.Duration::Vector{Float64})[t])
+            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Vector{Float64})[t].^2))
         end
 
         # Add log likelihood for hiatus duration
@@ -595,12 +595,12 @@
         bounding = config.bounding
 
         # Stratigraphic age constraints
-        Age = copy(smpl.Age)::Array{Float64,1}
-        Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
-        Height = copy(smpl.Height)::Array{Float64,1}
-        Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-        Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
-        p = copy(smpl.Params)::Array{Float64,2}
+        Age = copy(smpl.Age)::Vector{Float64}
+        Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
+        Height = copy(smpl.Height)::Vector{Float64}
+        Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
+        Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
+        p = copy(smpl.Params)::Matrix{Float64}
         (youngest, oldest) = extrema(Age)
         aveuncert = nanmean(Age_sigma)
         (bottom, top) = extrema(Height)
@@ -831,12 +831,12 @@
         bounding = config.bounding
 
         # Stratigraphic age constraints
-        Age = copy(smpl.Age)::Array{Float64,1}
-        Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
-        Height = copy(smpl.Height)::Array{Float64,1}
-        Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-        Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
-        params = copy(smpl.Params)::Array{Float64,2}
+        Age = copy(smpl.Age)::Vector{Float64}
+        Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
+        Height = copy(smpl.Height)::Vector{Float64}
+        Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
+        Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
+        params = copy(smpl.Params)::Matrix{Float64}
         Chronometer = smpl.Chronometer
         (youngest, oldest) = extrema(Age)
         aveuncert = nanmean(Age_sigma)
@@ -1090,12 +1090,12 @@
         bounding = config.bounding
 
         # Stratigraphic age constraints
-        Age = copy(smpl.Age)::Array{Float64,1}
-        Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
-        Height = copy(smpl.Height)::Array{Float64,1}
-        Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-        Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
-        p = copy(smpl.Params)::Array{Float64,2}
+        Age = copy(smpl.Age)::Vector{Float64}
+        Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
+        Height = copy(smpl.Height)::Vector{Float64}
+        Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
+        Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
+        p = copy(smpl.Params)::Matrix{Float64}
         (bottom, top) = extrema(Height)
         (youngest, oldest) = extrema(Age)
         dt_dH = (oldest-youngest)/(top-bottom)
@@ -1139,16 +1139,16 @@
         ll += normpdf_ll(Height, Height_sigma, sample_height)
 
         # Ensure there is only one effective hiatus at most for each height node
-        closest_hiatus = findclosestabove((hiatus.Height::Array{Float64,1}),model_heights)
+        closest_hiatus = findclosestabove((hiatus.Height::Vector{Float64}),model_heights)
         closest_hiatus_unique = unique(closest_hiatus)
         Hiatus_height = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
         for i ∈ eachindex(closest_hiatus_unique)
             t = closest_hiatus.==closest_hiatus_unique[i]
-            Hiatus_height[i] = mean((hiatus.Height::Array{Float64,1})[t])
-            Hiatus_duration[i] = sum((hiatus.Duration::Array{Float64,1})[t])
-            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Array{Float64,1})[t].^2))
+            Hiatus_height[i] = mean((hiatus.Height::Vector{Float64})[t])
+            Hiatus_duration[i] = sum((hiatus.Duration::Vector{Float64})[t])
+            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Vector{Float64})[t].^2))
         end
 
         # Add log likelihood for hiatus duration
@@ -1427,12 +1427,12 @@
         bounding = config.bounding
 
         # Stratigraphic age constraints
-        Age = copy(smpl.Age)::Array{Float64,1}
-        Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
-        Height = copy(smpl.Height)::Array{Float64,1}
-        Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-        Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
-        p = copy(smpl.Params)::Array{Float64,2}
+        Age = copy(smpl.Age)::Vector{Float64}
+        Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
+        Height = copy(smpl.Height)::Vector{Float64}
+        Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
+        Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
+        p = copy(smpl.Params)::Matrix{Float64}
         (bottom, top) = extrema(Height)
         (youngest, oldest) = extrema(Age)
         dt_dH = (oldest-youngest)/(top-bottom)
@@ -1660,12 +1660,12 @@
         bounding = config.bounding
 
         # Stratigraphic age constraints
-        Age = copy(smpl.Age)::Array{Float64,1}
-        Age_sigma = copy(smpl.Age_sigma)::Array{Float64,1}
-        Height = copy(smpl.Height)::Array{Float64,1}
-        Height_sigma = smpl.Height_sigma::Array{Float64,1} .+ 1E-9 # Avoid divide-by-zero issues
-        Age_Sidedness = copy(smpl.Age_Sidedness)::Array{Float64,1} # Bottom is a maximum age and top is a minimum age
-        p = copy(smpl.Params)::Array{Float64,2}
+        Age = copy(smpl.Age)::Vector{Float64}
+        Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
+        Height = copy(smpl.Height)::Vector{Float64}
+        Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
+        Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
+        p = copy(smpl.Params)::Matrix{Float64}
         (bottom, top) = extrema(Height)
         (youngest, oldest) = extrema(Age)
         dt_dH = (oldest-youngest)/(top-bottom)
@@ -1710,16 +1710,16 @@
         ll += normpdf_ll(Height, Height_sigma, sample_height)
 
         # Ensure there is only one effective hiatus at most for each height node
-        closest_hiatus = findclosestabove((hiatus.Height::Array{Float64,1}),model_heights)
+        closest_hiatus = findclosestabove((hiatus.Height::Vector{Float64}),model_heights)
         closest_hiatus_unique = unique(closest_hiatus)
         Hiatus_height = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
         Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
         for i ∈ eachindex(closest_hiatus_unique)
             t = closest_hiatus.==closest_hiatus_unique[i]
-            Hiatus_height[i] = mean((hiatus.Height::Array{Float64,1})[t])
-            Hiatus_duration[i] = sum((hiatus.Duration::Array{Float64,1})[t])
-            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Array{Float64,1})[t].^2))
+            Hiatus_height[i] = mean((hiatus.Height::Vector{Float64})[t])
+            Hiatus_duration[i] = sum((hiatus.Duration::Vector{Float64})[t])
+            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Vector{Float64})[t].^2))
         end
 
         # Add log likelihood for hiatus duration
