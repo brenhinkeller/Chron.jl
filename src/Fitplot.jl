@@ -5,7 +5,7 @@
             seriestype=:scatter,
             ylabel="",
             label="",
-            xticks=[],
+            xticks=Float64[],
             xlabel="",
             color=:auto,
             markersize=2,
@@ -33,7 +33,7 @@
             label="",
             ylabel="",
             xlabel="",
-            xticks=[],
+            xticks=Float64[],
             color=:auto,
             markersize=2,
             framestyle=:box
@@ -141,7 +141,7 @@
         DistType = smpl.Age_DistType::Vector{Float64}
 
         # Load all data points and scale from 0 to 1
-        allscaled = Array{Float64}([])
+        allscaled = Float64[]
         for i ∈ eachindex(Name)
             if DistType[i]==0
                 # Read data for each sample from file
@@ -192,9 +192,9 @@
     BootstrappedDistribution = BootstrapCrystDistributionKDE(1:10, ones(10))
     ```
     """
-    function BootstrapCrystDistributionKDE(data::AbstractArray{<:Number}; cutoff::Number=-0.05)
+    function BootstrapCrystDistributionKDE(data::AbstractArray{T}; cutoff::Number=-0.05) where {T<:Number}
         # Load all data points and scale from 0 to 1
-        allscaled = Array{float(eltype(data)),1}([])
+        allscaled = Vector{float(T)}()
         for i=1:size(data,2)
             scaled = data[:,i] .- minimum(data[:,i])
             if maximum(scaled) > 0
@@ -209,9 +209,9 @@
         return kd.density[t]
     end
 
-    function BootstrapCrystDistributionKDE(data::AbstractArray{<:Number}, sigma::AbstractArray{<:Number}; cutoff::Number=-0.05)
+    function BootstrapCrystDistributionKDE(data::AbstractArray{T}, sigma::AbstractArray{<:Number}; cutoff::Number=-0.05) where {T<:Number}
         # Array to hold stacked, scaled data
-        allscaled = Array{float(eltype(data)),1}([])
+        allscaled = Vector{float(T)}()
 
         # For each row of data
         for i=1:size(data,2)
