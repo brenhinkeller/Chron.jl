@@ -148,7 +148,7 @@
                 filepath = joinpath(Path, Name[i]*".csv")
                 data = readclean(filepath, ',', Float64)::Array{Float64,2}
                 # First column should be means, second should be standard deviation
-                μ, σ = data[:,1], data[:,2]
+                μ, σ = view(data,:,1), view(data, :, 2)
 
                 # Maximum extent of expected analytical tail (beyond eruption/deposition)
                 maxTailLength = nanmean(σ) ./ smpl.inputSigmaLevel .* norm_quantile(1 - 1/(1+countnotnans(μ)))
@@ -279,7 +279,9 @@
                 print(i, ": ", Name[i], "\n") # Display progress
 
                 # Run MCMC to estimate saturation and eruption/deposition age distributions
-                tminDist = metropolis_min(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel; burnin=burnin) # Since we don't end up using any of the other distributions
+                μ̄ = view(data,:,1)
+                σ̄ = view(data, :, 2)./=smpl.inputSigmaLevel
+                tminDist = metropolis_min(nsteps, dist, μ̄, σ̄; burnin) # Since we don't end up using any of the other distributions
                 # (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel, burnin=burnin)
 
                 # Fill in the strat sample object with our new results
@@ -334,7 +336,7 @@
                 data = readclean(filepath, ',', Float64)::Array{Float64,2}
                 print(i, ": ", Name[i], "\n") # Display progress
                 μ = data[1,1]
-                σ = data[1,2]
+                σ = data[1,2]/smpl.inputSigmaLevel
 
                 # Fill in the strat sample object with our new results
                 smpl.Age[i] = μ

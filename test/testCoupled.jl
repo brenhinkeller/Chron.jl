@@ -85,7 +85,8 @@ println("StratMetropolisDist with hiata:")
 ## --- As above, but treat everything as a gaussian/weighted mean
 
 # Tel tMinDistMetropolis to treat these as gaussians, using the first row of data file
-smpl.Age_DistType.=1
+smpl.Age_DistType .= 1
+smpl.inputSigmaLevel = 1
 
 # Run MCMC to estimate saturation and eruption/deposition age distributions
 @time tMinDistMetropolis(smpl,distSteps,distBurnin,BootstrappedDistribution; make_plots=false)
