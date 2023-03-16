@@ -47,6 +47,8 @@ println("StratMetropolisDist:")
 @test isapprox(mdl.Age, [66.06, 66.05, 66.03, 66.02, 66.01, 66.0, 65.98, 65.97, 65.96, 65.94, 65.94, 65.93, 65.93, 65.9], atol=0.1)
 @test isapprox(mdl.Age_025CI, [66.0, 65.98, 65.96, 65.95, 65.94, 65.93, 65.93, 65.92, 65.92, 65.91, 65.91, 65.89, 65.88, 65.82], atol=0.15)
 @test isapprox(mdl.Age_975CI, [66.09, 66.09, 66.08, 66.08, 66.07, 66.07, 66.05, 66.04, 66.02, 65.97, 65.97, 65.96, 65.96, 65.95], atol=0.15)
+# Test that all age-depth models are in stratigraphic order
+@test all([issorted(x, rev=true) for x in eachcol(agedist)])
 
 # Try adding systematic uncertainties too
 smpl.Chronometer = (:UPb, :UPb, :ArAr, :UPb, :UPb)
@@ -63,6 +65,8 @@ println("StratMetropolisDist with systematic uncertainties:")
 @test isapprox(mdl.Age, [66.06, 66.05, 66.03, 66.02, 66.01, 66.0, 65.98, 65.97, 65.96, 65.94, 65.94, 65.93, 65.93, 65.9], atol=0.1)
 @test isapprox(mdl.Age_025CI, [66.0, 65.98, 65.96, 65.95, 65.94, 65.93, 65.93, 65.92, 65.92, 65.91, 65.91, 65.89, 65.88, 65.82], atol=0.15)
 @test isapprox(mdl.Age_975CI, [66.09, 66.09, 66.08, 66.08, 66.07, 66.07, 66.05, 66.04, 66.02, 65.97, 65.97, 65.96, 65.96, 65.95], atol=0.15)
+# Test that all age-depth models are in stratigraphic order
+@test all([issorted(x, rev=true) for x in eachcol(agedist)])
 
 # Data about hiatuses
 nHiatuses = 2 # The number of hiatuses you have data for
@@ -81,6 +85,8 @@ println("StratMetropolisDist with hiata:")
 @test isapprox(mdl.Age, [66.08, 66.07, 66.07, 66.07, 66.02, 66.01, 66.01, 66.01, 65.94, 65.94, 65.93, 65.93, 65.92, 65.9], atol=0.1)
 @test isapprox(mdl.Age_025CI, [66.05, 66.04, 66.03, 66.02, 65.94, 65.94, 65.93, 65.93, 65.91, 65.9, 65.9, 65.89, 65.88, 65.82], atol=0.15)
 @test isapprox(mdl.Age_975CI, [66.1, 66.1, 66.1, 66.1, 66.08, 66.08, 66.08, 66.08, 65.98, 65.96, 65.96, 65.96, 65.96, 65.95], atol=0.15)
+# Test that all age-depth models are in stratigraphic order
+@test all([issorted(x, rev=true) for x in eachcol(agedist)])
 
 ## --- As above, but treat everything as a gaussian/weighted mean
 
@@ -98,3 +104,5 @@ println("StratMetropolisDist with fitted Gaussians:")
 @test isapprox(mdl.Age, [65.97, 65.97, 65.96, 65.95, 65.95, 65.94, 65.93, 65.92, 65.92, 65.91, 65.9, 65.89, 65.87, 65.85], atol=0.1)
 @test isapprox(mdl.Age_025CI, [65.86, 65.86, 65.85, 65.85, 65.84, 65.84, 65.84, 65.83, 65.83, 65.83, 65.82, 65.77, 65.74, 65.72], atol=0.15)
 @test isapprox(mdl.Age_975CI, [66.07, 66.06, 66.06, 66.06, 66.06, 66.05, 66.04, 66.03, 66.02, 66.0, 65.99, 65.98, 65.97, 65.96], atol=0.15)
+# Test that all age-depth models are in stratigraphic order
+@test all([issorted(x, rev=true) for x in eachcol(agedist)])
