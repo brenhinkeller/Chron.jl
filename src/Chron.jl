@@ -12,7 +12,9 @@
 #                                                                               #
 #    The second model uses the estimated (posterior) eruption/deposition age    #
 #  distributions along with the constraint of stratigraphic superposition to    #
-#  produce an age-depth model                                                   #
+#  produce an age-depth model.                                                  #
+#                                                                               #
+#    DOI: 10.17605/OSF.IO/TQX3F                                                 #
 #                                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
