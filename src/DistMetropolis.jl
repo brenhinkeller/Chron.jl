@@ -3,7 +3,7 @@
 
     """
     ```julia
-    check_dist_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
+    dist_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
     ```
     Return the log-likelihood of a set of mineral ages with means `mu` and
     uncertianty `sigma` being drawn from a given source (i.e., crystallization / closure)
@@ -12,59 +12,58 @@
     ### Examples
     ```julia
     mu, sigma = collect(100:0.1:101), 0.01*ones(11)
-    ll = check_dist_ll(MeltsVolcanicZirconDistribution, mu, sigma, 100, 101)
+    ll = dist_ll(MeltsVolcanicZirconDistribution, mu, sigma, 100, 101)
     ```
     """
-    function check_dist_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
+    function dist_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
         # Define some frequently used variables
-        loglikelihood = zero(float(eltype(dist)))
-        datarows = length(mu)
-        distrows = length(dist)
         dist_yave = nanmean(dist)
-        nbins = distrows - 1
+        nbins = length(dist) - 1
         dt = abs(tmax-tmin)
+
         # Cycle through each datum in dataset
-        @inbounds for j=1:datarows
-            # Find equivalent index position of mu[j] in the `dist` array
-            ix = (mu[j] - tmin) / dt * nbins + 1
+        loglikelihood = zero(float(eltype(dist)))
+        @inbounds for j in eachindex(mu, sigma)
+            μⱼ, σⱼ = mu[j], sigma[j]
+
+            # Find equivalent index position of μⱼ in the `dist` array
+            ix = (μⱼ - tmin) / dt * nbins + 1
             # If possible, prevent aliasing problems by interpolation
-            if (sigma[j] < dt/nbins) && ix > 1 && ix < distrows
+            if (σⱼ < dt / nbins) && 1 < ix < length(dist)
                 # Interpolate corresponding distribution value
-                f = floor(Int,ix)
-                likelihood = (dist[f+1]*(ix-f) + dist[f]*(1-(ix-f))) / (dt * dist_yave)
-                # Otherwise, sum contributions from Gaussians at each point in distribution
+                f = floor(Int, ix)
+                δ = ix - f
+                likelihood = (dist[f+1]*δ + dist[f]*(1-δ)) / (dt*dist_yave)
             else
+                # Otherwise, sum contributions from Gaussians at each point in distribution
+                𝑖 = 1:length(dist)
                 likelihood = zero(float(eltype(dist)))
-                @inbounds @simd for i=1:distrows
-                    distx = tmin + dt*(i-1)/nbins # time-position of distribution point
+                normconst = 1/(dist_yave * length(dist) * σⱼ * sqrt(2 * pi))
+                @turbo for i in eachindex(dist, 𝑖)
+                    distx = tmin + dt * (𝑖[i] - 1) / nbins # time-position of distribution point
                     # Likelihood curve follows a Gaussian PDF. Note: dt cancels
-                    likelihood += dist[i] / (dist_yave * distrows * sigma[j] * sqrt(2*pi)) *
-                            exp( - (distx-mu[j])*(distx-mu[j]) / (2*sigma[j]*sigma[j]) )
+                    likelihood += dist[i] * normconst * exp(-(distx - μⱼ)^2 / (2 * σⱼ * σⱼ))
                 end
             end
             loglikelihood += log(likelihood)
         end
         # Calculate a weighted mean and examine our MSWD
         (wm, wsigma, mswd) = awmean(mu, sigma)
-        if datarows == 1 || mswd < 1
-            Zf = 1.0
-        elseif mswd*sqrt(datarows) > 1000
-            Zf = 0.0
-        else
-            f = datarows - 1
-            # Height of MSWD distribution relative to height at MSWD = 1 (see Wendt and Carl, 1991, Chemical geology)
-            Zf = exp((f/2-1)*log(mswd) - f/2*(mswd-1))
-        end
+        # Height of MSWD distribution relative to height at MSWD = 1
+        # (see Wendt and Carl, 1991, Chemical geology)
+        f = length(mu) - 1
+        Zf = exp((f/2-1)*log(mswd) - f/2*(mswd-1)) * (f > 0)
         # To prevent instability / runaway of the MCMC for small datasets (low N),
         # favor the weighted mean interpretation at high Zf (MSWD close to 1) and
         # the youngest-zircon interpretation at low Zf (MSWD far from one). The
         # penalty factors used here are determined by training against synthetic datasets.
         # In other words, these are just context-dependent prior distributions on tmax and tmin
-        return loglikelihood - (2/log(1+datarows)) * (              # Scaling factor that decreases with log number of data points (i.e., no penalty at high N)
-        log((abs(tmin - wm)+wsigma)/wsigma)*Zf +                    # Penalty for proposing tmin too far from the weighted mean at low MSWD (High Zf)
-        log((abs(tmax - wm)+wsigma)/wsigma)*Zf +                    # Penalty for proposing tmax too far from the weighted mean at low MSWD (High Zf)
-        log((abs(tmin - mu[1])+sigma[1])/sigma[1])*(1-Zf) +         # Penalty for proposing tmin too far from youngest zircon at high MSWD (low Zf)
-        log((abs(tmax - mu[end])+sigma[end])/sigma[end])*(1-Zf) )   # Penalty for proposing tmax too far from oldest zircon at high MSWD (low Zf)
+        loglikelihood -= (2/log(1+length(mu))) * (                    # Scaling factor that decreases with log number of data points (i.e., no penalty at high N)
+          log((abs(tmin - wm)+wsigma)/wsigma)*Zf +                  # Penalty for proposing tmin too far from the weighted mean at low MSWD (High Zf)
+          log((abs(tmax - wm)+wsigma)/wsigma)*Zf +                  # Penalty for proposing tmax too far from the weighted mean at low MSWD (High Zf)
+          log((abs(tmin - mu[1])+sigma[1])/sigma[1])*(1-Zf) +       # Penalty for proposing tmin too far from youngest zircon at high MSWD (low Zf)
+          log((abs(tmax - mu[end])+sigma[end])/sigma[end])*(1-Zf) ) # Penalty for proposing tmax too far from oldest zircon at high MSWD (low Zf)
+        return loglikelihood
     end
 
     """
@@ -90,38 +89,32 @@
         sI = sortperm(mu)
         mu_sorted = mu[sI] # Sort means
         sigma_sorted = sigma[sI] # Sort uncertainty
-        # These quantities will be used more than once
-        datarows = length(mu_sorted)
-        tmin_obs = nanminimum(mu_sorted)
-        tmax_obs = nanmaximum(mu_sorted)
+        youngest = nanminimum(mu)
+        oldest = nanmaximum(mu)
+
         # Step sigma for Gaussian proposal distributions
-        dt = tmax_obs - tmin_obs + sigma_sorted[1] + sigma_sorted[end]
-        tmin_step = dt / datarows
-        tmax_step = dt / datarows
+        dt = oldest - youngest + first(sigma_sorted) + last(sigma_sorted)
+        tmin_step = tmax_step = dt / length(mu)
+
         # Use oldest and youngest zircons for initial proposal
-        tmin = tmin_obs - sigma_sorted[1]
-        tmax = tmax_obs + sigma_sorted[end]
-        tminₚ = tmin
-        tmaxₚ = tmax
+        tminₚ = tmin = youngest - first(sigma_sorted)
+        tmaxₚ = tmax = oldest + last(sigma_sorted)
+
         # Log likelihood of initial proposal
-        ll = check_dist_ll(dist, mu_sorted, sigma_sorted, tmin, tmax)
-        llₚ = ll
+        llₚ = ll = dist_ll(dist, mu_sorted, sigma_sorted, tmin, tmax)
+
         # Burnin
         for i=1:nsteps
-            tminₚ = tmin
-            tmaxₚ = tmax
-            # Adjust either upper or lower bound
-            if rand()<0.5
-                tminₚ += tmin_step*randn()
-            else
-                tmaxₚ += tmax_step*randn()
-            end
+            # Adjust upper or lower bounds
+            tminₚ, tmaxₚ = tmin, tmax
+            r = rand()
+            (r < 0.5) && (tmaxₚ += tmin_step*randn())
+            (r > 0.5) && (tminₚ += tmax_step*randn())
             # Flip bounds if reversed
-            if (tminₚ>tmaxₚ)
-                tminₚ, tmaxₚ = tmaxₚ, tminₚ
-            end
+            (tminₚ > tmaxₚ) && ((tminₚ, tmaxₚ) = (tmaxₚ, tminₚ))
+
             # Calculate log likelihood for new proposal
-            llₚ = check_dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
+            llₚ = dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
             # Decide to accept or reject the proposal
             if log(rand()) < (llₚ-ll)
                 if tminₚ != tmin
@@ -137,21 +130,17 @@
             end
         end
         # Step through each of the N steps in the Markov chain
-        @inbounds for i=1:nsteps
-            tminₚ = tmin
-            tmaxₚ = tmax
-            # Adjust either upper or lower bound
-            if rand()<0.5
-                tminₚ += tmin_step*randn()
-            else
-                tmaxₚ += tmax_step*randn()
-            end
+        @inbounds for i in eachindex(tminDist, tmaxDist, llDist, acceptanceDist)
+            # Adjust upper or lower bounds
+            tminₚ, tmaxₚ = tmin, tmax
+            r = rand()
+            (r < 0.5) && (tmaxₚ += tmin_step*randn())
+            (r > 0.5) && (tminₚ += tmax_step*randn())
             # Flip bounds if reversed
-            if (tminₚ>tmaxₚ)
-                tminₚ, tmaxₚ = tmaxₚ, tminₚ
-            end
+            (tminₚ > tmaxₚ) && ((tminₚ, tmaxₚ) = (tmaxₚ, tminₚ))
+
             # Calculate log likelihood for new proposal
-            llₚ = check_dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
+            llₚ = dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
             # Decide to accept or reject the proposal
             if log(rand()) < (llₚ-ll)
                 if tminₚ != tmin
@@ -219,38 +208,32 @@
         sI = sortperm(mu)
         mu_sorted = mu[sI] # Sort means
         sigma_sorted = sigma[sI] # Sort uncertainty
-        # These quantities will be used more than once
-        datarows = length(mu_sorted)
-        tmin_obs = nanminimum(mu_sorted)
-        tmax_obs = nanmaximum(mu_sorted)
+        youngest = nanminimum(mu)
+        oldest = nanmaximum(mu)
+
         # Step sigma for Gaussian proposal distributions
-        dt = tmax_obs - tmin_obs + sigma_sorted[1] + sigma_sorted[end]
-        tmin_step = dt / datarows
-        tmax_step = dt / datarows
+        dt = oldest - youngest + first(sigma_sorted) + last(sigma_sorted)
+        tmin_step = dt / length(mu)
+        tmax_step = dt / length(mu)
         # Use oldest and youngest zircons for initial proposal
-        tmin = tmin_obs - sigma_sorted[1]
-        tmax = tmax_obs + sigma_sorted[end]
-        tminₚ = tmin
-        tmaxₚ = tmax
+        tminₚ = tmin = youngest - first(sigma_sorted)
+        tmaxₚ = tmax = oldest + last(sigma_sorted)
+
         # Log likelihood of initial proposal
-        ll = check_dist_ll(dist, mu_sorted, sigma_sorted, tmin, tmax)
-        llₚ = ll
+        llₚ = ll = dist_ll(dist, mu_sorted, sigma_sorted, tmin, tmax)
+
         # Burnin
         for i=1:burnin
-            tminₚ = tmin
-            tmaxₚ = tmax
-            # Adjust either upper or lower bound
-            if rand()<0.5
-                tminₚ += tmin_step*randn()
-            else
-                tmaxₚ += tmax_step*randn()
-            end
+            # Adjust upper or lower bounds
+            tminₚ, tmaxₚ = tmin, tmax
+            r = rand()
+            (r < 0.5) && (tmaxₚ += tmin_step*randn())
+            (r > 0.5) && (tminₚ += tmax_step*randn())
             # Flip bounds if reversed
-            if (tminₚ>tmaxₚ)
-                tminₚ, tmaxₚ = tmaxₚ, tminₚ
-            end
+            (tminₚ > tmaxₚ) && ((tminₚ, tmaxₚ) = (tmaxₚ, tminₚ))
+
             # Calculate log likelihood for new proposal
-            llₚ = check_dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
+            llₚ = dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
             # Decide to accept or reject the proposal
             if log(rand()) < (llₚ-ll)
                 if tminₚ != tmin
@@ -266,21 +249,17 @@
             end
         end
         # Step through each of the N steps in the Markov chain
-        @inbounds for i=1:nsteps
-            tminₚ = tmin
-            tmaxₚ = tmax
-            # Adjust either upper or lower bound
-            if rand()<0.5
-                tminₚ += tmin_step*randn()
-            else
-                tmaxₚ += tmax_step*randn()
-            end
+        @inbounds for i in eachindex(tminDist)
+            # Adjust upper or lower bounds
+            tminₚ, tmaxₚ = tmin, tmax
+            r = rand()
+            (r < 0.5) && (tmaxₚ += tmin_step*randn())
+            (r > 0.5) && (tminₚ += tmax_step*randn())
             # Flip bounds if reversed
-            if (tminₚ>tmaxₚ)
-                tminₚ, tmaxₚ = tmaxₚ, tminₚ
-            end
+            (tminₚ > tmaxₚ) && ((tminₚ, tmaxₚ) = (tmaxₚ, tminₚ))
+
             # Calculate log likelihood for new proposal
-            llₚ = check_dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
+            llₚ = dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
             # Decide to accept or reject the proposal
             if log(rand()) < (llₚ-ll)
                 if tminₚ != tmin
