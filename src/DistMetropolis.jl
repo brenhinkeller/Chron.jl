@@ -1,301 +1,121 @@
-## -- Functions used for MCMC estimation of mineral eruption / deposition ages from observed crystallization age spectra
-
+## --- Bootstrap prior distribution shape
 
     """
     ```julia
-    dist_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
+    BootstrapCrystDistributionKDE(smpl::ChronAgeData; cutoff=-0.05)
     ```
-    Return the log-likelihood of a set of mineral ages with means `mu` and
-    uncertianty `sigma` being drawn from a given source (i.e., crystallization / closure)
-    distribution `dist`, with terms to prevent runaway at low N.
+    Bootstrap an estimate of the pre-eruptive (or pre-depositional) mineral
+    crystallization distribution shape from a Chron.ChronAgeData object containing
+    data for several samples, using a kernel density estimate of stacked sample data.
 
     ### Examples
     ```julia
-    mu, sigma = collect(100:0.1:101), 0.01*ones(11)
-    ll = dist_ll(MeltsVolcanicZirconDistribution, mu, sigma, 100, 101)
+    BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl)
     ```
     """
-    function dist_ll(dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray, tmin::Number, tmax::Number)
-        # Define some frequently used variables
-        dist_yave = nanmean(dist)
-        nbins = length(dist) - 1
-        dt = abs(tmax-tmin)
+    function BootstrapCrystDistributionKDE(smpl::ChronAgeData; cutoff::Number=-0.05)
+        # Extact variables froms struct
+        Name = collect(smpl.Name)::Array{String,1}
+        Path = smpl.Path::String
+        DistType = smpl.Age_DistType::Vector{Float64}
 
-        # Cycle through each datum in dataset
-        loglikelihood = zero(float(eltype(dist)))
-        @inbounds for j in eachindex(mu, sigma)
-            μⱼ, σⱼ = mu[j], sigma[j]
+        # Load all data points and scale from 0 to 1
+        allscaled = Float64[]
+        for i ∈ eachindex(Name)
+            if DistType[i]==0
+                # Read data for each sample from file
+                filepath = joinpath(Path, Name[i]*".csv")
+                data = readclean(filepath, ',', Float64)::Matrix{Float64}
+                # First column should be means, second should be standard deviation
+                μ, σ = view(data,:,1), view(data, :, 2)
 
-            # Find equivalent index position of μⱼ in the `dist` array
-            ix = (μⱼ - tmin) / dt * nbins + 1
-            # If possible, prevent aliasing problems by interpolation
-            if (σⱼ < dt / nbins) && 1 < ix < length(dist)
-                # Interpolate corresponding distribution value
-                f = floor(Int, ix)
-                δ = ix - f
-                likelihood = (dist[f+1]*δ + dist[f]*(1-δ)) / (dt*dist_yave)
-            else
-                # Otherwise, sum contributions from Gaussians at each point in distribution
-                𝑖 = 1:length(dist)
-                likelihood = zero(float(eltype(dist)))
-                normconst = 1/(dist_yave * length(dist) * σⱼ * sqrt(2 * pi))
-                @turbo for i in eachindex(dist, 𝑖)
-                    distx = tmin + dt * (𝑖[i] - 1) / nbins # time-position of distribution point
-                    # Likelihood curve follows a Gaussian PDF. Note: dt cancels
-                    likelihood += dist[i] * normconst * exp(-(distx - μⱼ)^2 / (2 * σⱼ * σⱼ))
+                # Maximum extent of expected analytical tail (beyond eruption/deposition)
+                maxTailLength = nanmean(σ) ./ smpl.inputSigmaLevel .* norm_quantile(1 - 1/(1+countnotnans(μ)))
+                included = (μ .- nanminimum(μ)) .>= maxTailLength
+                included .|= μ .> nanmedian(μ) # Don't exclude more than half (could only happen in underdispersed datasets)
+                included .&= .!isnan.(μ) # Exclude NaNs
+
+                # Include and scale only those data not within the expected analytical tail
+                if sum(included)>0
+                    μₜ = data[included,1]
+                    scaled = μₜ .- minimum(μₜ)
+                    if maximum(scaled) > 0
+                        scaled ./= maximum(scaled)
+                    end
+                    append!(allscaled, scaled)
                 end
             end
-            loglikelihood += log(likelihood)
         end
-        # Calculate a weighted mean and examine our MSWD
-        (wm, wsigma, mswd) = awmean(mu, sigma)
-        # Height of MSWD distribution relative to height at MSWD = 1
-        # (see Wendt and Carl, 1991, Chemical geology)
-        f = length(mu) - 1
-        Zf = exp((f/2-1)*log(mswd) - f/2*(mswd-1)) * (f > 0)
-        # To prevent instability / runaway of the MCMC for small datasets (low N),
-        # favor the weighted mean interpretation at high Zf (MSWD close to 1) and
-        # the youngest-zircon interpretation at low Zf (MSWD far from one). The
-        # penalty factors used here are determined by training against synthetic datasets.
-        # In other words, these are just context-dependent prior distributions on tmax and tmin
-        loglikelihood -= (2/log(1+length(mu))) * (                    # Scaling factor that decreases with log number of data points (i.e., no penalty at high N)
-          log((abs(tmin - wm)+wsigma)/wsigma)*Zf +                  # Penalty for proposing tmin too far from the weighted mean at low MSWD (High Zf)
-          log((abs(tmax - wm)+wsigma)/wsigma)*Zf +                  # Penalty for proposing tmax too far from the weighted mean at low MSWD (High Zf)
-          log((abs(tmin - mu[1])+sigma[1])/sigma[1])*(1-Zf) +       # Penalty for proposing tmin too far from youngest zircon at high MSWD (low Zf)
-          log((abs(tmax - mu[end])+sigma[end])/sigma[end])*(1-Zf) ) # Penalty for proposing tmax too far from oldest zircon at high MSWD (low Zf)
-        return loglikelihood
+
+        # Calculate kernel density estimate, truncated at 0
+        kd = kde(allscaled,npoints=2^7)
+        t = kd.x .> cutoff # Ensure sharp cutoff at eruption / deposition
+        return kd.density[t]
     end
 
+
     """
     ```julia
-    metropolis_minmax!(tminDist, tmaxDist, llDist, acceptanceDist, nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
+    BootstrapCrystDistributionKDE(data::AbstractArray, [sigma::AbstractArray]; cutoff=-0.05)
     ```
-    In-place (non-allocating) version of `metropolis_minmax`, filling existing arrays
-
-    Run a Metropolis sampler to estimate the extrema of a finite-range source
-    distribution `dist` using samples drawn from that distribution -- e.g.,
-    estimate zircon saturation and eruption ages from a distribution of zircon
-    crystallization ages.
+    Bootstrap an estimate of the pre-eruptive (or pre-depositional) mineral
+    crystallization distribution shape from a 1- or 2-d array of sample ages
+    (one row per sample, one column per datum, padded with NaNs as needed) and
+    an equivalent-size array of one-sigma uncertainties, using a kernel density
+    estimate of stacked sample data.
 
     ### Examples
     ```julia
-    metropolis_minmax!(tmindist, tmaxdist, lldist, acceptancedist, 2*10^5, MeltsVolcanicZirconDistribution, mu, sigma, burnin=10^5)
+    # Bootstrap crystallization distribution for a synthetic dataset with ages
+    # [1,2,3,...10] Ma and uncertainties of 1 Ma each
+    BootstrappedDistribution = BootstrapCrystDistributionKDE(1:10, ones(10))
     ```
     """
-    function metropolis_minmax!(tminDist::AbstractArray, tmaxDist::AbstractArray, llDist::AbstractArray, acceptanceDist::AbstractArray, nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
-        # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
-        stepfactor = 2.9
-        # Sort the dataset from youngest to oldest
-        sI = sortperm(mu)
-        mu_sorted = mu[sI] # Sort means
-        sigma_sorted = sigma[sI] # Sort uncertainty
-        youngest = nanminimum(mu)
-        oldest = nanmaximum(mu)
-
-        # Step sigma for Gaussian proposal distributions
-        dt = oldest - youngest + first(sigma_sorted) + last(sigma_sorted)
-        tmin_step = tmax_step = dt / length(mu)
-
-        # Use oldest and youngest zircons for initial proposal
-        tminₚ = tmin = youngest - first(sigma_sorted)
-        tmaxₚ = tmax = oldest + last(sigma_sorted)
-
-        # Log likelihood of initial proposal
-        llₚ = ll = dist_ll(dist, mu_sorted, sigma_sorted, tmin, tmax)
-
-        # Burnin
-        for i=1:nsteps
-            # Adjust upper or lower bounds
-            tminₚ, tmaxₚ = tmin, tmax
-            r = rand()
-            (r < 0.5) && (tmaxₚ += tmin_step*randn())
-            (r > 0.5) && (tminₚ += tmax_step*randn())
-            # Flip bounds if reversed
-            (tminₚ > tmaxₚ) && ((tminₚ, tmaxₚ) = (tmaxₚ, tminₚ))
-
-            # Calculate log likelihood for new proposal
-            llₚ = dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
-            # Decide to accept or reject the proposal
-            if log(rand()) < (llₚ-ll)
-                if tminₚ != tmin
-                    tmin_step = abs(tminₚ-tmin)*stepfactor
-                end
-                if tmaxₚ != tmax
-                    tmax_step = abs(tmaxₚ-tmax)*stepfactor
-                end
-
-                ll = llₚ
-                tmin = tminₚ
-                tmax = tmaxₚ
+    function BootstrapCrystDistributionKDE(data::AbstractArray{T}; cutoff::Number=-0.05) where {T<:Number}
+        # Load all data points and scale from 0 to 1
+        allscaled = Vector{float(T)}()
+        for i=1:size(data,2)
+            scaled = data[:,i] .- minimum(data[:,i])
+            if maximum(scaled) > 0
+                scaled = scaled ./ maximum(scaled)
             end
+            append!(allscaled, scaled)
         end
-        # Step through each of the N steps in the Markov chain
-        @inbounds for i in eachindex(tminDist, tmaxDist, llDist, acceptanceDist)
-            # Adjust upper or lower bounds
-            tminₚ, tmaxₚ = tmin, tmax
-            r = rand()
-            (r < 0.5) && (tmaxₚ += tmin_step*randn())
-            (r > 0.5) && (tminₚ += tmax_step*randn())
-            # Flip bounds if reversed
-            (tminₚ > tmaxₚ) && ((tminₚ, tmaxₚ) = (tmaxₚ, tminₚ))
 
-            # Calculate log likelihood for new proposal
-            llₚ = dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
-            # Decide to accept or reject the proposal
-            if log(rand()) < (llₚ-ll)
-                if tminₚ != tmin
-                    tmin_step = abs(tminₚ-tmin)*stepfactor
-                end
-                if tmaxₚ != tmax
-                    tmax_step = abs(tmaxₚ-tmax)*stepfactor
-                end
-
-                ll = llₚ
-                tmin = tminₚ
-                tmax = tmaxₚ
-                acceptanceDist[i]=true
-            end
-            tminDist[i] = tmin
-            tmaxDist[i] = tmax
-            llDist[i] = ll
-        end
-        return tminDist, tmaxDist, llDist, acceptanceDist
+        # Calculate kernel density estimate, truncated at 0
+        kd = kde(allscaled,npoints=2^7)
+        t = kd.x .> cutoff
+        return kd.density[t]
     end
 
-    """
-    ```julia
-    metropolis_minmax(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
-    ```
-    Run a Metropolis sampler to estimate the extrema of a finite-range source
-    distribution `dist` using samples drawn from that distribution -- e.g.,
-    estimate zircon saturation and eruption ages from a distribution of zircon
-    crystallization ages.
+    function BootstrapCrystDistributionKDE(data::AbstractArray{T}, sigma::AbstractArray{<:Number}; cutoff::Number=-0.05) where {T<:Number}
+        # Array to hold stacked, scaled data
+        allscaled = Vector{float(T)}()
 
-    ### Examples
-    ```julia
-    tmindist, tmaxdist, lldist, acceptancedist = metropolis_minmax(2*10^5, MeltsVolcanicZirconDistribution, mu, sigma, burnin=10^5)
-    ```
-    """
-    function metropolis_minmax(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
-        # Allocate ouput arrays
-        acceptanceDist = falses(nsteps)
-        llDist = Array{float(eltype(dist))}(undef,nsteps)
-        tmaxDist = Array{float(eltype(mu))}(undef,nsteps)
-        tminDist = Array{float(eltype(mu))}(undef,nsteps)
-        # Run metropolis sampler
-        return metropolis_minmax!(tminDist, tmaxDist, llDist, acceptanceDist, nsteps, dist, mu, sigma; burnin=burnin)
-    end
+        # For each row of data
+        for i=1:size(data,2)
+            μ, σ = data[:,i], sigma[:,i]
 
-    """
-    ```julia
-    metropolis_min!(tminDist::Array, nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
-    ```
-    In-place (non-allocating) version of `metropolis_min`, fills existing array `tminDist`.
+            # Maximum extent of expected analytical tail (beyond eruption/deposition/cutoff)
+            maxTailLength = nanmean(σ) .* norm_quantile(1 - 1/(1+countnotnans(μ)))
+            included = (μ .- nanminimum(μ)) .>= maxTailLength
+            included .|= μ .> nanmedian(μ) # Don't exclude more than half (could only happen in underdispersed datasets)
+            included .&= .!isnan.(μ) # Exclude NaNs
 
-    Run a Metropolis sampler to estimate the minimum of a finite-range source
-    distribution `dist` using samples drawn from that distribution -- e.g., estimate
-    zircon eruption ages from a distribution of zircon crystallization ages.
-
-    ### Examples
-    ```julia
-    metropolis_min!(tminDist, 2*10^5, MeltsVolcanicZirconDistribution, mu, sigma, burnin=10^5)
-    ```
-    """
-    function metropolis_min!(tminDist::AbstractArray, nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
-        # standard deviation of the proposal function is stepfactor * last step; this is tuned to optimize accetance probability at 50%
-        stepfactor = 2.9
-        # Sort the dataset from youngest to oldest
-        sI = sortperm(mu)
-        mu_sorted = mu[sI] # Sort means
-        sigma_sorted = sigma[sI] # Sort uncertainty
-        youngest = nanminimum(mu)
-        oldest = nanmaximum(mu)
-
-        # Step sigma for Gaussian proposal distributions
-        dt = oldest - youngest + first(sigma_sorted) + last(sigma_sorted)
-        tmin_step = dt / length(mu)
-        tmax_step = dt / length(mu)
-        # Use oldest and youngest zircons for initial proposal
-        tminₚ = tmin = youngest - first(sigma_sorted)
-        tmaxₚ = tmax = oldest + last(sigma_sorted)
-
-        # Log likelihood of initial proposal
-        llₚ = ll = dist_ll(dist, mu_sorted, sigma_sorted, tmin, tmax)
-
-        # Burnin
-        for i=1:burnin
-            # Adjust upper or lower bounds
-            tminₚ, tmaxₚ = tmin, tmax
-            r = rand()
-            (r < 0.5) && (tmaxₚ += tmin_step*randn())
-            (r > 0.5) && (tminₚ += tmax_step*randn())
-            # Flip bounds if reversed
-            (tminₚ > tmaxₚ) && ((tminₚ, tmaxₚ) = (tmaxₚ, tminₚ))
-
-            # Calculate log likelihood for new proposal
-            llₚ = dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
-            # Decide to accept or reject the proposal
-            if log(rand()) < (llₚ-ll)
-                if tminₚ != tmin
-                    tmin_step = abs(tminₚ-tmin)*stepfactor
+            # Include and scale only those data not within the expected analytical tail
+            if sum(included)>0
+                scaled = data[included,i] .- minimum(data[included,i])
+                if maximum(scaled) > 0
+                    scaled = scaled ./ maximum(scaled)
                 end
-                if tmaxₚ != tmax
-                    tmax_step = abs(tmaxₚ-tmax)*stepfactor
-                end
-
-                ll = llₚ
-                tmin = tminₚ
-                tmax = tmaxₚ
+                append!(allscaled, scaled)
             end
         end
-        # Step through each of the N steps in the Markov chain
-        @inbounds for i in eachindex(tminDist)
-            # Adjust upper or lower bounds
-            tminₚ, tmaxₚ = tmin, tmax
-            r = rand()
-            (r < 0.5) && (tmaxₚ += tmin_step*randn())
-            (r > 0.5) && (tminₚ += tmax_step*randn())
-            # Flip bounds if reversed
-            (tminₚ > tmaxₚ) && ((tminₚ, tmaxₚ) = (tmaxₚ, tminₚ))
 
-            # Calculate log likelihood for new proposal
-            llₚ = dist_ll(dist, mu_sorted, sigma_sorted, tminₚ, tmaxₚ)
-            # Decide to accept or reject the proposal
-            if log(rand()) < (llₚ-ll)
-                if tminₚ != tmin
-                    tmin_step = abs(tminₚ-tmin)*stepfactor
-                end
-                if tmaxₚ != tmax
-                    tmax_step = abs(tmaxₚ-tmax)*stepfactor
-                end
-
-                ll = llₚ
-                tmin = tminₚ
-                tmax = tmaxₚ
-            end
-            tminDist[i] = tmin
-        end
-        return tminDist
-    end
-
-    """
-    ```julia
-    tminDist = metropolis_min(nsteps::Int, dist::AbstractArray, data::AbstractArray, uncert::AbstractArray; burnin::Integer=0)
-    ```
-    Run a Metropolis sampler to estimate the minimum of a finite-range source
-    distribution `dist` using samples drawn from that distribution -- e.g., estimate
-    zircon eruption ages from a distribution of zircon crystallization ages.
-
-    ### Examples
-    ```julia
-    tmindist = metropolis_min(2*10^5, MeltsVolcanicZirconDistribution, mu, sigma, burnin=10^5)
-    ```
-    """
-    function metropolis_min(nsteps::Int, dist::AbstractArray, mu::AbstractArray, sigma::AbstractArray; burnin::Integer=0)
-        # Allocate ouput array
-        tminDist = Array{float(eltype(mu))}(undef,nsteps)
-        # Run Metropolis sampler
-        return metropolis_min!(tminDist, nsteps, dist, mu, sigma; burnin=burnin)
+        # Calculate kernel density estimate, truncated at 0
+        kd = kde(allscaled,npoints=2^7)
+        t = kd.x .> cutoff
+        return kd.density[t]
     end
 
 ## --- Some useful distributions

@@ -24,6 +24,7 @@ module Chron
     @reexport using VectorizedStatistics
     @reexport using NaNStatistics
     @reexport using StatGeochemBase
+    @reexport using Isoplot
 
     # Basic statistics and UI resources
     using ProgressMeter: @showprogress, Progress, update!
@@ -58,7 +59,6 @@ module Chron
         tMinDistMetropolis, metropolis_min!, metropolis_min,
         metropolis_minmax!, metropolis_minmax,
         bilinear_exponential, bilinear_exponential_ll,
-        plot_rankorder_errorbar, plot_rankorder_errorbar!,
         screen_outliers, BootstrapCrystDistributionKDE
 
 
