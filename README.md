@@ -379,4 +379,4 @@ plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)")
 [ci-nightly-img]:https://github.com/brenhinkeller/Chron.jl/workflows/CI%20(Julia%20nightly)/badge.svg
 [ci-nightly-url]:https://github.com/brenhinkeller/Chron.jl/actions/workflows/CI-julia-nightly.yml
 [codecov-img]: http://codecov.io/github/brenhinkeller/Chron.jl/coverage.svg?branch=main
-[codecov-url]: http://codecov.io/github/brenhinkeller/Chron.jl?branch=main
+[codecov-url]: http://app.codecov.io/github/brenhinkeller/Chron.jl?branch=main
