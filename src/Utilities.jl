@@ -42,13 +42,14 @@
         p[5] # skew
     """
     function bilinear_exponential(x::Number, p::AbstractVector{<:Number})
-        xs = (x - p[2])/abs(p[3]) # X scaled by mean and variance
+        @assert length(p) == 5
+        A, μ, σ, shp, skw = (abs(x) for x in p)
+        xs = (x - μ)/σ # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-        shp = abs(p[4])
-        skw = abs(p[5])
-        return abs(p[1]) * exp(shp*skw*xs*v - shp/skw*xs*(1-v))
+        return A * exp(shp*skw*xs*v - shp/skw*xs*(1-v))
     end
     function bilinear_exponential(x::AbstractVector, p::AbstractVector{<:Number})
+        @assert length(p) == 5
         result = Array{float(eltype(x))}(undef,size(x))
         @inbounds for i ∈ eachindex(x)
             xs = (x[i] - p[2])/abs(p[3]) # X scaled by mean and variance
@@ -75,10 +76,10 @@
     See also `bilinear_exponential`
     """
     function bilinear_exponential_ll(x::Number, p::AbstractVector{<:Number})
-        xs = (x - p[2])/abs(p[3]) # X scaled by mean and variance
+        @assert length(p) == 5
+        A, μ, σ, shp, skw = (abs(x) for x in p)
+        xs = (x - μ)/σ # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-        shp = abs(p[4])
-        skw = abs(p[5])
         return shp*skw*xs*v - shp/skw*xs*(1-v)
     end
     function bilinear_exponential_ll(x::AbstractVector, p::AbstractMatrix{<:Number})
@@ -98,8 +99,7 @@
             pᵢ = ages[i]
             xs = (x[i]-pᵢ.μ)/(pᵢ.σ) # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-            shp = pᵢ.sharpness
-            skw = pᵢ.skew
+            shp, skw = pᵢ.sharpness, pᵢ.skew
             ll += shp*skw*xs*v - shp/skw*xs*(1-v)
         end
         return ll
@@ -155,12 +155,25 @@
     end
 
     function binormal(x::Number, p::AbstractVector{<:Number})
-        xs = (x - p[2])/abs(p[3]) # X scaled by mean and variance
+        @assert length(p) == 5
+        A, μ, σ, shp, skw = (abs(x) for x in p)
+        xs = (x - μ)/σ # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-        shp = abs(p[4])
-        skw = abs(p[5])
-        return p[1] * exp(-0.5*(shp*skw*xs*v - shp/skw*xs*(1-v))^2)
+        return A * exp(-0.5*(shp*skw*xs*v - shp/skw*xs*(1-v))^2)
     end
+    function binormal(x::AbstractVector, p::AbstractVector{<:Number})
+        @assert length(p) == 5
+        A, μ, σ, shp, skw = (abs(x) for x in p)
+        result = Array{float(eltype(x))}(undef,size(x))
+        @inbounds for i ∈ eachindex(x)
+            xs = (x[i] - μ)/σ # X scaled by mean and variance
+            v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
+            result[i] = A * exp(-0.5*(shp*skw*xs*v - shp/skw*xs*(1-v))^2)
+        end
+        return result
+    end
+
+
     function binormal_ll(x::Number, p::AbstractVector{<:Number})
         xs = (x - p[2])/abs(p[3]) # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
