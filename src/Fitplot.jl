@@ -92,6 +92,7 @@
         Path = smpl.Path::String
         Age_Unit = smpl.Age_Unit::String
         DistType = smpl.Age_DistType::Vector{Float64}
+        lb = Float64[0, 0, 0, 0, 0] # Lower bounds for bilinear_exponential
 
         # Estimate the eruption/deposition distribution for each sample
         print("Estimating eruption/deposition age distributions...\n")
@@ -132,7 +133,7 @@
                 p[3] = nanstd(tminDist)
 
                 # Fit nonlinear model
-                fobj = curve_fit(bilinear_exponential,bincenters,N,p)
+                fobj = curve_fit(bilinear_exponential,bincenters,N,p; lower=lb)
                 smpl.Params[:,i] = fobj.param
 
                 if make_plots
@@ -177,7 +178,7 @@
 
                 # Fit nonlinear model
                 x = μ .+ (-10σ:σ/10:10σ)
-                fobj = curve_fit(bilinear_exponential, x, normpdf(μ, σ, x), p)
+                fobj = curve_fit(bilinear_exponential, x, normpdf(μ, σ, x), p; lower=lb)
                 fobj.param[5] = 1 # Must be symmetrical
                 smpl.Params[:,i] = fobj.param
             end

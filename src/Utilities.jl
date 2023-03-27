@@ -28,14 +28,14 @@
         p[4] # sharpness
         p[5] # skew
     """
-    function bilinear_exponential(x::Number, p::AbstractVector)
+    function bilinear_exponential(x::Number, p::AbstractVector{<:Number})
         xs = (x - p[2])/abs2(p[3]) # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
         shp = abs2(p[4])
         skw = abs2(p[5])
         return exp(p[1] + shp*skw*xs*v - shp/skw*xs*(1-v))
     end
-    function bilinear_exponential(x::AbstractVector, p::AbstractVector)
+    function bilinear_exponential(x::AbstractVector, p::AbstractVector{<:Number})
         result = Array{float(eltype(x))}(undef,size(x))
         @turbo for i ∈ eachindex(x)
             xs = (x[i] - p[2])/abs2(p[3]) # X scaled by mean and variance
@@ -61,14 +61,14 @@
 
     See also `bilinear_exponential`
     """
-    function bilinear_exponential_ll(x::Number, p::AbstractVector)
+    function bilinear_exponential_ll(x::Number, p::AbstractVector{<:Number})
         xs = (x - p[2])/abs2(p[3]) # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
         shp = abs2(p[4])
         skw = abs2(p[5])
         return p[1] + shp*skw*xs*v - shp/skw*xs*(1-v)
     end
-    function bilinear_exponential_ll(x::AbstractVector, p::AbstractMatrix)
+    function bilinear_exponential_ll(x::AbstractVector, p::AbstractMatrix{<:Number})
         ll = 0.0
         @turbo for i ∈ eachindex(x)
             xs = (x[i]-p[2,i])/abs2(p[3,i]) # X scaled by mean and variance
