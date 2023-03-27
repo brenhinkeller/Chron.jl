@@ -504,7 +504,7 @@
 
         # Preallocate variables for MCMC proposals
         llₚ = ll
-        agesₚ = copy(ages)
+        agesₚ = deepcopy(ages)
         model_agesₚ = copy(model_ages)
         closestₚ = copy(closest)
         sample_heightₚ = copy(sample_height)
@@ -595,7 +595,7 @@
             copyto!(model_agesₚ, model_ages)
             copyto!(closestₚ, closest)
             copyto!(sample_heightₚ, sample_height)
-            isnothing(systematic) || copyto!(agesₚ, ages)
+            # isnothing(systematic) || copyto!(agesₚ, ages)
 
             if rand() < 0.1
                 # Adjust heights
@@ -720,7 +720,7 @@
             copyto!(model_agesₚ, model_ages)
             copyto!(closestₚ, closest)
             copyto!(sample_heightₚ, sample_height)
-            isnothing(systematic) || copyto!(agesₚ, ages)
+            # isnothing(systematic) || copyto!(agesₚ, ages)
 
             if rand() < 0.1
                 # Adjust heights
