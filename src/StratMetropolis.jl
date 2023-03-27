@@ -457,9 +457,8 @@
     strat_ll(x, ages::Vector{<:Radiocarbon}) = interpolate_ll(x, ages)
     strat_ll(x, ages::Vector{<:Normal}) = normpdf_ll(x, ages)
 
-    adjust!(ages, chronometer, ::Nothing) = ages
+    adjust!(ages::AbstractVector, chronometer, systematic::Nothing) = nothing
     function adjust!(ages::AbstractVector{BilinearExponential{T}}, chronometer, systematic::SystematicUncertainty) where T
-        agesₚ = copy(ages)
         systUPb = randn()*systematic.UPb
         systArAr = randn()*systematic.ArAr
         @assert eachindex(ages)==eachindex(chronometer)
@@ -565,7 +564,7 @@
                     closest_model_agesₚ[i] = ages[i].μ
                 end
             end
-            adjust!(agesₚ, Chronometer, systematic)
+            # adjust!(agesₚ, Chronometer, systematic)
             llₚ = strat_ll(closest_model_agesₚ, agesₚ)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
@@ -639,7 +638,7 @@
                     closest_model_agesₚ[i] = ages[i].μ
                 end
             end
-            adjust!(agesₚ, Chronometer, systematic)
+            # adjust!(agesₚ, Chronometer, systematic)
             llₚ = strat_ll(closest_model_agesₚ, agesₚ)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
@@ -791,7 +790,7 @@
                     closest_model_agesₚ[i] = ages[i].μ
                 end
             end
-            adjust!(agesₚ, Chronometer, systematic)
+            # adjust!(agesₚ, Chronometer, systematic)
             llₚ = strat_ll(closest_model_agesₚ, agesₚ)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
@@ -897,7 +896,7 @@
                     closest_model_agesₚ[i] = ages[i].μ
                 end
             end
-            adjust!(agesₚ, Chronometer, systematic)
+            # adjust!(agesₚ, Chronometer, systematic)
             llₚ = strat_ll(closest_model_agesₚ, agesₚ)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
