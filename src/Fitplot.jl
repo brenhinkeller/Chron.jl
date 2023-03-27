@@ -111,14 +111,14 @@
 
                 # Fill in the strat sample object with our new results
                 tminDistₜ = copy(tminDist)
-                smpl.Age[i] = nanmean(tminDist)
-                smpl.Age_sigma[i] = nanstd(tminDist)
-                smpl.Age_025CI[i] = nanpctile!(tminDistₜ,2.5)
-                smpl.Age_975CI[i] = nanpctile!(tminDistₜ,97.5)
+                smpl.Age[i] = vmean(tminDist)
+                smpl.Age_sigma[i] = vstd(tminDist)
+                smpl.Age_025CI[i] = vpercentile!(tminDistₜ,2.5)
+                smpl.Age_975CI[i] = vpercentile!(tminDistₜ,97.5)
                 smpl.Age_Distribution[i] = tminDist
 
                 # Fit custom many-parametric distribution function to histogram
-                edges = range(nanminimum(tminDist),nanmaximum(tminDist),length=101) # Vector of bin edges
+                edges = range(vminimum(tminDist),vmaximum(tminDist),length=101) # Vector of bin edges
                 bincounts = histcounts(tminDist, edges)
 
                 t = bincounts.>0 # Only look at bins with one or more results
@@ -127,8 +127,8 @@
 
                 # Initial guess for parameters
                 p = ones(5)
-                p[2] = nanmean(tminDist)
-                p[3] = nanstd(tminDist)
+                p[2] = vmean(tminDist)
+                p[3] = vstd(tminDist)
 
                 # Fit nonlinear model
                 fobj = curve_fit(bilinear_exponential,bincenters,N,p)
