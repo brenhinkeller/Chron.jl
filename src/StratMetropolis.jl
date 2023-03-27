@@ -457,7 +457,7 @@
     strat_ll(x, ages::Vector{<:Radiocarbon}) = interpolate_ll(x, ages)
     strat_ll(x, ages::Vector{<:Normal}) = normpdf_ll(x, ages)
 
-    adjust!(ages::AbstractVector, chronometer, systematic::Nothing) = nothing
+    adjust!(ages::AbstractVector, chronometer, systematic::Nothing) = (return ages)
     function adjust!(ages::AbstractVector{BilinearExponential{T}}, chronometer, systematic::SystematicUncertainty) where T
         systUPb = randn()*systematic.UPb
         systArAr = randn()*systematic.ArAr
@@ -469,6 +469,7 @@
             chronometer[i] === :ArAr && (μ += systArAr)
             ages[i] = BilinearExponential{T}(age.A, μ, age.σ, age.sharpness, age.skew)
         end
+        return ages
     end
     function adjust!(ages::AbstractVector{Normal{T}}, chronometer, systematic::SystematicUncertainty) where T
         systUPb = randn()*systematic.UPb
@@ -481,9 +482,10 @@
             chronometer[i] === :ArAr && (μ += systArAr)
             ages[i] = Normal{T}(μ, age.σ)
         end
+        return ages
     end
 
-    function stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin::Integer, nsteps::Integer, sieve::Integer, Chronometer=nothing, systematic=nothing)
+    function stratmetropolis(Height, Height_sigma, model_heights::AbstractRange, Age_Sidedness, ages, model_ages, burnin::Integer, nsteps::Integer, sieve::Integer, Chronometer=nothing, systematic=nothing)
         aveuncert = sum(x->x.σ, ages)/length(ages)
         resolution = step(model_heights)
         npoints = length(model_heights)
@@ -504,7 +506,7 @@
 
         # Preallocate variables for MCMC proposals
         llₚ = ll
-        agesₚ = deepcopy(ages)
+        # agesₚ = deepcopy(ages)
         model_agesₚ = copy(model_ages)
         closestₚ = copy(closest)
         sample_heightₚ = copy(sample_height)
@@ -520,7 +522,7 @@
             copyto!(model_agesₚ, model_ages)
             copyto!(closestₚ, closest)
             copyto!(sample_heightₚ, sample_height)
-            isnothing(systematic) || copyto!(agesₚ, ages)
+            # isnothing(systematic) || copyto!(agesₚ, ages)
 
             if rand() < 0.1
                 # Adjust heights
@@ -565,7 +567,7 @@
                 end
             end
             # adjust!(agesₚ, Chronometer, systematic)
-            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
+            llₚ = strat_ll(closest_model_agesₚ, ages)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Accept or reject proposal based on likelihood
@@ -639,7 +641,7 @@
                 end
             end
             # adjust!(agesₚ, Chronometer, systematic)
-            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
+            llₚ = strat_ll(closest_model_agesₚ, ages)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Accept or reject proposal based on likelihood
@@ -664,7 +666,7 @@
         return agedist, lldist
     end
 
-    function stratmetropolis(hiatus::HiatusData, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin::Integer, nsteps::Integer, sieve::Integer, Chronometer=nothing, systematic=nothing)
+    function stratmetropolis(hiatus::HiatusData, Height, Height_sigma, model_heights::AbstractRange, Age_Sidedness, ages, model_ages, burnin::Integer, nsteps::Integer, sieve::Integer, Chronometer=nothing, systematic=nothing)
         aveuncert = sum(x->x.σ, ages)/length(ages)
         resolution = step(model_heights)
         npoints = length(model_heights)
@@ -703,7 +705,7 @@
         # Preallocate variables for MCMC proposals
         llₚ=ll
         chosen_point=0
-        agesₚ = copy(ages)
+        # agesₚ = deepcopy(ages)
         model_agesₚ = copy(model_ages)
         closestₚ = copy(closest)
         durationₚ = copy(duration)
@@ -791,7 +793,7 @@
                 end
             end
             # adjust!(agesₚ, Chronometer, systematic)
-            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
+            llₚ = strat_ll(closest_model_agesₚ, ages)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
@@ -827,7 +829,7 @@
             copyto!(model_agesₚ, model_ages)
             copyto!(closestₚ, closest)
             copyto!(sample_heightₚ, sample_height)
-            isnothing(systematic) || copyto!(agesₚ, ages)
+            # isnothing(systematic) || copyto!(agesₚ, ages)
 
             if rand() < 0.1
                 # Adjust heights
@@ -897,7 +899,7 @@
                 end
             end
             # adjust!(agesₚ, Chronometer, systematic)
-            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
+            llₚ = strat_ll(closest_model_agesₚ, ages)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
