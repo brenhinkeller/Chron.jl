@@ -31,13 +31,12 @@ module Chron
     using LsqFit: curve_fit
     using KernelDensity: kde
     using DelimitedFiles
-
-    # Bilinear exponential function
+    using Distributions
     using LoopVectorization
     # using Polyester: @batch
+
     include("Utilities.jl")
     # Functions for propagating systematic uncertainties
-    using Distributions
     include("Systematic.jl")
     # Custom objects for holding Chron age data
     include("Objects.jl")

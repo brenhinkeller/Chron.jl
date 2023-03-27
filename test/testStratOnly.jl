@@ -25,9 +25,9 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 
 # Test that results match expectation, within some tolerance
 @test isa(mdl.Age, Array{Float64,1})
-@test isapprox(mdl.Age, [751.74, 742.70, 733.65, 724.51, 720.14, 715.96, 711.79, 709.14, 706.57, 703.70, 701.36], atol=1)
-@test isapprox(mdl.Age_025CI, [742.41, 723.83, 718.67, 715.69, 707.41, 703.72, 701.34, 698.16, 696.27, 694.94, 693.89], atol=1.5)
-@test isapprox(mdl.Age_975CI, [761.04, 757.86, 752.64, 733.58, 731.23, 728.11, 722.24, 720.58, 718.62, 716.13, 712.46], atol=1.5)
+@test all(isapprox.(mdl.Age, [751.74, 742.70, 733.65, 724.51, 720.14, 715.96, 711.79, 709.14, 706.57, 703.70, 701.36], atol=1))
+@test all(isapprox.(mdl.Age_025CI, [742.41, 723.83, 718.67, 715.69, 707.41, 703.72, 701.34, 698.16, 696.27, 694.94, 693.89], atol=1.5))
+@test all(isapprox.(mdl.Age_975CI, [761.04, 757.86, 752.64, 733.58, 731.23, 728.11, 722.24, 720.58, 718.62, 716.13, 712.46], atol=1.5))
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 

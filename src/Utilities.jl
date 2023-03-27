@@ -1,5 +1,13 @@
 ## --- Fitting non-Gaussian distributions
 
+    struct BilinearExponential{T}
+        A::T
+        μ::T
+        σ::T
+        sharpness::T
+        skew::T
+    end
+
     """
     ```Julia
     bilinear_exponential(x::Number, p::AbstractVector)
@@ -79,12 +87,48 @@
         end
         return ll
     end
+    function bilinear_exponential_ll(x::AbstractVector, ages::AbstractVector{BilinearExponential{T}}) where T
+        ll = zero(T)
+        @inbounds for i ∈ eachindex(x,ages)
+            pᵢ = ages[i]
+            xs = (x[i]-pᵢ.μ)/abs2(pᵢ.σ) # X scaled by mean and variance
+            v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
+            shp = abs2(pᵢ.sharpness)
+            skw = abs2(pᵢ.skew)
+            ll += pᵢ.A + shp*skw*xs*v - shp/skw*xs*(1-v)
+        end
+        return ll
+    end
+
+    struct Radiocarbon{T}
+        μ::T
+        σ::T
+        dist::Vector{T}
+    end
 
     # Interpolate log likelihood from an array
-    function interpolate_ll(x::AbstractVector,p::AbstractMatrix)
-        ll = 0
+    function interpolate_ll(x::AbstractVector,p::AbstractMatrix{T}) where {T<:Number}
+        ll = zero(T)
         @inbounds for i ∈ eachindex(x)
             ll += linterp_at_index(view(p,:,i), x[i], -Inf)
+        end
+        return ll
+    end
+    function interpolate_ll(x::AbstractVector,ages::AbstractVector{Radiocarbon{T}}) where T
+        ll = zero(T)
+        @inbounds for i ∈ eachindex(x,ages)
+            dist = ages[i].dist
+            ll += linterp_at_index(dist, x[i], -Inf)
+        end
+        return ll
+    end
+
+    function StatGeochemBase.normpdf_ll(x::AbstractVector, ages::AbstractVector{Normal{T}}) where T
+        ll = zero(T)
+        @inbounds for i ∈ eachindex(x,ages)
+            age = ages[i]
+            μᵢ, σᵢ = age.μ, age.σ
+            ll -= (x[i]-μᵢ)^2 / (2*σᵢ*σᵢ)
         end
         return ll
     end
