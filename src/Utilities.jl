@@ -9,7 +9,7 @@
     end
     function BilinearExponential(p::AbstractVector)
         @assert length(p) == 5
-        @assert all(x->x>0, p)
+        @assert all(x->x>0, Iterators.drop(p,1))
         BilinearExponential(p...)
     end
 
@@ -22,7 +22,7 @@
     probability distributions found in geochronology, is defined by an exponential
     function with two log-linear segments joined by an `atan` sigmoid:
     ```math
-    ℯ^{p_1 + v x_s p_4^2 p_5^2 - (1-v) x_s p_4^2/p_5^2}
+    ℯ^{p_1} * ℯ^{v x_s p_4 p_5 - (1-v) x_s p_4/p_5}
     ```
     where
     ```math
@@ -30,33 +30,35 @@
     ```
     is a sigmoid, positive on the left-hand side, and
     ```math
-    x_s = (x - p_2)/p_3^2
+    x_s = (x - p_2)/p_3
     ```
-    is `x` scaled by mean and variance.
+    is `x` scaled by mean and standard deviation.
 
     The elements of the parameter array `p` may be considered to approximately represent\n
-        p[1] # pre-exponential (log normaliation constant)
+        p[1] # pre-exponential (normaliation constant)
         p[2] # mean (central moment)
         p[3] # standard deviation
         p[4] # sharpness
         p[5] # skew
+
+    where all parameters `pᵢ` must be nonnegative.
     """
     function bilinear_exponential(x::Number, p::AbstractVector{<:Number})
         @assert length(p) == 5
-        A, μ, σ, shp, skw = (abs(x) for x in p)
+        _, μ, σ, shp, skw = (abs(x) for x in p)
         xs = (x - μ)/σ # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-        return A * exp(shp*skw*xs*v - shp/skw*xs*(1-v))
+        return exp(first(p) + shp*skw*xs*v - shp/skw*xs*(1-v))
     end
     function bilinear_exponential(x::AbstractVector, p::AbstractVector{<:Number})
-        @assert length(p) == 5
+        @assert length(p) == 5 && firstindex(p) == 1
         result = Array{float(eltype(x))}(undef,size(x))
         @inbounds for i ∈ eachindex(x)
             xs = (x[i] - p[2])/abs(p[3]) # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
             shp = abs(p[4])
             skw = abs(p[5])
-            result[i] = abs(p[1]) * exp(shp*skw*xs*v - shp/skw*xs*(1-v))
+            result[i] = exp(p[1] + shp*skw*xs*v - shp/skw*xs*(1-v))
         end
         return result
     end
@@ -77,7 +79,7 @@
     """
     function bilinear_exponential_ll(x::Number, p::AbstractVector{<:Number})
         @assert length(p) == 5
-        A, μ, σ, shp, skw = (abs(x) for x in p)
+        _, μ, σ, shp, skw = (abs(x) for x in p)
         xs = (x - μ)/σ # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
         return shp*skw*xs*v - shp/skw*xs*(1-v)
@@ -138,50 +140,49 @@
         return ll
     end
 
-## --- End of File
+## --- Biquadratic distribution (like bilinear, with quadratic sides)
 
 
-    struct Binormal{T}
+    struct BiquadraticExponential{T}
         A::T
         μ::T
         σ::T
         sharpness::T
         skew::T
     end
-    function Binormal(p::AbstractVector)
+    function BiquadraticExponential(p::AbstractVector)
         @assert length(p) == 5
-        @assert all(x->x>0, p)
-        BilinearExponential(p...)
+        @assert all(x->x>0, Iterators.drop(p,1))
+        BiquadraticExponential(p...)
     end
 
-    function binormal(x::Number, p::AbstractVector{<:Number})
+    function biquadratic_exponential(x::Number, p::AbstractVector{<:Number})
         @assert length(p) == 5
-        A, μ, σ, shp, skw = (abs(x) for x in p)
+        _, μ, σ, shp, skw = (abs(x) for x in p)
         xs = (x - μ)/σ # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-        return A * exp(-0.5*(shp*skw*xs*v - shp/skw*xs*(1-v))^2)
+        return exp(first(p) -0.5*(shp*skw*xs*v - shp/skw*xs*(1-v))^2)
     end
-    function binormal(x::AbstractVector, p::AbstractVector{<:Number})
+    function biquadratic_exponential(x::AbstractVector, p::AbstractVector{<:Number})
         @assert length(p) == 5
-        A, μ, σ, shp, skw = (abs(x) for x in p)
+        _, μ, σ, shp, skw = (abs(x) for x in p)
         result = Array{float(eltype(x))}(undef,size(x))
         @inbounds for i ∈ eachindex(x)
             xs = (x[i] - μ)/σ # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-            result[i] = A * exp(-0.5*(shp*skw*xs*v - shp/skw*xs*(1-v))^2)
+            result[i] = exp(first(p) -0.5*(shp*skw*xs*v - shp/skw*xs*(1-v))^2)
         end
         return result
     end
 
-
-    function binormal_ll(x::Number, p::AbstractVector{<:Number})
+    function biquadratic_exponential_ll(x::Number, p::AbstractVector{<:Number})
         xs = (x - p[2])/abs(p[3]) # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
         shp = abs(p[4])
         skw = abs(p[5])
         return -(shp*skw*xs*v - shp/skw*xs*(1-v))^2
     end
-    function binormal_ll(x::AbstractVector, ages::AbstractVector{Binormal{T}}) where T
+    function biquadratic_exponential_ll(x::AbstractVector, ages::AbstractVector{BiquadraticExponential{T}}) where T
         ll = zero(T)
         @inbounds for i ∈ eachindex(x,ages)
             pᵢ = ages[i]
@@ -193,3 +194,5 @@
         end
         return ll
     end
+
+## --- End of File

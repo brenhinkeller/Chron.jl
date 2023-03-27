@@ -132,7 +132,8 @@
 
                 # Fit nonlinear model
                 fobj = curve_fit(bilinear_exponential,bincenters,N,p)
-                smpl.Params[:,i] = abs.(fobj.param)
+                fobj.param[2:end] .= abs.(fobj.param[2:end]) # Ensure positive
+                smpl.Params[:,i] = fobj.param
 
                 if make_plots
                     # Rank-order plot of analyses and eruption/deposition age range
@@ -177,8 +178,9 @@
                 # Fit nonlinear model
                 x = μ .+ (-10σ:σ/10:10σ)
                 fobj = curve_fit(bilinear_exponential, x, normpdf(μ, σ, x), p)
+                fobj.param[2:end] .= abs.(fobj.param[2:end]) # Ensure positive
                 fobj.param[5] = 1 # Must be symmetrical
-                smpl.Params[:,i] = abs.(fobj.param)
+                smpl.Params[:,i] = fobj.param
             end
         end
 
