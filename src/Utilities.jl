@@ -9,6 +9,7 @@
     end
     function BilinearExponential(p::AbstractVector)
         @assert length(p) == 5
+        @assert all(x->x>0, p)
         BilinearExponential(p...)
     end
 
@@ -45,7 +46,7 @@
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
         shp = abs(p[4])
         skw = abs(p[5])
-        return exp(p[1] + shp*skw*xs*v - shp/skw*xs*(1-v))
+        return abs(p[1]) * exp(shp*skw*xs*v - shp/skw*xs*(1-v))
     end
     function bilinear_exponential(x::AbstractVector, p::AbstractVector{<:Number})
         result = Array{float(eltype(x))}(undef,size(x))
@@ -54,7 +55,7 @@
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
             shp = abs(p[4])
             skw = abs(p[5])
-            result[i] = exp(p[1] + shp*skw*xs*v - shp/skw*xs*(1-v))
+            result[i] = abs(p[1]) * exp(shp*skw*xs*v - shp/skw*xs*(1-v))
         end
         return result
     end
@@ -78,7 +79,7 @@
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
         shp = abs(p[4])
         skw = abs(p[5])
-        return p[1] + shp*skw*xs*v - shp/skw*xs*(1-v)
+        return shp*skw*xs*v - shp/skw*xs*(1-v)
     end
     function bilinear_exponential_ll(x::AbstractVector, p::AbstractMatrix{<:Number})
         ll = 0.0
@@ -87,7 +88,7 @@
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
             shp = abs(p[4,i])
             skw = abs(p[5,i])
-            ll += p[1,i] + shp*skw*xs*v - shp/skw*xs*(1-v)
+            ll += shp*skw*xs*v - shp/skw*xs*(1-v)
         end
         return ll
     end
@@ -99,7 +100,7 @@
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
             shp = pᵢ.sharpness
             skw = pᵢ.skew
-            ll += pᵢ.A + shp*skw*xs*v - shp/skw*xs*(1-v)
+            ll += shp*skw*xs*v - shp/skw*xs*(1-v)
         end
         return ll
     end
@@ -138,3 +139,44 @@
     end
 
 ## --- End of File
+
+
+    struct Binormal{T}
+        A::T
+        μ::T
+        σ::T
+        sharpness::T
+        skew::T
+    end
+    function Binormal(p::AbstractVector)
+        @assert length(p) == 5
+        @assert all(x->x>0, p)
+        BilinearExponential(p...)
+    end
+
+    function binormal(x::Number, p::AbstractVector{<:Number})
+        xs = (x - p[2])/abs(p[3]) # X scaled by mean and variance
+        v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
+        shp = abs(p[4])
+        skw = abs(p[5])
+        return p[1] * exp(-0.5*(shp*skw*xs*v - shp/skw*xs*(1-v))^2)
+    end
+    function binormal_ll(x::Number, p::AbstractVector{<:Number})
+        xs = (x - p[2])/abs(p[3]) # X scaled by mean and variance
+        v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
+        shp = abs(p[4])
+        skw = abs(p[5])
+        return -(shp*skw*xs*v - shp/skw*xs*(1-v))^2
+    end
+    function binormal_ll(x::AbstractVector, ages::AbstractVector{Binormal{T}}) where T
+        ll = zero(T)
+        @inbounds for i ∈ eachindex(x,ages)
+            pᵢ = ages[i]
+            xs = (x[i]-pᵢ.μ)/(pᵢ.σ) # X scaled by mean and variance
+            v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
+            shp = pᵢ.sharpness
+            skw = pᵢ.skew
+            ll -= (shp*skw*xs*v - shp/skw*xs*(1-v))^2
+        end
+        return ll
+    end
