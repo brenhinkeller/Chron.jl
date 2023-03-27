@@ -59,9 +59,9 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 
 # Test that results match expectation, within some tolerance
 @test isa(mdl.Age, Array{Float64,1})
-@test isapprox(mdl.Age, [8319.5, 8235.7, 8154.8, 8072.3, 8025.8, 7982.2, 7938.8, 7914.7, 7891.3, 7868.5, 7845.1], atol=20)
-@test isapprox(mdl.Age_025CI, [8205.0, 8045.4, 7998.9, 7975.5, 7893.6, 7859.9, 7838.6, 7802.2, 7779.3, 7761.3, 7747.5], atol=25)
-@test isapprox(mdl.Age_975CI, [8403.9, 8385.1, 8345.7, 8163.4, 8150.0, 8123.4, 8028.4, 8014.9, 8002.3, 7984.7, 7957.1], atol=25)
+@test all.(isapprox(mdl.Age, [8319.5, 8235.7, 8154.8, 8072.3, 8025.8, 7982.2, 7938.8, 7914.7, 7891.3, 7868.5, 7845.1], atol=20))
+@test all.(isapprox(mdl.Age_025CI, [8205.0, 8045.4, 7998.9, 7975.5, 7893.6, 7859.9, 7838.6, 7802.2, 7779.3, 7761.3, 7747.5], atol=25))
+@test all.(isapprox(mdl.Age_975CI, [8403.9, 8385.1, 8345.7, 8163.4, 8150.0, 8123.4, 8028.4, 8014.9, 8002.3, 7984.7, 7957.1], atol=25))
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 
@@ -79,9 +79,9 @@ hiatus.Duration_sigma = [  30.5,   20.0 ]
 
 # Test that results match expectation, within some tolerance
 @test isa(mdl.Age, Array{Float64,1})
-@test isapprox(mdl.Age, [8339.8, 8160.6, 8112.4, 8066.9, 8032.9, 7999.7, 7964.7, 7947.4, 7850.4, 7833.2, 7818.8], atol=20)
-@test isapprox(mdl.Age_025CI, [8216.9, 8022.6, 7991.4, 7975.1, 7924.7, 7892.3, 7872.9, 7844.2, 7749.1, 7738.5, 7729.2], atol=25)
-@test isapprox(mdl.Age_975CI, [8408.3, 8272.7, 8238.4, 8160.2, 8149.8, 8130.8, 8092.3, 8064.0, 7960.0, 7935.8, 7916.7], atol=25)
+@test all.(isapprox(mdl.Age, [8339.8, 8160.6, 8112.4, 8066.9, 8032.9, 7999.7, 7964.7, 7947.4, 7850.4, 7833.2, 7818.8], atol=20))
+@test all.(isapprox(mdl.Age_025CI, [8216.9, 8022.6, 7991.4, 7975.1, 7924.7, 7892.3, 7872.9, 7844.2, 7749.1, 7738.5, 7729.2], atol=25))
+@test all.(isapprox(mdl.Age_975CI, [8408.3, 8272.7, 8238.4, 8160.2, 8149.8, 8130.8, 8092.3, 8064.0, 7960.0, 7935.8, 7916.7], atol=25))
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 

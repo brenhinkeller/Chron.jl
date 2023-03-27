@@ -22,7 +22,7 @@
     (mdl, agedist, hiatusdist, lldist) = StratMetropolis(smpl, hiatus, config)
     ```
     """
-    function StratMetropolis(smpl::ChronAgeData, config::StratAgeModelConfiguration)
+    function StratMetropolis(smpl::ChronAgeData, config::StratAgeModelConfiguration, systematic=nothing)
         # Run stratigraphic MCMC model
         print("Generating stratigraphic age-depth model...\n")
 
@@ -39,6 +39,7 @@
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
+        Chronometer = smpl.Chronometer
         (bottom, top) = extrema(Height)
         (youngest, oldest) = extrema(Age)
         dt_dH = (oldest-youngest)/(top-bottom)
@@ -54,6 +55,7 @@
             Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
+            Chronometer = (:None, Chronometer..., :None)
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
 
@@ -62,7 +64,7 @@
         model_ages = a .+ b .* collect(model_heights)
         ages = Normal.(Age, Age_sigma)
 
-        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve)
+        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve, Chronometer, systematic)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -414,7 +416,7 @@
     (mdl, agedist, hiatusdist, lldist) = StratMetropolisDist(smpl, hiatus, config)
     ```
     """
-    function StratMetropolisDist(smpl::ChronAgeData, config::StratAgeModelConfiguration)
+    function StratMetropolisDist(smpl::ChronAgeData, config::StratAgeModelConfiguration, systematic=nothing)
         # Run stratigraphic MCMC model
         print("Generating stratigraphic age-depth model...\n")
 
@@ -431,6 +433,7 @@
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
+        Chronometer = smpl.Chronometer
         p = copy(smpl.Params)::Matrix{Float64}
         (youngest, oldest) = extrema(Age)
         (bottom, top) = extrema(Height)
@@ -451,6 +454,7 @@
             pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = nanmean(Age_sigma)/10
             pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = nanmean(Age_sigma)/10
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
+            Chronometer = (:None, Chronometer..., :None)
         end
         active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
         npoints = length(model_heights)
@@ -461,7 +465,7 @@
 
         ages = BilinearExponential.(eachrow(p)...,)
 
-        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve)
+        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve, Chronometer, systematic)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -478,264 +482,6 @@
 
         return mdl, agedist, lldist
     end
-
-
-    function StratMetropolisDist(smpl::ChronAgeData, config::StratAgeModelConfiguration, systematic::SystematicUncertainty)
-        # Run stratigraphic MCMC model
-        print("Generating stratigraphic age-depth model...\n")
-
-        # Model configuration -- read from struct
-        resolution = config.resolution
-        burnin = config.burnin
-        nsteps = config.nsteps
-        sieve = config.sieve
-        bounding = config.bounding
-
-        # Stratigraphic age constraints
-        Age = copy(smpl.Age)::Vector{Float64}
-        Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
-        Height = copy(smpl.Height)::Vector{Float64}
-        Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
-        Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
-        params = copy(smpl.Params)::Matrix{Float64}
-        Chronometer = smpl.Chronometer
-        (youngest, oldest) = extrema(Age)
-        aveuncert = nanmean(Age_sigma)
-        (bottom, top) = extrema(Height)
-        dt_dH = (oldest-youngest)/(top-bottom)
-        model_heights = bottom:resolution:top
-
-
-        if bounding>0
-            # If bounding is requested, add extrapolated top and bottom bounds to avoid
-            # issues with the stratigraphic markov chain wandering off to +/- infinity
-            offset = (top-bottom)*bounding
-            Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
-            Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
-            Height = [bottom-offset; Height; top+offset]
-            Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
-            Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
-            model_heights = (bottom-offset):resolution:(top+offset)
-            pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = nanmean(Age_sigma)/10
-            pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = nanmean(Age_sigma)/10
-            params = hcat(pl,params,pu) # Add parameters for upper and lower runaway bounds
-            Chronometer = (:None, Chronometer..., :None)
-        end
-        active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
-        npoints = length(model_heights)
-
-        # Start with a linear fit as an initial proposal
-        (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
-        model_ages = a .+ b .* collect(model_heights)
-
-
-        # Calculate log likelihood of initial proposal
-        # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-        # proposals older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-        sample_height = copy(Height)
-        closest = findclosest(sample_height, model_heights)
-        closest_model_ages = model_ages[closest]
-        @inbounds for i ∈ eachindex(Age)
-            if Age_Sidedness[i] == sign(closest_model_ages[i] - Age[i])
-                closest_model_ages[i] = Age[i]
-            end
-        end
-        ll = bilinear_exponential_ll(closest_model_ages, params)
-        ll += normpdf_ll(Height, Height_sigma, sample_height)
-
-        # Preallocate variables for MCMC proposals
-        llₚ = ll
-        paramsₚ = copy(params)
-        model_agesₚ = copy(model_ages)
-        closestₚ = copy(closest)
-        sample_heightₚ = copy(sample_height)
-        closest_model_agesₚ = copy(closest_model_ages)
-
-        # Run burnin
-        # acceptancedist = fill(false,burnin)
-        print("Burn-in: ", burnin, " steps\n")
-        pgrs = Progress(burnin, desc="Burn-in...")
-        pgrs_interval = ceil(Int,sqrt(burnin))
-        for n=1:burnin
-            # Prepare proposal
-            copyto!(paramsₚ, params)
-            copyto!(model_agesₚ, model_ages)
-            copyto!(closestₚ, closest)
-            copyto!(sample_heightₚ, sample_height)
-
-            if rand() < 0.1
-                # Adjust heights
-                @inbounds for i ∈ eachindex(sample_heightₚ)
-                    sample_heightₚ[i] += randn() * Height_sigma[i]
-                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
-                    if closestₚ[i] < 1 # Check we're still within bounds
-                        closestₚ[i] = 1
-                    elseif closestₚ[i] > npoints
-                        closestₚ[i] = npoints
-                    end
-                end
-            else
-                # Adjust one point at a time then resolve conflicts
-                r = randn() * aveuncert # Generate a random adjustment
-                chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_agesₚ[chosen_point] += r
-                #Resolve conflicts
-                if r > 0 # If proposing increased age
-                    @inbounds for i=1:chosen_point
-                        # younger points below
-                        if model_agesₚ[i] < model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                else # if proposing decreased age
-                    @inbounds for i=chosen_point:npoints
-                        # older points above
-                        if model_agesₚ[i] > model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                end
-            end
-
-
-            # Calculate log likelihood of proposal
-            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i ∈ eachindex(Age)
-                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
-                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
-                    closest_model_agesₚ[i] = Age[i]
-                end
-            end
-            # Wiggle the means by systematic uncertainty
-            systUPb = randn()*systematic.UPb
-            systArAr = randn()*systematic.ArAr
-            @inbounds for i ∈ eachindex(Chronometer)
-                Chronometer[i] === :UPb && (paramsₚ[2,i] += systUPb)
-                Chronometer[i] === :ArAr && (paramsₚ[2,i] += systArAr)
-            end
-            llₚ = bilinear_exponential_ll(closest_model_agesₚ, paramsₚ)
-            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
-
-            # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (llₚ - ll)
-                ll = llₚ
-                copyto!(model_ages, model_agesₚ)
-                copyto!(closest, closestₚ)
-                copyto!(sample_height, sample_heightₚ)
-                # acceptancedist[i] = true
-            end
-
-            # Update progress meter every `pgrs_interval` steps
-            mod(n,pgrs_interval)==0 && update!(pgrs, n)
-        end
-        update!(pgrs, burnin) # Finalize
-
-        # Run Markov Chain Monte Carlo
-        print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
-        agedist = Array{Float64}(undef,npoints,nsteps)
-        lldist = Array{Float64}(undef,nsteps)
-
-
-        # Run the model
-        pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
-        for n=1:(nsteps*sieve)
-            # Prepare proposal
-            copyto!(paramsₚ, params)
-            copyto!(model_agesₚ, model_ages)
-            copyto!(closestₚ, closest)
-            copyto!(sample_heightₚ, sample_height)
-
-            if rand() < 0.1
-                # Adjust heights
-                @inbounds for i ∈ eachindex(sample_heightₚ)
-                    sample_heightₚ[i] += randn() * Height_sigma[i]
-                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
-                    if closestₚ[i] < 1 # Check we're still within bounds
-                        closestₚ[i] = 1
-                    elseif closestₚ[i] > npoints
-                        closestₚ[i] = npoints
-                    end
-                end
-            else
-                # Adjust one point at a time then resolve conflicts
-                r = randn() * aveuncert # Generate a random adjustment
-                chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_agesₚ[chosen_point] += r
-                #Resolve conflicts
-                if r > 0 # If proposing increased age
-                    @inbounds for i=1:chosen_point
-                        # younger points below
-                        if model_agesₚ[i] < model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                else # if proposing decreased age
-                    @inbounds for i=chosen_point:npoints
-                        # older points above
-                        if model_agesₚ[i] > model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                end
-            end
-
-
-            # Calculate log likelihood of proposal
-            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i ∈ eachindex(Age)
-                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
-                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
-                    closest_model_agesₚ[i] = Age[i]
-                end
-            end
-            # Wiggle the means by systematic uncertainty
-            systUPb = randn()*systematic.UPb
-            systArAr = randn()*systematic.ArAr
-            @inbounds for i ∈ eachindex(Chronometer)
-                Chronometer[i] === :UPb && (paramsₚ[2,i] += systUPb)
-                Chronometer[i] === :ArAr && (paramsₚ[2,i] += systArAr)
-            end
-            llₚ = bilinear_exponential_ll(closest_model_agesₚ, paramsₚ)
-            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
-
-            # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (llₚ - ll)
-                ll = llₚ
-                copyto!(model_ages, model_agesₚ)
-                copyto!(closest, closestₚ)
-                copyto!(sample_height, sample_heightₚ)
-            end
-
-            # Record sieved results
-            if mod(n,sieve) == 0
-                lldist[n÷sieve] = ll
-                agedist[:,n÷sieve] .= model_ages
-            end
-
-            # Update progress meter every `pgrs_interval` steps
-            mod(n,pgrs_interval)==0 && update!(pgrs, n)
-        end
-        update!(pgrs,nsteps*sieve)
-
-        # Crop the result
-        agedist = agedist[active_height_t,:]
-        agedistₜ = copy(agedist)
-
-        mdl = StratAgeModel(
-            model_heights[active_height_t], # Model heights
-            vmean(agedist,dim=2), # Mean age
-            vstd(agedist,dim=2), # Standard deviation
-            vmedian!(agedistₜ,dim=2), # Median age
-            vpercentile!(agedistₜ,2.5,dim=2), # 2.5th percentile
-            vpercentile!(agedistₜ,97.5,dim=2) # 97.5th percentile
-        )
-
-        return mdl, agedist, lldist
-    end
-
 
 ## --- Stratigraphic MCMC model with hiata, with distribution LL # # # # # # # #
 
@@ -1463,7 +1209,34 @@
     strat_ll(x, ages::Vector{<:Radiocarbon}) = interpolate_ll(x, ages)
     strat_ll(x, ages::Vector{<:Normal}) = normpdf_ll(x, ages)
 
-    function stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin::Integer, nsteps::Integer, sieve::Integer)
+    adjust!(ages, chronometer, ::Nothing) = ages
+    function adjust!(ages::AbstractVector{BilinearExponential{T}}, chronometer, systematic::SystematicUncertainty) where T
+        agesₚ = copy(ages)
+        systUPb = randn()*systematic.UPb
+        systArAr = randn()*systematic.ArAr
+        @assert eachindex(ages)==eachindex(chronometer)
+        @inbounds for i ∈ eachindex(ages)
+            age = ages[i]
+            μ = age.μ
+            chronometer[i] === :UPb && (μ += systUPb)
+            chronometer[i] === :ArAr && (μ += systArAr)
+            ages[i] = BilinearExponential{T}(age.A, μ, age.σ, age.sharpness, age.skew)
+        end
+    end
+    function adjust!(ages::AbstractVector{Normal{T}}, chronometer, systematic::SystematicUncertainty) where T
+        systUPb = randn()*systematic.UPb
+        systArAr = randn()*systematic.ArAr
+        @assert eachindex(ages)==eachindex(chronometer)
+        @inbounds for i ∈ eachindex(ages)
+            age = ages[i]
+            μ = age.μ
+            chronometer[i] === :UPb && (μ += systUPb)
+            chronometer[i] === :ArAr && (μ += systArAr)
+            ages[i] = Normal{T}(μ, age.σ)
+        end
+    end
+
+    function stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin::Integer, nsteps::Integer, sieve::Integer, Chronometer=nothing, systematic=nothing)
         aveuncert = sum(x->x.σ, ages)/length(ages)
         resolution = step(model_heights)
         npoints = length(model_heights)
@@ -1484,6 +1257,7 @@
 
         # Preallocate variables for MCMC proposals
         llₚ = ll
+        agesₚ = copy(ages)
         model_agesₚ = copy(model_ages)
         closestₚ = copy(closest)
         sample_heightₚ = copy(sample_height)
@@ -1499,6 +1273,7 @@
             copyto!(model_agesₚ, model_ages)
             copyto!(closestₚ, closest)
             copyto!(sample_heightₚ, sample_height)
+            isnothing(systematic) || copyto!(agesₚ, ages)
 
             if rand() < 0.1
                 # Adjust heights
@@ -1542,7 +1317,8 @@
                     closest_model_agesₚ[i] = ages[i].μ
                 end
             end
-            llₚ = strat_ll(closest_model_agesₚ, ages)
+            adjust!(agesₚ, Chronometer, systematic)
+            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Accept or reject proposal based on likelihood
@@ -1572,6 +1348,7 @@
             copyto!(model_agesₚ, model_ages)
             copyto!(closestₚ, closest)
             copyto!(sample_heightₚ, sample_height)
+            isnothing(systematic) || copyto!(agesₚ, ages)
 
             if rand() < 0.1
                 # Adjust heights
@@ -1614,7 +1391,8 @@
                     closest_model_agesₚ[i] = ages[i].μ
                 end
             end
-            llₚ = strat_ll(closest_model_agesₚ, ages)
+            adjust!(agesₚ, Chronometer, systematic)
+            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Accept or reject proposal based on likelihood
