@@ -511,7 +511,7 @@
 
         # Preallocate variables for MCMC proposals
         llₚ = ll
-        # agesₚ = deepcopy(ages)
+        agesₚ = copy(ages)
         model_agesₚ = copy(model_ages)
         closestₚ = copy(closest)
         sample_heightₚ = copy(sample_height)
@@ -527,7 +527,7 @@
             copyto!(model_agesₚ, model_ages)
             copyto!(closestₚ, closest)
             copyto!(sample_heightₚ, sample_height)
-            # isnothing(systematic) || copyto!(agesₚ, ages)
+            isnothing(systematic) || copyto!(agesₚ, ages)
 
             if rand() < 0.1
                 # Adjust heights
@@ -571,8 +571,8 @@
                     closest_model_agesₚ[i] = ages[i].μ
                 end
             end
-            # adjust!(agesₚ, Chronometer, systematic)
-            llₚ = strat_ll(closest_model_agesₚ, ages)
+            adjust!(agesₚ, Chronometer, systematic)
+            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Accept or reject proposal based on likelihood
@@ -602,7 +602,7 @@
             copyto!(model_agesₚ, model_ages)
             copyto!(closestₚ, closest)
             copyto!(sample_heightₚ, sample_height)
-            # isnothing(systematic) || copyto!(agesₚ, ages)
+            isnothing(systematic) || copyto!(agesₚ, ages)
 
             if rand() < 0.1
                 # Adjust heights
@@ -645,8 +645,8 @@
                     closest_model_agesₚ[i] = ages[i].μ
                 end
             end
-            # adjust!(agesₚ, Chronometer, systematic)
-            llₚ = strat_ll(closest_model_agesₚ, ages)
+            adjust!(agesₚ, Chronometer, systematic)
+            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Accept or reject proposal based on likelihood
@@ -709,7 +709,7 @@
         # Preallocate variables for MCMC proposals
         llₚ=ll
         chosen_point=0
-        # agesₚ = deepcopy(ages)
+        agesₚ = copy(ages)
         model_agesₚ = copy(model_ages)
         closestₚ = copy(closest)
         durationₚ = copy(duration)
@@ -726,7 +726,7 @@
             copyto!(model_agesₚ, model_ages)
             copyto!(closestₚ, closest)
             copyto!(sample_heightₚ, sample_height)
-            # isnothing(systematic) || copyto!(agesₚ, ages)
+            isnothing(systematic) || copyto!(agesₚ, ages)
 
             if rand() < 0.1
                 # Adjust heights
@@ -796,8 +796,8 @@
                     closest_model_agesₚ[i] = ages[i].μ
                 end
             end
-            # adjust!(agesₚ, Chronometer, systematic)
-            llₚ = strat_ll(closest_model_agesₚ, ages)
+            adjust!(agesₚ, Chronometer, systematic)
+            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
@@ -833,7 +833,7 @@
             copyto!(model_agesₚ, model_ages)
             copyto!(closestₚ, closest)
             copyto!(sample_heightₚ, sample_height)
-            # isnothing(systematic) || copyto!(agesₚ, ages)
+            isnothing(systematic) || copyto!(agesₚ, ages)
 
             if rand() < 0.1
                 # Adjust heights
@@ -902,8 +902,8 @@
                     closest_model_agesₚ[i] = ages[i].μ
                 end
             end
-            # adjust!(agesₚ, Chronometer, systematic)
-            llₚ = strat_ll(closest_model_agesₚ, ages)
+            adjust!(agesₚ, Chronometer, systematic)
+            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
