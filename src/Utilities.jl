@@ -41,19 +41,19 @@
         p[5] # skew
     """
     function bilinear_exponential(x::Number, p::AbstractVector{<:Number})
-        xs = (x - p[2])/abs2(p[3]) # X scaled by mean and variance
+        xs = (x - p[2])/abs(p[3]) # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-        shp = abs2(p[4])
-        skw = abs2(p[5])
+        shp = abs(p[4])
+        skw = abs(p[5])
         return exp(p[1] + shp*skw*xs*v - shp/skw*xs*(1-v))
     end
     function bilinear_exponential(x::AbstractVector, p::AbstractVector{<:Number})
         result = Array{float(eltype(x))}(undef,size(x))
-        @turbo for i ∈ eachindex(x)
-            xs = (x[i] - p[2])/abs2(p[3]) # X scaled by mean and variance
+        @inbounds for i ∈ eachindex(x)
+            xs = (x[i] - p[2])/abs(p[3]) # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-            shp = abs2(p[4])
-            skw = abs2(p[5])
+            shp = abs(p[4])
+            skw = abs(p[5])
             result[i] = exp(p[1] + shp*skw*xs*v - shp/skw*xs*(1-v))
         end
         return result
@@ -74,19 +74,19 @@
     See also `bilinear_exponential`
     """
     function bilinear_exponential_ll(x::Number, p::AbstractVector{<:Number})
-        xs = (x - p[2])/abs2(p[3]) # X scaled by mean and variance
+        xs = (x - p[2])/abs(p[3]) # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-        shp = abs2(p[4])
-        skw = abs2(p[5])
+        shp = abs(p[4])
+        skw = abs(p[5])
         return p[1] + shp*skw*xs*v - shp/skw*xs*(1-v)
     end
     function bilinear_exponential_ll(x::AbstractVector, p::AbstractMatrix{<:Number})
         ll = 0.0
-        @turbo for i ∈ eachindex(x)
-            xs = (x[i]-p[2,i])/abs2(p[3,i]) # X scaled by mean and variance
+        @inbounds for i ∈ eachindex(x)
+            xs = (x[i]-p[2,i])/abs(p[3,i]) # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-            shp = abs2(p[4,i])
-            skw = abs2(p[5,i])
+            shp = abs(p[4,i])
+            skw = abs(p[5,i])
             ll += p[1,i] + shp*skw*xs*v - shp/skw*xs*(1-v)
         end
         return ll
@@ -95,10 +95,10 @@
         ll = zero(T)
         @inbounds for i ∈ eachindex(x,ages)
             pᵢ = ages[i]
-            xs = (x[i]-pᵢ.μ)/abs2(pᵢ.σ) # X scaled by mean and variance
+            xs = (x[i]-pᵢ.μ)/(pᵢ.σ) # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-            shp = abs2(pᵢ.sharpness)
-            skw = abs2(pᵢ.skew)
+            shp = pᵢ.sharpness
+            skw = pᵢ.skew
             ll += pᵢ.A + shp*skw*xs*v - shp/skw*xs*(1-v)
         end
         return ll
