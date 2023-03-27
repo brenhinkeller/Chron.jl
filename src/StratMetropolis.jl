@@ -216,7 +216,7 @@
         model_ages = a .+ b .* collect(model_heights)
 
         # Run the Markov chain
-        ages = BilinearExponential.(eachrow(p)...,)
+        ages = BilinearExponential.(eachcol(p))
         agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, aveuncert, burnin, nsteps, sieve, Chronometer, systematic)
 
         # Crop the result
@@ -280,7 +280,7 @@
         model_ages = a .+ b .* collect(model_heights)
 
         # Run the Markov chain
-        ages = BilinearExponential.(eachrow(p)...,)
+        ages = BilinearExponential.(eachcol(p))
         agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, aveuncert, burnin, nsteps, sieve)
 
         # Crop the result

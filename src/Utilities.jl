@@ -7,6 +7,10 @@
         sharpness::T
         skew::T
     end
+    function BilinearExponential(p::AbstractVector)
+        @assert length(p) == 5
+        BilinearExponential(p...)
+    end
 
     """
     ```Julia
