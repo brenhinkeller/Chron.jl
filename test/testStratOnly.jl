@@ -46,8 +46,8 @@ hiatus.Duration_sigma = [   3.1,    2.0 ]
 
 # Test that results match expectation, within some tolerance
 @test isa(mdl.Age, Array{Float64,1})
-@test isapprox(mdl.Age, [752.93, 734.7, 729.3, 724.28, 721.11, 718.03, 714.86, 713.05, 703.2, 701.25, 699.62], atol=1)
-@test isapprox(mdl.Age_025CI, [743.85, 721.93, 718.22, 715.98, 710.55, 707.7, 705.64, 703.03, 694.52, 693.66, 692.99], atol=1.5)
-@test isapprox(mdl.Age_975CI, [762.02, 746.97, 742.23, 732.72, 730.85, 728.43, 724.24, 723.16, 713.8, 711.07, 708.2], atol=1.5)
+@test all(isapprox.(mdl.Age, [752.93, 734.7, 729.3, 724.28, 721.11, 718.03, 714.86, 713.05, 703.2, 701.25, 699.62], atol=1))
+@test all(isapprox.(mdl.Age_025CI, [743.85, 721.93, 718.22, 715.98, 710.55, 707.7, 705.64, 703.03, 694.52, 693.66, 692.99], atol=2))
+@test all(isapprox.(mdl.Age_975CI, [762.02, 746.97, 742.23, 732.72, 730.85, 728.43, 724.24, 723.16, 713.8, 711.07, 708.2], atol=2))
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])

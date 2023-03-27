@@ -41,13 +41,13 @@
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
         Chronometer = smpl.Chronometer
         (bottom, top) = extrema(Height)
-        (youngest, oldest) = extrema(Age)
-        dt_dH = (oldest-youngest)/(top-bottom)
         model_heights = bottom:resolution:top
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
+            (youngest, oldest) = extrema(Age)
+            dt_dH = (oldest-youngest)/(top-bottom)
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
             Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
@@ -62,8 +62,9 @@
         # Start with a linear fit as an initial proposal
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         model_ages = a .+ b .* collect(model_heights)
-        ages = Normal.(Age, Age_sigma)
 
+        # Run the Markov chain
+        ages = Normal.(Age, Age_sigma)
         agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve, Chronometer, systematic)
 
         # Crop the result
@@ -81,9 +82,6 @@
 
         return mdl, agedist, lldist
     end
-
-## --- Stratigraphic MCMC model with hiata # # # # # # # # # # # # # # # # # # #
-
     function StratMetropolis(smpl::ChronAgeData, hiatus::HiatusData, config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model, with hiata
         print("Generating stratigraphic age-depth model...\n")
@@ -101,15 +99,14 @@
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
-        (youngest, oldest) = extrema(Age)
-        aveuncert = nanmean(Age_sigma)
         (bottom, top) = extrema(Height)
-        dt_dH = (oldest-youngest)/(top-bottom)
         model_heights = bottom:resolution:top
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
+            (youngest, oldest) = extrema(Age)
+            dt_dH = (oldest-youngest)/(top-bottom)
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
             Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
@@ -125,257 +122,9 @@
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         model_ages = a .+ b .* collect(model_heights)
 
-
-        # Calculate log likelihood of initial proposal
-        # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-        # proposals older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-        sample_height = copy(Height)
-        closest = findclosest(sample_height, model_heights)
-        closest_model_ages = model_ages[closest]
-        @inbounds for i ∈ eachindex(Age)
-            if Age_Sidedness[i] == sign(closest_model_ages[i] - Age[i])
-                closest_model_ages[i] = Age[i]
-            end
-        end
-        ll = normpdf_ll(Age, Age_sigma, closest_model_ages)
-        ll += normpdf_ll(Height, Height_sigma, sample_height)
-
-        # Ensure there is only one effective hiatus at most for each height node
-        closest_hiatus = findclosestabove((hiatus.Height::Vector{Float64}),model_heights)
-        closest_hiatus_unique = unique(closest_hiatus)
-        Hiatus_height = Array{Float64}(undef,size(closest_hiatus_unique))
-        Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
-        Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
-        for i ∈ eachindex(closest_hiatus_unique)
-            t = closest_hiatus.==closest_hiatus_unique[i]
-            Hiatus_height[i] = mean((hiatus.Height::Vector{Float64})[t])
-            Hiatus_duration[i] = sum((hiatus.Duration::Vector{Float64})[t])
-            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Vector{Float64})[t].^2))
-        end
-
-        # Add log likelihood for hiatus duration
-        duration = @. min(model_ages[closest_hiatus_unique - 1] - model_ages[closest_hiatus_unique], Hiatus_duration)
-        ll += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, duration)
-
-        # Preallocate variables for MCMC proposals
-        llₚ=ll
-        chosen_point=0
-        model_agesₚ = copy(model_ages)
-        closestₚ = copy(closest)
-        durationₚ = copy(duration)
-        sample_heightₚ = copy(sample_height)
-        closest_model_agesₚ = copy(closest_model_ages)
-
-        # Run burnin
-        # acceptancedist = fill(false,burnin)
-        print("Burn-in: ", burnin, " steps\n")
-        pgrs = Progress(burnin, desc="Burn-in...")
-        pgrs_interval = ceil(Int,sqrt(burnin))
-        for n=1:burnin
-            # Prepare proposal
-            copyto!(model_agesₚ, model_ages)
-            copyto!(closestₚ, closest)
-            copyto!(sample_heightₚ, sample_height)
-
-            if rand() < 0.1
-                # Adjust heights
-                @inbounds for i ∈ eachindex(sample_heightₚ)
-                    sample_heightₚ[i] += randn() * Height_sigma[i]
-                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
-                    if closestₚ[i] < 1 # Check we're still within bounds
-                        closestₚ[i] = 1
-                    elseif closestₚ[i] > npoints
-                        closestₚ[i] = npoints
-                    end
-                end
-            else
-                # Adjust one point at a time then resolve conflicts
-                r = randn() * aveuncert # Generate a random adjustment
-                chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_agesₚ[chosen_point] += r
-                #Resolve conflicts
-                if r > 0 # If proposing increased age
-                    @inbounds for i=1:chosen_point # younger points below
-                        if model_agesₚ[i] < model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                else # if proposing decreased age
-                    @inbounds for i=chosen_point:npoints # older points above
-                        if model_agesₚ[i] > model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                end
-
-                # If chosen_point is a hiatus point, let there be a 20 percent chance of
-                # adjusting the point below the hiatus as well
-                if rand() < 0.2
-                    # if Hiatus_height_uncert>0
-                    #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
-                    # end
-                    if any(closest_hiatus_unique.==chosen_point)
-                        chosen_point -= 1
-                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
-                        #Resolve conflicts
-                        if r > 0 # If proposing increased age
-                            @inbounds for i=1:chosen_point # younger points below
-                                if model_agesₚ[i] < model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
-                        else # if proposing decreased age
-                            @inbounds for i=chosen_point:npoints # older points above
-                                if model_agesₚ[i] > model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-
-
-            # Calculate log likelihood of proposal
-            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i ∈ eachindex(Age)
-                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
-                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
-                    closest_model_agesₚ[i] = Age[i]
-                end
-            end
-            llₚ = normpdf_ll(Age, Age_sigma, closest_model_agesₚ)
-            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
-
-            # Add log likelihood for hiatus duration
-            @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
-            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
-
-            # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (llₚ - ll)
-                ll = llₚ
-                copyto!(model_ages, model_agesₚ)
-                copyto!(closest, closestₚ)
-                copyto!(duration, durationₚ)
-                copyto!(sample_height, sample_heightₚ)
-                # acceptancedist[i] = true
-            end
-
-            # Update progress meter every `pgrs_interval` steps
-            mod(n,pgrs_interval)==0 && update!(pgrs, n)
-        end
-        update!(pgrs, burnin) # Finalize
-
-        # Run Markov Chain Monte Carlo
-        print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
-        agedist = Array{Float64}(undef,npoints,nsteps)
-        lldist = Array{Float64}(undef,nsteps)
-        hiatusdist = Array{Float64}(undef,length(duration),nsteps)
-
-        # Run the model
-        pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
-        for n=1:(nsteps*sieve)
-            # Prepare proposal
-            copyto!(model_agesₚ, model_ages)
-            copyto!(closestₚ, closest)
-            copyto!(sample_heightₚ, sample_height)
-
-            if rand() < 0.1
-                # Adjust heights
-                @inbounds for i ∈ eachindex(sample_heightₚ)
-                    sample_heightₚ[i] += randn() * Height_sigma[i]
-                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
-                    if closestₚ[i] < 1 # Check we're still within bounds
-                        closestₚ[i] = 1
-                    elseif closestₚ[i] > npoints
-                        closestₚ[i] = npoints
-                    end
-                end
-            else
-                # Adjust one point at a time then resolve conflicts
-                r = randn() * aveuncert # Generate a random adjustment
-                chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_agesₚ[chosen_point] += r
-                #Resolve conflicts
-                if r > 0 # If proposing increased age
-                    @inbounds for i=1:chosen_point # younger points below
-                        if model_agesₚ[i] < model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                else # if proposing decreased age
-                    @inbounds for i=chosen_point:npoints # older points above
-                        if model_agesₚ[i] > model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                end
-
-                # If chosen_point is a hiatus point, let there be a 20 percent chance of
-                # adjusting the point below the hiatus as well
-                if rand() < 0.2
-                    # if Hiatus_height_uncert>0
-                    #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
-                    # end
-                    if any(closest_hiatus_unique.==chosen_point)
-                        chosen_point -= 1
-                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
-                        #Resolve conflicts
-                        if r > 0 # If proposing increased age
-                            @inbounds for i=1:chosen_point # younger points below
-                                if model_agesₚ[i] < model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
-                        else # if proposing decreased age
-                            @inbounds for i=chosen_point:npoints # older points above
-                                if model_agesₚ[i] > model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-
-            # Calculate log likelihood of proposal
-            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i ∈ eachindex(Age)
-                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
-                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
-                    closest_model_agesₚ[i] = Age[i]
-                end
-            end
-            llₚ = normpdf_ll(Age, Age_sigma, closest_model_agesₚ)
-            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
-
-            # Add log likelihood for hiatus duration
-            @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
-            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
-
-            # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (llₚ - ll)
-                ll = llₚ
-                copyto!(model_ages, model_agesₚ)
-                copyto!(closest, closestₚ)
-                copyto!(duration, durationₚ)
-                copyto!(sample_height, sample_heightₚ)
-            end
-
-            # Record sieved results
-            if mod(n,sieve) == 0
-                lldist[n÷sieve] = ll
-                agedist[:,n÷sieve] .= model_ages
-                hiatusdist[:,n÷sieve] .= duration
-            end
-
-            # Update progress meter every `pgrs_interval` steps
-            mod(n,pgrs_interval)==0 && update!(pgrs, n)
-        end
-        update!(pgrs,nsteps*sieve)
+        # Run the Markov chain
+        ages = Normal.(Age, Age_sigma)
+        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -435,15 +184,15 @@
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
         Chronometer = smpl.Chronometer
         p = copy(smpl.Params)::Matrix{Float64}
-        (youngest, oldest) = extrema(Age)
         (bottom, top) = extrema(Height)
-        dt_dH = (oldest-youngest)/(top-bottom)
         model_heights = bottom:resolution:top
 
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
+            (youngest, oldest) = extrema(Age)
+            dt_dH = (oldest-youngest)/(top-bottom)
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
             Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
@@ -463,8 +212,8 @@
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         model_ages = a .+ b .* collect(model_heights)
 
+        # Run the Markov chain
         ages = BilinearExponential.(eachrow(p)...,)
-
         agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve, Chronometer, systematic)
 
         # Crop the result
@@ -482,9 +231,6 @@
 
         return mdl, agedist, lldist
     end
-
-## --- Stratigraphic MCMC model with hiata, with distribution LL # # # # # # # #
-
     function StratMetropolisDist(smpl::ChronAgeData, hiatus::HiatusData, config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model, with hiata
         print("Generating stratigraphic age-depth model...\n")
@@ -504,14 +250,13 @@
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
         p = copy(smpl.Params)::Matrix{Float64}
         (bottom, top) = extrema(Height)
-        (youngest, oldest) = extrema(Age)
-        dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = nanmean(Age_sigma)
         model_heights = bottom:resolution:top
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
+            (youngest, oldest) = extrema(Age)
+            dt_dH = (oldest-youngest)/(top-bottom)
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
             Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
@@ -530,258 +275,9 @@
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         model_ages = a .+ b .* collect(model_heights)
 
-
-        # Calculate log likelihood of initial proposal
-        # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-        # proposals older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-        sample_height = copy(Height)
-        closest = findclosest(sample_height, model_heights)
-        closest_model_ages = model_ages[closest]
-        @inbounds for i ∈ eachindex(Age)
-            if Age_Sidedness[i] == sign(closest_model_ages[i] - Age[i])
-                closest_model_ages[i] = Age[i]
-            end
-        end
-        ll = bilinear_exponential_ll(closest_model_ages ,p)
-        ll += normpdf_ll(Height, Height_sigma, sample_height)
-
-        # Ensure there is only one effective hiatus at most for each height node
-        closest_hiatus = findclosestabove((hiatus.Height::Vector{Float64}),model_heights)
-        closest_hiatus_unique = unique(closest_hiatus)
-        Hiatus_height = Array{Float64}(undef,size(closest_hiatus_unique))
-        Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
-        Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
-        for i ∈ eachindex(closest_hiatus_unique)
-            t = closest_hiatus.==closest_hiatus_unique[i]
-            Hiatus_height[i] = mean((hiatus.Height::Vector{Float64})[t])
-            Hiatus_duration[i] = sum((hiatus.Duration::Vector{Float64})[t])
-            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Vector{Float64})[t].^2))
-        end
-
-        # Add log likelihood for hiatus duration
-        duration = @. min(model_ages[closest_hiatus_unique - 1] - model_ages[closest_hiatus_unique], Hiatus_duration)
-        ll += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, duration)
-
-        # Preallocate variables for MCMC proposals
-        llₚ = ll
-        chosen_point = 0
-        model_agesₚ = copy(model_ages)
-        closestₚ = copy(closest)
-        durationₚ = copy(duration)
-        sample_heightₚ = copy(sample_height)
-        closest_model_agesₚ = copy(closest_model_ages)
-
-        # Run burnin
-        # acceptancedist = fill(false,burnin)
-        print("Burn-in: ", burnin, " steps\n")
-        pgrs = Progress(burnin, desc="Burn-in...")
-        pgrs_interval = ceil(Int,sqrt(burnin))
-        for n=1:burnin
-            # Prepare proposal
-            copyto!(model_agesₚ, model_ages)
-            copyto!(closestₚ, closest)
-            copyto!(sample_heightₚ, sample_height)
-
-            if rand() < 0.1
-                # Adjust heights
-                @inbounds for i ∈ eachindex(sample_heightₚ)
-                    sample_heightₚ[i] += randn() * Height_sigma[i]
-                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
-                    if closestₚ[i] < 1 # Check we're still within bounds
-                        closestₚ[i] = 1
-                    elseif closestₚ[i] > npoints
-                        closestₚ[i] = npoints
-                    end
-                end
-            else
-                # Adjust one point at a time then resolve conflicts
-                r = randn() * aveuncert # Generate a random adjustment
-                chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_agesₚ[chosen_point] += r
-                #Resolve conflicts
-                if r > 0 # If proposing increased age
-                    @inbounds for i=1:chosen_point
-                        # younger points below
-                        if model_agesₚ[i] < model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                else # if proposing decreased age
-                    @inbounds for i=chosen_point:npoints
-                        # older points above
-                        if model_agesₚ[i] > model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                end
-
-                # If chosen_point is a hiatus point, let there be a 20 percent chance of
-                # adjusting the point below the hiatus as well
-                if rand() < 0.2
-                    # if Hiatus_height_uncert>0
-                    #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
-                    # end
-                    if any(closest_hiatus_unique.==chosen_point)
-                        chosen_point -= 1
-                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
-                        #Resolve conflicts
-                        if r > 0 # If proposing increased age
-                            @inbounds for i=1:chosen_point # younger points below
-                                if model_agesₚ[i] < model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
-                        else # if proposing decreased age
-                            @inbounds for i=chosen_point:npoints # older points above
-                                if model_agesₚ[i] > model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-
-
-            # Calculate log likelihood of proposal
-            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i ∈ eachindex(Age)
-                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
-                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
-                    closest_model_agesₚ[i] = Age[i]
-                end
-            end
-            llₚ = bilinear_exponential_ll(closest_model_agesₚ, p)
-            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
-
-            # Add log likelihood for hiatus duration
-            @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
-            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
-
-            # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (llₚ - ll)
-                ll = llₚ
-                copyto!(model_ages, model_agesₚ)
-                copyto!(closest, closestₚ)
-                copyto!(sample_height, sample_heightₚ)
-                # acceptancedist[i] = true
-            end
-
-            # Update progress meter every `pgrs_interval` steps
-            mod(n,pgrs_interval)==0 && update!(pgrs, n)
-        end
-        update!(pgrs, burnin) # Finalize
-
-        # Run Markov Chain Monte Carlo
-        print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
-        agedist = Array{Float64}(undef,npoints,nsteps)
-        lldist = Array{Float64}(undef,nsteps)
-        hiatusdist = Array{Float64}(undef,length(duration),nsteps)
-
-        # Run the model
-        pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
-        for n=1:(nsteps*sieve)
-            # Prepare proposal
-            copyto!(model_agesₚ, model_ages)
-            copyto!(closestₚ, closest)
-            copyto!(sample_heightₚ, sample_height)
-
-            if rand() < 0.1
-                # Adjust heights
-                @inbounds for i ∈ eachindex(sample_heightₚ)
-                    sample_heightₚ[i] += randn() * Height_sigma[i]
-                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
-                    if closestₚ[i] < 1 # Check we're still within bounds
-                        closestₚ[i] = 1
-                    elseif closestₚ[i] > npoints
-                        closestₚ[i] = npoints
-                    end
-                end
-            else
-                # Adjust one point at a time then resolve conflicts
-                r = randn() * aveuncert # Generate a random adjustment
-                chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_agesₚ[chosen_point] += r
-                #Resolve conflicts
-                if r > 0 # If proposing increased age
-                    @inbounds for i=1:chosen_point # younger points below
-                        if model_agesₚ[i] < model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                else # if proposing decreased age
-                    @inbounds for i=chosen_point:npoints # older points above
-                        if model_agesₚ[i] > model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                end
-
-                # If chosen_point is a hiatus point, let there be a 20 percent chance of
-                # adjusting the point below the hiatus as well
-                if rand() < 0.2
-                    # if Hiatus_height_uncert>0
-                    #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
-                    # end
-                    if any(closest_hiatus_unique.==chosen_point)
-                        chosen_point -= 1
-                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
-                        #Resolve conflicts
-                        if r > 0 # If proposing increased age
-                            @inbounds for i=1:chosen_point # younger points below
-                                if model_agesₚ[i] < model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
-                        else # if proposing decreased age
-                            @inbounds for i=chosen_point:npoints # older points above
-                                if model_agesₚ[i] > model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-
-            # Calculate log likelihood of proposal
-            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i ∈ eachindex(Age)
-                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
-                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
-                    closest_model_agesₚ[i] = Age[i]
-                end
-            end
-            llₚ = bilinear_exponential_ll(closest_model_agesₚ, p)
-            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
-
-            # Add log likelihood for hiatus duration
-            @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
-            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
-
-            # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (llₚ - ll)
-                ll = llₚ
-                copyto!(model_ages, model_agesₚ)
-                copyto!(closest, closestₚ)
-                copyto!(duration, durationₚ)
-                copyto!(sample_height, sample_heightₚ)
-            end
-
-            # Record sieved results
-            if mod(n,sieve) == 0
-                lldist[n÷sieve] = ll
-                agedist[:,n÷sieve] .= model_ages
-                hiatusdist[:,n÷sieve] .= duration
-            end
-
-            # Update progress meter every `pgrs_interval` steps
-            mod(n,pgrs_interval)==0 && update!(pgrs, n)
-        end
-        update!(pgrs,nsteps*sieve)
+        # Run the Markov chain
+        ages = BilinearExponential.(eachrow(p)...,)
+        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -841,13 +337,13 @@
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
         p = copy(smpl.Params)::Matrix{Float64}
         (bottom, top) = extrema(Height)
-        (youngest, oldest) = extrema(Age)
-        dt_dH = (oldest-youngest)/(top-bottom)
         model_heights = bottom:resolution:top
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
+            (youngest, oldest) = extrema(Age)
+            dt_dH = (oldest-youngest)/(top-bottom)
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
             Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
@@ -867,8 +363,8 @@
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         model_ages = a .+ b .* collect(model_heights)
 
+        # Run the Markov chain
         ages = Radiocarbon.(Age, Age_sigma, (collect(c) for c in eachcol(p)))
-
         agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve)
 
         # Crop the result
@@ -908,14 +404,13 @@
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
         p = copy(smpl.Params)::Matrix{Float64}
         (bottom, top) = extrema(Height)
-        (youngest, oldest) = extrema(Age)
-        dt_dH = (oldest-youngest)/(top-bottom)
-        aveuncert = nanmean(Age_sigma)
         model_heights = bottom:resolution:top
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
+            (youngest, oldest) = extrema(Age)
+            dt_dH = (oldest-youngest)/(top-bottom)
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
             Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
@@ -935,256 +430,9 @@
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         model_ages = a .+ b .* collect(model_heights)
 
-
-        # Calculate log likelihood of initial proposal
-        # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-        # proposals older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-        sample_height = copy(Height)
-        closest = findclosest(sample_height, model_heights)
-        closest_model_ages = model_ages[closest]
-        @inbounds for i ∈ eachindex(Age)
-            if Age_Sidedness[i] == sign(closest_model_ages[i] - Age[i])
-                closest_model_ages[i] = Age[i]
-            end
-        end
-        ll = interpolate_ll(closest_model_ages, p)
-        ll += normpdf_ll(Height, Height_sigma, sample_height)
-
-        # Ensure there is only one effective hiatus at most for each height node
-        closest_hiatus = findclosestabove((hiatus.Height::Vector{Float64}),model_heights)
-        closest_hiatus_unique = unique(closest_hiatus)
-        Hiatus_height = Array{Float64}(undef,size(closest_hiatus_unique))
-        Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
-        Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
-        for i ∈ eachindex(closest_hiatus_unique)
-            t = closest_hiatus.==closest_hiatus_unique[i]
-            Hiatus_height[i] = mean((hiatus.Height::Vector{Float64})[t])
-            Hiatus_duration[i] = sum((hiatus.Duration::Vector{Float64})[t])
-            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Vector{Float64})[t].^2))
-        end
-
-        # Add log likelihood for hiatus duration
-        duration = @. min(model_ages[closest_hiatus_unique - 1] - model_ages[closest_hiatus_unique], Hiatus_duration)
-        ll += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, duration)
-
-        # Preallocate variables for MCMC proposals
-        llₚ = ll
-        chosen_point = 0
-        model_agesₚ = copy(model_ages)
-        closestₚ = copy(closest)
-        durationₚ = copy(duration)
-        sample_heightₚ = copy(sample_height)
-        closest_model_agesₚ = copy(closest_model_ages)
-
-        # Run burnin
-        # acceptancedist = fill(false,burnin)
-        print("Burn-in: ", burnin, " steps\n")
-        pgrs = Progress(burnin, desc="Burn-in...")
-        pgrs_interval = ceil(Int,sqrt(burnin))
-        for n=1:burnin
-            # Prepare proposal
-            copyto!(model_agesₚ, model_ages)
-            copyto!(closestₚ, closest)
-            copyto!(sample_heightₚ, sample_height)
-
-            if rand() < 0.1
-                # Adjust heights
-                @inbounds for i ∈ eachindex(sample_heightₚ)
-                    sample_heightₚ[i] += randn() * Height_sigma[i]
-                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
-                    if closestₚ[i] < 1 # Check we're still within bounds
-                        closestₚ[i] = 1
-                    elseif closestₚ[i] > npoints
-                        closestₚ[i] = npoints
-                    end
-                end
-            else
-                # Adjust one point at a time then resolve conflicts
-                r = randn() * aveuncert # Generate a random adjustment
-                chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_agesₚ[chosen_point] += r
-                #Resolve conflicts
-                if r > 0 # If proposing increased age
-                    @inbounds for i=1:chosen_point # younger points below
-                        if model_agesₚ[i] < model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                else # if proposing decreased age
-                    @inbounds for i=chosen_point:npoints # older points above
-                        if model_agesₚ[i] > model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                end
-
-                # If chosen_point is a hiatus point, let there be a 20 percent chance of
-                # adjusting the point below the hiatus as well
-                if rand() < 0.2
-                    # if Hiatus_height_uncert>0
-                    #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
-                    # end
-                    if any(closest_hiatus_unique.==chosen_point)
-                        chosen_point -= 1
-                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
-                        #Resolve conflicts
-                        if r > 0 # If proposing increased age
-                            @inbounds for i=1:chosen_point # younger points below
-                                if model_agesₚ[i] < model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
-                        else # if proposing decreased age
-                            @inbounds for i=chosen_point:npoints # older points above
-                                if model_agesₚ[i] > model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-
-
-            # Calculate log likelihood of proposal
-            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i ∈ eachindex(Age)
-                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
-                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
-                    closest_model_agesₚ[i] = Age[i]
-                end
-            end
-            llₚ = interpolate_ll(closest_model_agesₚ, p)
-            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
-
-            # Add log likelihood for hiatus duration
-            @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
-            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
-
-            # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (llₚ - ll)
-                ll = llₚ
-                copyto!(model_ages, model_agesₚ)
-                copyto!(closest, closestₚ)
-                copyto!(sample_height, sample_heightₚ)
-                # acceptancedist[i] = true
-            end
-
-            # Update progress meter every `pgrs_interval` steps
-            mod(n,pgrs_interval)==0 && update!(pgrs, n)
-        end
-        update!(pgrs, burnin) # Finalize
-
-        # Run Markov Chain Monte Carlo
-        print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
-        agedist = Array{Float64}(undef,npoints,nsteps)
-        lldist = Array{Float64}(undef,nsteps)
-        hiatusdist = Array{Float64}(undef,length(duration),nsteps)
-
-        # Run the model
-        pgrs = Progress(nsteps*sieve, desc="Collecting...")
-        pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
-        for n=1:(nsteps*sieve)
-            # Prepare proposal
-            copyto!(model_agesₚ, model_ages)
-            copyto!(closestₚ, closest)
-            copyto!(sample_heightₚ, sample_height)
-
-            if rand() < 0.1
-                # Adjust heights
-                @inbounds for i ∈ eachindex(sample_heightₚ)
-                    sample_heightₚ[i] += randn() * Height_sigma[i]
-                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
-                    if closestₚ[i] < 1 # Check we're still within bounds
-                        closestₚ[i] = 1
-                    elseif closestₚ[i] > npoints
-                        closestₚ[i] = npoints
-                    end
-                end
-            else
-                # Adjust one point at a time then resolve conflicts
-                r = randn() * aveuncert # Generate a random adjustment
-                chosen_point = ceil(Int, rand() * npoints) # Pick a point
-                model_agesₚ[chosen_point] += r
-                #Resolve conflicts
-                if r > 0 # If proposing increased age
-                    @inbounds for i=1:chosen_point # younger points below
-                        if model_agesₚ[i] < model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                else # if proposing decreased age
-                    @inbounds for i=chosen_point:npoints # older points above
-                        if model_agesₚ[i] > model_agesₚ[chosen_point]
-                            model_agesₚ[i] = model_agesₚ[chosen_point]
-                        end
-                    end
-                end
-
-                # If chosen_point is a hiatus point, let there be a 20 percent chance of
-                # adjusting the point below the hiatus as well
-                if rand() < 0.2
-                    # if Hiatus_height_uncert>0
-                    #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
-                    # end
-                    if any(closest_hiatus_unique.==chosen_point)
-                        chosen_point -= 1
-                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
-                        #Resolve conflicts
-                        if r > 0 # If proposing increased age
-                            @inbounds for i=1:chosen_point # younger points below
-                                if model_agesₚ[i] < model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
-                        else # if proposing decreased age
-                            @inbounds for i=chosen_point:npoints # older points above
-                                if model_agesₚ[i] > model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-
-            # Calculate log likelihood of proposal
-            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i ∈ eachindex(Age)
-                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
-                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - Age[i])
-                    closest_model_agesₚ[i] = Age[i]
-                end
-            end
-            llₚ = interpolate_ll(closest_model_agesₚ, p)
-            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
-
-            # Add log likelihood for hiatus duration
-            @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
-            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
-
-            # Accept or reject proposal based on likelihood
-            if log(rand(Float64)) < (llₚ - ll)
-                ll = llₚ
-                copyto!(model_ages, model_agesₚ)
-                copyto!(closest, closestₚ)
-                copyto!(duration, durationₚ)
-                copyto!(sample_height, sample_heightₚ)
-            end
-
-            # Record sieved results
-            if mod(n,sieve) == 0
-                lldist[n÷sieve] = ll
-                agedist[:,n÷sieve] .= model_ages
-                hiatusdist[:,n÷sieve] .= duration
-            end
-
-            # Update progress meter every `pgrs_interval` steps
-            mod(n,pgrs_interval)==0 && update!(pgrs, n)
-        end
-        update!(pgrs,nsteps*sieve)
+        # Run the Markov chain
+        ages = Radiocarbon.(Age, Age_sigma, (collect(c) for c in eachcol(p)))
+        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -1415,4 +663,267 @@
         update!(pgrs,nsteps*sieve)
 
         return agedist, lldist
+    end
+
+    function stratmetropolis(hiatus::HiatusData, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin::Integer, nsteps::Integer, sieve::Integer, Chronometer=nothing, systematic=nothing)
+        aveuncert = sum(x->x.σ, ages)/length(ages)
+        resolution = step(model_heights)
+        npoints = length(model_heights)
+
+        # Calculate log likelihood of initial proposal
+        # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
+        # proposals older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
+        sample_height = copy(Height)
+        closest = findclosest(sample_height, model_heights)
+        closest_model_ages = model_ages[closest]
+        @inbounds for i ∈ eachindex(ages)
+            if Age_Sidedness[i] == sign(closest_model_ages[i] - ages[i].μ)
+                closest_model_ages[i] = ages[i].μ
+            end
+        end
+        ll = strat_ll(closest_model_ages, ages)
+        ll += normpdf_ll(Height, Height_sigma, sample_height)
+
+        # Ensure there is only one effective hiatus at most for each height node
+        closest_hiatus = findclosestabove((hiatus.Height::Vector{Float64}),model_heights)
+        closest_hiatus_unique = unique(closest_hiatus)
+        Hiatus_height = Array{Float64}(undef,size(closest_hiatus_unique))
+        Hiatus_duration = Array{Float64}(undef,size(closest_hiatus_unique))
+        Hiatus_duration_sigma = Array{Float64}(undef,size(closest_hiatus_unique))
+        for i ∈ eachindex(closest_hiatus_unique)
+            t = closest_hiatus.==closest_hiatus_unique[i]
+            Hiatus_height[i] = mean((hiatus.Height::Vector{Float64})[t])
+            Hiatus_duration[i] = sum((hiatus.Duration::Vector{Float64})[t])
+            Hiatus_duration_sigma[i] = sqrt(sum((hiatus.Duration_sigma::Vector{Float64})[t].^2))
+        end
+
+        # Add log likelihood for hiatus duration
+        duration = @. min(model_ages[closest_hiatus_unique - 1] - model_ages[closest_hiatus_unique], Hiatus_duration)
+        ll += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, duration)
+
+        # Preallocate variables for MCMC proposals
+        llₚ=ll
+        chosen_point=0
+        agesₚ = copy(ages)
+        model_agesₚ = copy(model_ages)
+        closestₚ = copy(closest)
+        durationₚ = copy(duration)
+        sample_heightₚ = copy(sample_height)
+        closest_model_agesₚ = copy(closest_model_ages)
+
+        # Run burnin
+        # acceptancedist = fill(false,burnin)
+        print("Burn-in: ", burnin, " steps\n")
+        pgrs = Progress(burnin, desc="Burn-in...")
+        pgrs_interval = ceil(Int,sqrt(burnin))
+        for n=1:burnin
+            # Prepare proposal
+            copyto!(model_agesₚ, model_ages)
+            copyto!(closestₚ, closest)
+            copyto!(sample_heightₚ, sample_height)
+            isnothing(systematic) || copyto!(agesₚ, ages)
+
+            if rand() < 0.1
+                # Adjust heights
+                @inbounds for i ∈ eachindex(sample_heightₚ)
+                    sample_heightₚ[i] += randn() * Height_sigma[i]
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
+                    if closestₚ[i] < 1 # Check we're still within bounds
+                        closestₚ[i] = 1
+                    elseif closestₚ[i] > npoints
+                        closestₚ[i] = npoints
+                    end
+                end
+            else
+                # Adjust one point at a time then resolve conflicts
+                r = randn() * aveuncert # Generate a random adjustment
+                chosen_point = ceil(Int, rand() * npoints) # Pick a point
+                model_agesₚ[chosen_point] += r
+                #Resolve conflicts
+                if r > 0 # If proposing increased age
+                    @inbounds for i=1:chosen_point # younger points below
+                        if model_agesₚ[i] < model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
+                        end
+                    end
+                else # if proposing decreased age
+                    @inbounds for i=chosen_point:npoints # older points above
+                        if model_agesₚ[i] > model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
+                        end
+                    end
+                end
+
+                # If chosen_point is a hiatus point, let there be a 20 percent chance of
+                # adjusting the point below the hiatus as well
+                if rand() < 0.2
+                    # if Hiatus_height_uncert>0
+                    #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
+                    # end
+                    if any(closest_hiatus_unique.==chosen_point)
+                        chosen_point -= 1
+                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
+                        #Resolve conflicts
+                        if r > 0 # If proposing increased age
+                            @inbounds for i=1:chosen_point # younger points below
+                                if model_agesₚ[i] < model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
+                                end
+                            end
+                        else # if proposing decreased age
+                            @inbounds for i=chosen_point:npoints # older points above
+                                if model_agesₚ[i] > model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+
+
+            # Calculate log likelihood of proposal
+            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
+            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
+            @inbounds for i ∈ eachindex(ages)
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - ages[i].μ)
+                    closest_model_agesₚ[i] = ages[i].μ
+                end
+            end
+            adjust!(agesₚ, Chronometer, systematic)
+            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
+            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
+
+            # Add log likelihood for hiatus duration
+            @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
+            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+
+            # Accept or reject proposal based on likelihood
+            if log(rand(Float64)) < (llₚ - ll)
+                ll = llₚ
+                copyto!(model_ages, model_agesₚ)
+                copyto!(closest, closestₚ)
+                copyto!(duration, durationₚ)
+                copyto!(sample_height, sample_heightₚ)
+                # acceptancedist[i] = true
+            end
+
+            # Update progress meter every `pgrs_interval` steps
+            mod(n,pgrs_interval)==0 && update!(pgrs, n)
+        end
+        update!(pgrs, burnin) # Finalize
+
+        # Run Markov Chain Monte Carlo
+        print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
+        agedist = Array{Float64}(undef,npoints,nsteps)
+        lldist = Array{Float64}(undef,nsteps)
+        hiatusdist = Array{Float64}(undef,length(duration),nsteps)
+
+        # Run the model
+        pgrs = Progress(nsteps*sieve, desc="Collecting...")
+        pgrs_interval = ceil(Int,sqrt(nsteps*sieve))
+        for n=1:(nsteps*sieve)
+            # Prepare proposal
+            copyto!(model_agesₚ, model_ages)
+            copyto!(closestₚ, closest)
+            copyto!(sample_heightₚ, sample_height)
+            isnothing(systematic) || copyto!(agesₚ, ages)
+
+            if rand() < 0.1
+                # Adjust heights
+                @inbounds for i ∈ eachindex(sample_heightₚ)
+                    sample_heightₚ[i] += randn() * Height_sigma[i]
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
+                    if closestₚ[i] < 1 # Check we're still within bounds
+                        closestₚ[i] = 1
+                    elseif closestₚ[i] > npoints
+                        closestₚ[i] = npoints
+                    end
+                end
+            else
+                # Adjust one point at a time then resolve conflicts
+                r = randn() * aveuncert # Generate a random adjustment
+                chosen_point = ceil(Int, rand() * npoints) # Pick a point
+                model_agesₚ[chosen_point] += r
+                #Resolve conflicts
+                if r > 0 # If proposing increased age
+                    @inbounds for i=1:chosen_point # younger points below
+                        if model_agesₚ[i] < model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
+                        end
+                    end
+                else # if proposing decreased age
+                    @inbounds for i=chosen_point:npoints # older points above
+                        if model_agesₚ[i] > model_agesₚ[chosen_point]
+                            model_agesₚ[i] = model_agesₚ[chosen_point]
+                        end
+                    end
+                end
+
+                # If chosen_point is a hiatus point, let there be a 20 percent chance of
+                # adjusting the point below the hiatus as well
+                if rand() < 0.2
+                    # if Hiatus_height_uncert>0
+                    #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
+                    # end
+                    if any(closest_hiatus_unique.==chosen_point)
+                        chosen_point -= 1
+                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
+                        #Resolve conflicts
+                        if r > 0 # If proposing increased age
+                            @inbounds for i=1:chosen_point # younger points below
+                                if model_agesₚ[i] < model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
+                                end
+                            end
+                        else # if proposing decreased age
+                            @inbounds for i=chosen_point:npoints # older points above
+                                if model_agesₚ[i] > model_agesₚ[chosen_point]
+                                    model_agesₚ[i] = model_agesₚ[chosen_point]
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+
+            # Calculate log likelihood of proposal
+            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
+            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
+            @inbounds for i ∈ eachindex(ages)
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - ages[i].μ)
+                    closest_model_agesₚ[i] = ages[i].μ
+                end
+            end
+            adjust!(agesₚ, Chronometer, systematic)
+            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
+            llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
+
+            # Add log likelihood for hiatus duration
+            @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
+            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+
+            # Accept or reject proposal based on likelihood
+            if log(rand(Float64)) < (llₚ - ll)
+                ll = llₚ
+                copyto!(model_ages, model_agesₚ)
+                copyto!(closest, closestₚ)
+                copyto!(duration, durationₚ)
+                copyto!(sample_height, sample_heightₚ)
+            end
+
+            # Record sieved results
+            if mod(n,sieve) == 0
+                lldist[n÷sieve] = ll
+                agedist[:,n÷sieve] .= model_ages
+                hiatusdist[:,n÷sieve] .= duration
+            end
+
+            # Update progress meter every `pgrs_interval` steps
+            mod(n,pgrs_interval)==0 && update!(pgrs, n)
+        end
+        update!(pgrs,nsteps*sieve)
+        return agedist, lldist, hiatusdist
     end
