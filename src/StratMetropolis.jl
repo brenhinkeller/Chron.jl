@@ -36,6 +36,7 @@
         # Stratigraphic age constraints
         Age = copy(smpl.Age)::Vector{Float64}
         Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
+        aveuncert = nanmean(Age_sigma)
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
@@ -50,14 +51,14 @@
             dt_dH = (oldest-youngest)/(top-bottom)
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
-            Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
+            Age_sigma = [aveuncert/10; Age_sigma; aveuncert/10]
             Height = [bottom-offset; Height; top+offset]
             Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
             Chronometer = (:None, Chronometer..., :None)
         end
-        active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
+        active_height_t = bottom .<= model_heights .<= top
 
         # Start with a linear fit as an initial proposal
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
@@ -65,7 +66,7 @@
 
         # Run the Markov chain
         ages = Normal.(Age, Age_sigma)
-        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve, Chronometer, systematic)
+        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, aveuncert, burnin, nsteps, sieve, Chronometer, systematic)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -96,6 +97,7 @@
         # Stratigraphic age constraints. Type assertions for stability
         Age = copy(smpl.Age)::Vector{Float64}
         Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
+        aveuncert = nanmean(Age_sigma)
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
@@ -109,13 +111,13 @@
             dt_dH = (oldest-youngest)/(top-bottom)
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
-            Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
+            Age_sigma = [aveuncert/10; Age_sigma; aveuncert/10]
             Height = [bottom-offset; Height; top+offset]
             Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
         end
-        active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
+        active_height_t = bottom .<= model_heights .<= top
         npoints = length(model_heights)
 
         # Start with a linear fit as an initial proposal
@@ -124,7 +126,7 @@
 
         # Run the Markov chain
         ages = Normal.(Age, Age_sigma)
-        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve)
+        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, aveuncert, burnin, nsteps, sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -179,6 +181,7 @@
         # Stratigraphic age constraints
         Age = copy(smpl.Age)::Vector{Float64}
         Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
+        aveuncert = nanmean(Age_sigma)
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
@@ -195,17 +198,17 @@
             dt_dH = (oldest-youngest)/(top-bottom)
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
-            Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
+            Age_sigma = [aveuncert/10; Age_sigma; aveuncert/10]
             Height = [bottom-offset; Height; top+offset]
             Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
-            pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = nanmean(Age_sigma)/10
-            pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = nanmean(Age_sigma)/10
+            pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = aveuncert/10
+            pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = aveuncert/10
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
             Chronometer = (:None, Chronometer..., :None)
         end
-        active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
+        active_height_t = bottom .<= model_heights .<= top
         npoints = length(model_heights)
 
         # Start with a linear fit as an initial proposal
@@ -214,7 +217,7 @@
 
         # Run the Markov chain
         ages = BilinearExponential.(eachrow(p)...,)
-        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve, Chronometer, systematic)
+        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, aveuncert, burnin, nsteps, sieve, Chronometer, systematic)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -245,6 +248,7 @@
         # Stratigraphic age constraints
         Age = copy(smpl.Age)::Vector{Float64}
         Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
+        aveuncert = nanmean(Age_sigma)
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
@@ -259,16 +263,16 @@
             dt_dH = (oldest-youngest)/(top-bottom)
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
-            Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
+            Age_sigma = [aveuncert/10; Age_sigma; aveuncert/10]
             Height = [bottom-offset; Height; top+offset]
             Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
-            pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = nanmean(Age_sigma)/10
-            pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = nanmean(Age_sigma)/10
+            pl = ones(5); pl[2] = oldest + offset*dt_dH; pl[3] = aveuncert/10
+            pu = ones(5); pu[2] = youngest - offset*dt_dH; pu[3] = aveuncert/10
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
         end
-        active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
+        active_height_t = bottom .<= model_heights .<= top
         npoints = length(model_heights)
 
         # Start with a linear fit as an initial proposal
@@ -277,7 +281,7 @@
 
         # Run the Markov chain
         ages = BilinearExponential.(eachrow(p)...,)
-        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve)
+        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, aveuncert, burnin, nsteps, sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -332,6 +336,7 @@
         # Stratigraphic age constraints
         Age = copy(smpl.Age)::Vector{Float64}
         Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
+        aveuncert = nanmean(Age_sigma)
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
@@ -346,17 +351,17 @@
             dt_dH = (oldest-youngest)/(top-bottom)
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
-            Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
+            Age_sigma = [aveuncert/10; Age_sigma; aveuncert/10]
             Height = [bottom-offset; Height; top+offset]
             Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
-            boundsigma = nanmean(Age_sigma)/10
+            boundsigma = aveuncert/10
             pl = normpdf_ll.(oldest + offset*dt_dH, boundsigma, 1:size(smpl.Params,1))
             pu = normpdf_ll.(youngest - offset*dt_dH, boundsigma, 1:size(smpl.Params,1))
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
         end
-        active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
+        active_height_t = bottom .<= model_heights .<= top
         npoints = length(model_heights)
 
         # Start with a linear fit as an initial proposal
@@ -365,7 +370,7 @@
 
         # Run the Markov chain
         ages = Radiocarbon.(Age, Age_sigma, (collect(c) for c in eachcol(p)))
-        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve)
+        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, aveuncert, burnin, nsteps, sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -399,6 +404,7 @@
         # Stratigraphic age constraints
         Age = copy(smpl.Age)::Vector{Float64}
         Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
+        aveuncert = nanmean(Age_sigma)
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
@@ -413,17 +419,17 @@
             dt_dH = (oldest-youngest)/(top-bottom)
             offset = (top-bottom)*bounding
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
-            Age_sigma = [nanmean(Age_sigma)/10; Age_sigma; nanmean(Age_sigma)/10]
+            Age_sigma = [aveuncert/10; Age_sigma; aveuncert/10]
             Height = [bottom-offset; Height; top+offset]
             Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
-            boundsigma = nanmean(Age_sigma)/10
+            boundsigma = aveuncert/10
             pl = normpdf_ll.(oldest + offset*dt_dH, boundsigma, 1:size(smpl.Params,1))
             pu = normpdf_ll.(youngest - offset*dt_dH, boundsigma, 1:size(smpl.Params,1))
             p = hcat(pl,p,pu) # Add parameters for upper and lower runaway bounds
         end
-        active_height_t = (model_heights .>= bottom) .& (model_heights .<= top)
+        active_height_t = bottom .<= model_heights .<= top
         npoints = length(model_heights)
 
         # Start with a linear fit as an initial proposal
@@ -432,7 +438,7 @@
 
         # Run the Markov chain
         ages = Radiocarbon.(Age, Age_sigma, (collect(c) for c in eachcol(p)))
-        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, burnin, nsteps, sieve)
+        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, aveuncert, burnin, nsteps, sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -485,8 +491,7 @@
         return ages
     end
 
-    function stratmetropolis(Height, Height_sigma, model_heights::AbstractRange, Age_Sidedness, ages, model_ages, burnin::Integer, nsteps::Integer, sieve::Integer, Chronometer=nothing, systematic=nothing)
-        aveuncert = sum(x->x.σ, ages)/length(ages)
+    function stratmetropolis(Height, Height_sigma, model_heights::AbstractRange, Age_Sidedness, ages, model_ages, aveuncert, burnin::Integer, nsteps::Integer, sieve::Integer, Chronometer=nothing, systematic=nothing)
         resolution = step(model_heights)
         npoints = length(model_heights)
 
@@ -666,8 +671,7 @@
         return agedist, lldist
     end
 
-    function stratmetropolis(hiatus::HiatusData, Height, Height_sigma, model_heights::AbstractRange, Age_Sidedness, ages, model_ages, burnin::Integer, nsteps::Integer, sieve::Integer, Chronometer=nothing, systematic=nothing)
-        aveuncert = sum(x->x.σ, ages)/length(ages)
+    function stratmetropolis(hiatus::HiatusData, Height, Height_sigma, model_heights::AbstractRange, Age_Sidedness, ages, model_ages, aveuncert, burnin::Integer, nsteps::Integer, sieve::Integer, Chronometer=nothing, systematic=nothing)
         resolution = step(model_heights)
         npoints = length(model_heights)
 
