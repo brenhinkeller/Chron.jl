@@ -38,12 +38,12 @@
             data_raw = readclean(filepath, ',', Float64)::Matrix{Float64}
             # Sort ages in ascending order
             data = sortslices(data_raw, dims=1)
-            nAnalyses = size(data,1)
-            maxdt_sigma = maxgap*norm_width(nAnalyses)/nAnalyses
+            nanalyses = size(data,1)
+            maxdt_sigma = maxgap*norm_width(nanalyses)/nanalyses
 
             # Filter data to exclude outliers
             sigma_mutual = nanmean(data[:,2]) / smpl.inputSigmaLevel * sqrt(2)
-            for j=nAnalyses:-1:2
+            for j=nanalyses:-1:2
                 dt_sigma = abs(data[j,1]-data[j-1,1]) / sigma_mutual # Time gap divided by relative sigma
 
                 # If we exceed the maximum allowed dt/sigma, delete any points
@@ -54,7 +54,7 @@
             end
             if make_plots
                 # Rank-order plot of all individual ages for comparison
-                hdl = plot(1:nAnalyses,data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:red, markerstrokecolor=:red,label="rejected",legend=:topleft,framestyle=:box,fg_color_legend=:white)
+                hdl = plot(1:nanalyses,data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:red, markerstrokecolor=:red,label="rejected",legend=:topleft,framestyle=:box,fg_color_legend=:white)
                 plot!(hdl, 1:size(data,1),data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:blue,markerstrokecolor=:blue,label="included",xlabel="N",ylabel="Age ($(Age_Unit))")
                 savefig(hdl, joinpath(screenedpath, Name[i]*"_screening.pdf"))
             end
@@ -106,29 +106,28 @@
                 # Run MCMC to estimate saturation and eruption/deposition age distributions
                 μ̄ = view(data,:,1)
                 σ̄ = view(data, :, 2)./=smpl.inputSigmaLevel
-                tminDist = metropolis_min(nsteps, dist, μ̄, σ̄; burnin) # Since we don't end up using any of the other distributions
-                # (tminDist, tmaxDist, llDist, acceptanceDist) = metropolis_minmax(nsteps,dist,data[:,1],data[:,2]/smpl.inputSigmaLevel, burnin=burnin)
+                tmindist = metropolis_min(nsteps, dist, μ̄, σ̄; burnin)
 
                 # Fill in the strat sample object with our new results
-                tminDistₜ = copy(tminDist)
-                smpl.Age[i] = vmean(tminDist)
-                smpl.Age_sigma[i] = vstd(tminDist)
-                smpl.Age_025CI[i] = vpercentile!(tminDistₜ,2.5)
-                smpl.Age_975CI[i] = vpercentile!(tminDistₜ,97.5)
-                smpl.Age_Distribution[i] = tminDist
+                tmindistₜ = copy(tmindist)
+                smpl.Age[i] = vmean(tmindist)
+                smpl.Age_sigma[i] = vstd(tmindist)
+                smpl.Age_025CI[i] = vpercentile!(tmindistₜ,2.5)
+                smpl.Age_975CI[i] = vpercentile!(tmindistₜ,97.5)
+                smpl.Age_Distribution[i] = tmindist
 
                 # Fit custom many-parametric distribution function to histogram
-                edges = range(vminimum(tminDist),vmaximum(tminDist),length=101) # Vector of bin edges
-                bincounts = histcounts(tminDist, edges)
+                binedges = range(vminimum(tmindist),vmaximum(tmindist),length=101)
+                bincounts = histcounts(tmindist, binedges)
 
                 t = bincounts.>0 # Only look at bins with one or more results
-                N = bincounts[t] ./ length(tminDist) .* count(t) # Normalized number of MCMC steps per bin
-                bincenters = cntr(edges)[t] # Vector of bin centers
+                N = bincounts[t] ./ length(tmindist) .* count(t) # Normalized number of MCMC steps per bin
+                bincenters = cntr(binedges)[t] # Vector of bin centers
 
                 # Initial guess for parameters
                 p = ones(5)
-                p[2] = vmean(tminDist)
-                p[3] = vstd(tminDist)
+                p[2] = vmean(tmindist)
+                p[3] = vstd(tmindist)
 
                 # Fit nonlinear model
                 fobj = curve_fit(bilinear_exponential,bincenters,N,p)
@@ -137,13 +136,13 @@
 
                 if make_plots
                     # Rank-order plot of analyses and eruption/deposition age range
-                    nAnalyses = length(data[:,1])
+                    nanalyses = length(data[:,1])
                     h1 = rankorder(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age ($(Age_Unit))",label="Data (observed ages)")
-                    m = ones(nAnalyses).*smpl.Age[i]
-                    l = ones(nAnalyses).*smpl.Age_025CI[i]
-                    u = ones(nAnalyses).*smpl.Age_975CI[i]
-                    plot!(h1,1:nAnalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="Model ($(round(m[1],digits=3)) +$(round(u[1]-m[1],digits=3))/-$(round(m[1]-l[1],digits=3)) $(Age_Unit))")
-                    plot!(h1,1:nAnalyses,m,linecolor=:black,linestyle=:dot,label="",legend=:topleft,fg_color_legend=:white,framestyle=:box)
+                    m = ones(nanalyses).*smpl.Age[i]
+                    l = ones(nanalyses).*smpl.Age_025CI[i]
+                    u = ones(nanalyses).*smpl.Age_975CI[i]
+                    plot!(h1,1:nanalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="Model ($(round(m[1],digits=3)) +$(round(u[1]-m[1],digits=3))/-$(round(m[1]-l[1],digits=3)) $(Age_Unit))")
+                    plot!(h1,1:nanalyses,m,linecolor=:black,linestyle=:dot,label="",legend=:topleft,fg_color_legend=:white,framestyle=:box)
                     savefig(h1,joinpath(Path, Name[i]*"_rankorder.pdf"))
                     savefig(h1,joinpath(Path, Name[i]*"_rankorder.svg"))
 

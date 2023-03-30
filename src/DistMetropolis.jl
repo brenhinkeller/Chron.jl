@@ -30,8 +30,8 @@
                 μ, σ = view(data,:,1), view(data, :, 2)
 
                 # Maximum extent of expected analytical tail (beyond eruption/deposition)
-                maxTailLength = nanmean(σ) ./ smpl.inputSigmaLevel .* norm_quantile(1 - 1/(1+countnotnans(μ)))
-                included = (μ .- nanminimum(μ)) .>= maxTailLength
+                maxtaillength = nanmean(σ) ./ smpl.inputSigmaLevel .* norm_quantile(1 - 1/(1+countnotnans(μ)))
+                included = (μ .- nanminimum(μ)) .>= maxtaillength
                 included .|= μ .> nanmedian(μ) # Don't exclude more than half (could only happen in underdispersed datasets)
                 included .&= .!isnan.(μ) # Exclude NaNs
 
@@ -97,8 +97,8 @@
             μ, σ = data[:,i], sigma[:,i]
 
             # Maximum extent of expected analytical tail (beyond eruption/deposition/cutoff)
-            maxTailLength = nanmean(σ) .* norm_quantile(1 - 1/(1+countnotnans(μ)))
-            included = (μ .- nanminimum(μ)) .>= maxTailLength
+            maxtaillength = nanmean(σ) .* norm_quantile(1 - 1/(1+countnotnans(μ)))
+            included = (μ .- nanminimum(μ)) .>= maxtaillength
             included .|= μ .> nanmedian(μ) # Don't exclude more than half (could only happen in underdispersed datasets)
             included .&= .!isnan.(μ) # Exclude NaNs
 
