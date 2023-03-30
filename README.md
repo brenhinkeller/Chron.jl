@@ -13,7 +13,7 @@ The first (distribution) MCMC model is based on the work of [Keller, Schoene, an
 
 The second (stratigraphic) MCMC model, developed for use in [Schoene et al. (2019)](https://doi.org/10.1126/science.aau2422) and [Deino et al. (2019)](https://doi.org/10.1016/j.quascirev.2019.05.009) among others, uses the estimated (posterior) eruption/deposition age distributions along with the constraint of stratigraphic superposition to produce an age-depth model. This stratigraphic model can incorporate either standard Gaussian or asymmetric empirical distributions as age constraints, as well additional complications such as hiatuses of known minimum duration, height uncertainty, and one-sided age constraints. The stationary distribution of this second MCMC model yields an estimate of age at each model horizon throughout the section.
 
-In addition to the functions defined and exported here directly, Chron.jl also reexports (and depends upon internally) both [StatGeochemBase.jl](https://github.com/brenhinkeller/StatGeochemBase.jl) and [NaNStatistics.jl](https://github.com/brenhinkeller/NaNStatistics.jl)
+In addition to the functions defined and exported here directly, Chron.jl also reexports (and depends upon internally) [StatGeochemBase.jl](https://github.com/brenhinkeller/StatGeochemBase.jl), [NaNStatistics.jl](https://github.com/brenhinkeller/NaNStatistics.jl), and [Isoplot.jl](https://github.com/JuliaGeochronology/Isoplot.jl).
 
 For Chron.jl-style age-depth modelling combined with subsidence analysis, see [SubsidenceChron.jl](https://github.com/JuliaGeochronology/SubsidenceChron.jl)
 
