@@ -92,6 +92,7 @@
         Path = smpl.Path::String
         Age_Unit = smpl.Age_Unit::String
         DistType = smpl.Age_DistType::Vector{Float64}
+        σstr = "$(smpl.inputSigmaLevel)-sigma 𝑎𝑏𝑠𝑜𝑙𝑢𝑡𝑒"
 
         # Estimate the eruption/deposition distribution for each sample
         @info "Estimating eruption/deposition age distributions..."
@@ -104,13 +105,12 @@
                 @info "$i: $(Name[i])"
 
                 # Run MCMC to estimate eruption/deposition age distributions
-                σstr = "$(smpl.inputSigmaLevel)-sigma ABSOLUTE"
                 if size(data, 2) == 5
-                    @info "Interpreting the five columns of $(Name[i]).csv as:\n [²⁰⁷Pb/²³⁵U, $σstr, ²⁰⁶Pb/²³⁸U, $σstr, correlation coefficient]"
+                    @info "Interpreting the five columns of $(Name[i]).csv as:\n | ²⁰⁷Pb/²³⁵U | $σstr | ²⁰⁶Pb/²³⁸U | $σstr | correlation coefficient |"
                     analyses = UPbAnalysis.(eachcol(data)...,)
                     tmindist, t0dist = metropolis_min(nsteps, dist, analyses; burnin)
                 else
-                    @info "Interpreting first two columns of $(Name[i]).csv as age and $σstr"
+                    @info "Interpreting first two columns of $(Name[i]).csv as \n | Age | Age $σstr |"
                     μ = view(data, :, 1)
                     σ = view(data, :, 2)./=smpl.inputSigmaLevel
                     tmindist = metropolis_min(nsteps, dist, μ, σ; burnin)
@@ -149,14 +149,14 @@
                         h1a = plot(analyses, color=:darkblue, alpha=0.3, label="", xlabel="²⁰⁷Pb/²³⁵U", ylabel="²⁰⁶Pb/²³⁸U", framestyle=:box)
                         concordiacurve!(h1a)
                         I = rand(1:length(tmindist), 500) # Pick 500 random samples from the posterior distribution
-                        concordialine!(h1a, t0dist[I], tmindist[I], color=:darkred, alpha=0.02, label="Model: $(CI(tmindist)) $AgeUnit")
+                        concordialine!(h1a, t0dist[I], tmindist[I], color=:darkred, alpha=0.02, label="Model: $(CI(tmindist)) $Age_Unit")
                         savefig(h1a,joinpath(Path, Name[i]*"_Concordia.pdf"))
                         savefig(h1a,joinpath(Path, Name[i]*"_Concordia.svg"))
                         # Pb-loss histogram
-                        h1b = histogram(t0dist, xlabel="Age ($Age_Unit)", ylabel="Probability Density", normalize=true, label="Time of Pb-loss\n($(CI(t0dist)) $AgeUnit)", color=:darkblue, alpha=0.65, linealpha=0.1, framestyle=:box)
+                        h1b = histogram(t0dist, xlabel="Age ($Age_Unit)", ylabel="Probability Density", normalize=true, label="Time of Pb-loss\n($(CI(t0dist)) $Age_Unit)", color=:darkblue, alpha=0.65, linealpha=0.1, framestyle=:box)
                         plot!(h1b, xlims=(0,last(xlims(h1b))), ylims=(0,last(ylims(h1b))))
-                        savefig(h1a,joinpath(Path, Name[i]*"_Pbloss.pdf"))
-                        savefig(h1a,joinpath(Path, Name[i]*"_Pbloss.svg"))
+                        savefig(h1b,joinpath(Path, Name[i]*"_Pbloss.pdf"))
+                        savefig(h1b,joinpath(Path, Name[i]*"_Pbloss.svg"))
                     else
                         # Rank-order plot of analyses and eruption/deposition age range
                         h1 = rankorder(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age ($Age_Unit)",label="Data (observed ages)")
@@ -181,7 +181,7 @@
                 # Read data for each sample from file
                 filepath = joinpath(Path, Name[i]*".csv")
                 data = readclean(filepath, ',', Float64)::Matrix{Float64}
-                @info "$i: $(Name[i])"
+                @info "$i: $(Name[i]): Interpreting $(Name[i]).csv as a single Gaussian age constraint:\n | Age | Age $σstr |"
                 μ = data[1,1]
                 σ = data[1,2]/smpl.inputSigmaLevel
 
