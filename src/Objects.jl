@@ -26,8 +26,8 @@
     function ChronAgeData(nSamples::Integer)
         smpl = ChronAgeData{nSamples}(
             ntuple(i->"Sample name", nSamples),
-            fill(NaN,nSamples),  # Sample heights
-            fill(NaN,nSamples),  # Height_sigma
+            collect(1.0:nSamples),  # Sample Height
+            zeros(nSamples),     # Sample Height_sigma
             fill(NaN,nSamples),  # Sample ages
             fill(NaN,nSamples),  # Sample age uncertainty
             fill(NaN,nSamples),  # Sample age 2.5% CI

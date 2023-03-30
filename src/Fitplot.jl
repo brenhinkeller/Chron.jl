@@ -104,7 +104,7 @@
                 @info "$i: $(Name[i])"
 
                 # Run MCMC to estimate eruption/deposition age distributions
-                σstr = "$(smpl.inputSigmaLevel)-sigma absolute"
+                σstr = "$(smpl.inputSigmaLevel)-sigma ABSOLUTE"
                 if size(data, 2) == 5
                     @info "Interpreting the five columns of $(Name[i]).csv as:\n [²⁰⁷Pb/²³⁵U, $σstr, ²⁰⁶Pb/²³⁸U, $σstr, correlation coefficient]"
                     analyses = UPbAnalysis.(eachcol(data)...,)
