@@ -94,23 +94,23 @@
         DistType = smpl.Age_DistType::Vector{Float64}
 
         # Estimate the eruption/deposition distribution for each sample
-        print("Estimating eruption/deposition age distributions...\n")
+        @info "Estimating eruption/deposition age distributions..."
         for i ∈ eachindex(Name)
             include[i] || continue # Only calculate if include is true
             if DistType[i] == 0 # A distribution to fit properly
                 # Read data for each sample from file
                 filepath = joinpath(Path, Name[i]*".csv")
                 data = readclean(filepath, ',', Float64)::Matrix{Float64}
-                print(i, ": ", Name[i], "\n") # Display progress
+                @info "$i: $(Name[i])"
 
                 # Run MCMC to estimate eruption/deposition age distributions
                 σstr = "$(smpl.inputSigmaLevel)-sigma absolute"
                 if size(data, 2) == 5
-                    @info "Interpreting the five columns of $filepath as:\n [²⁰⁷Pb/²³⁵U, $σstr, ²⁰⁶Pb/²³⁸U, $σstr, correlation coefficient]"
+                    @info "Interpreting the five columns of $(Name[i]).csv as:\n [²⁰⁷Pb/²³⁵U, $σstr, ²⁰⁶Pb/²³⁸U, $σstr, correlation coefficient]"
                     analyses = UPbAnalysis.(eachcol(data)...,)
                     tmindist, t0dist = metropolis_min(nsteps, dist, analyses; burnin)
                 else
-                    @info "Interpreting first two columns of $filepath as age and age $σstr"
+                    @info "Interpreting first two columns of $(Name[i]).csv as age and $σstr"
                     μ = view(data, :, 1)
                     σ = view(data, :, 2)./=smpl.inputSigmaLevel
                     tmindist = metropolis_min(nsteps, dist, μ, σ; burnin)
@@ -181,7 +181,7 @@
                 # Read data for each sample from file
                 filepath = joinpath(Path, Name[i]*".csv")
                 data = readclean(filepath, ',', Float64)::Matrix{Float64}
-                print(i, ": ", Name[i], "\n") # Display progress
+                @info "$i: $(Name[i])"
                 μ = data[1,1]
                 σ = data[1,2]/smpl.inputSigmaLevel
 
