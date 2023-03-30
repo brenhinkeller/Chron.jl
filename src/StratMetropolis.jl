@@ -24,7 +24,7 @@
     """
     function StratMetropolis(smpl::ChronAgeData, config::StratAgeModelConfiguration, systematic=nothing)
         # Run stratigraphic MCMC model
-        print("Generating stratigraphic age-depth model...\n")
+        @info "Generating stratigraphic age-depth model..."
 
         # Model configuration -- read from struct
         resolution = config.resolution
@@ -85,7 +85,7 @@
     end
     function StratMetropolis(smpl::ChronAgeData, hiatus::HiatusData, config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model, with hiata
-        print("Generating stratigraphic age-depth model...\n")
+        @info "Generating stratigraphic age-depth model..."
 
         # Model configuration -- read from struct
         resolution = config.resolution
@@ -169,7 +169,7 @@
     """
     function StratMetropolisDist(smpl::ChronAgeData, config::StratAgeModelConfiguration, systematic=nothing)
         # Run stratigraphic MCMC model
-        print("Generating stratigraphic age-depth model...\n")
+        @info "Generating stratigraphic age-depth model..."
 
         # Model configuration -- read from struct
         resolution = config.resolution
@@ -236,7 +236,7 @@
     end
     function StratMetropolisDist(smpl::ChronAgeData, hiatus::HiatusData, config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model, with hiata
-        print("Generating stratigraphic age-depth model...\n")
+        @info "Generating stratigraphic age-depth model..."
 
         # Model configuration -- read from struct
         resolution = config.resolution
@@ -324,7 +324,7 @@
     """
     function StratMetropolis14C(smpl::ChronAgeData, config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model
-        print("Generating stratigraphic age-depth model...\n")
+        @info "Generating stratigraphic age-depth model..."
 
         # Model configuration -- read from struct
         resolution = config.resolution
@@ -392,7 +392,7 @@
 
     function StratMetropolis14C(smpl::ChronAgeData, hiatus::HiatusData, config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model, with hiata
-        print("Generating stratigraphic age-depth model...\n")
+        @info "Generating stratigraphic age-depth model..."
 
         # Model configuration -- read from struct
         resolution = config.resolution
@@ -519,7 +519,7 @@
 
         # Run burnin
         # acceptancedist = fill(false,burnin)
-        print("Burn-in: ", burnin, " steps\n")
+        @info "Burn-in: $burnin steps"
         pgrs = Progress(burnin, desc="Burn-in...")
         pgrs_interval = ceil(Int,sqrt(burnin))
         for n=1:burnin
@@ -590,7 +590,7 @@
         update!(pgrs, burnin) # Finalize
 
         # Run Markov Chain Monte Carlo
-        print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
+        @info "Collecting sieved stationary distribution: $(nsteps*sieve) steps"
         agedist = Array{Float64}(undef,npoints,nsteps)
         lldist = Array{Float64}(undef,nsteps)
 
@@ -718,7 +718,7 @@
 
         # Run burnin
         # acceptancedist = fill(false,burnin)
-        print("Burn-in: ", burnin, " steps\n")
+        @info "Burn-in: $burnin steps"
         pgrs = Progress(burnin, desc="Burn-in...")
         pgrs_interval = ceil(Int,sqrt(burnin))
         for n=1:burnin
@@ -820,7 +820,7 @@
         update!(pgrs, burnin) # Finalize
 
         # Run Markov Chain Monte Carlo
-        print("Collecting sieved stationary distribution: ", nsteps*sieve, " steps\n")
+        @info "Collecting sieved stationary distribution: $(nsteps*sieve) steps"
         agedist = Array{Float64}(undef,npoints,nsteps)
         lldist = Array{Float64}(undef,nsteps)
         hiatusdist = Array{Float64}(undef,length(duration),nsteps)

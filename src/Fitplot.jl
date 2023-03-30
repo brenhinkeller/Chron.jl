@@ -55,7 +55,7 @@
             if make_plots
                 # Rank-order plot of all individual ages for comparison
                 hdl = plot(1:nanalyses,data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:red, markerstrokecolor=:red,label="rejected",legend=:topleft,framestyle=:box,fg_color_legend=:white)
-                plot!(hdl, 1:size(data,1),data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:blue,markerstrokecolor=:blue,label="included",xlabel="N",ylabel="Age ($(Age_Unit))")
+                plot!(hdl, 1:size(data,1),data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:blue,markerstrokecolor=:blue,label="included",xlabel="N",ylabel="Age ($Age_Unit)")
                 savefig(hdl, joinpath(screenedpath, Name[i]*"_screening.pdf"))
             end
             writedlm(joinpath(screenedpath, Name[i]*".csv"), data, ',')
@@ -103,16 +103,24 @@
                 data = readclean(filepath, ',', Float64)::Matrix{Float64}
                 print(i, ": ", Name[i], "\n") # Display progress
 
-                # Run MCMC to estimate saturation and eruption/deposition age distributions
-                μ̄ = view(data,:,1)
-                σ̄ = view(data, :, 2)./=smpl.inputSigmaLevel
-                tmindist = metropolis_min(nsteps, dist, μ̄, σ̄; burnin)
+                # Run MCMC to estimate eruption/deposition age distributions
+                σstr = "$(smpl.inputSigmaLevel)-sigma absolute"
+                if size(data, 2) == 5
+                    @info "Interpreting the five columns of $filepath as:\n [²⁰⁷Pb/²³⁵U, $σstr, ²⁰⁶Pb/²³⁸U, $σstr, correlation coefficient]"
+                    analyses = UPbAnalysis.(eachcol(data)...,)
+                    tmindist, t0dist = metropolis_min(nsteps, dist, analyses; burnin)
+                else
+                    @info "Interpreting first two columns of $filepath as age and age $σstr"
+                    μ = view(data, :, 1)
+                    σ = view(data, :, 2)./=smpl.inputSigmaLevel
+                    tmindist = metropolis_min(nsteps, dist, μ, σ; burnin)
+                end
 
                 # Fill in the strat sample object with our new results
                 tmindistₜ = copy(tmindist)
                 smpl.Age[i] = vmean(tmindist)
                 smpl.Age_sigma[i] = vstd(tmindist)
-                smpl.Age_025CI[i] = vpercentile!(tmindistₜ,2.5)
+                smpl.Age_025CI[i] = vpercentile!(tmindistₜ, 2.5)
                 smpl.Age_975CI[i] = vpercentile!(tmindistₜ,97.5)
                 smpl.Age_Distribution[i] = tmindist
 
@@ -121,7 +129,7 @@
                 bincounts = histcounts(tmindist, binedges)
 
                 t = bincounts.>0 # Only look at bins with one or more results
-                N = bincounts[t] ./ length(tmindist) .* count(t) # Normalized number of MCMC steps per bin
+                N = bincounts[t] ./ nsteps .* count(t) # Normalized number of MCMC steps per bin
                 bincenters = cntr(binedges)[t] # Vector of bin centers
 
                 # Initial guess for parameters
@@ -135,21 +143,36 @@
                 smpl.Params[:,i] = fobj.param
 
                 if make_plots
-                    # Rank-order plot of analyses and eruption/deposition age range
-                    nanalyses = length(data[:,1])
-                    h1 = rankorder(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age ($(Age_Unit))",label="Data (observed ages)")
-                    m = ones(nanalyses).*smpl.Age[i]
-                    l = ones(nanalyses).*smpl.Age_025CI[i]
-                    u = ones(nanalyses).*smpl.Age_975CI[i]
-                    plot!(h1,1:nanalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="Model ($(round(m[1],digits=3)) +$(round(u[1]-m[1],digits=3))/-$(round(m[1]-l[1],digits=3)) $(Age_Unit))")
-                    plot!(h1,1:nanalyses,m,linecolor=:black,linestyle=:dot,label="",legend=:topleft,fg_color_legend=:white,framestyle=:box)
-                    savefig(h1,joinpath(Path, Name[i]*"_rankorder.pdf"))
-                    savefig(h1,joinpath(Path, Name[i]*"_rankorder.svg"))
+                    nanalyses = size(data,1)
+                    if size(data,2) == 5
+                        # Concordia plot
+                        h1a = plot(analyses, color=:darkblue, alpha=0.3, label="", xlabel="²⁰⁷Pb/²³⁵U", ylabel="²⁰⁶Pb/²³⁸U", framestyle=:box)
+                        concordiacurve!(h1a)
+                        I = rand(1:length(tmindist), 500) # Pick 500 random samples from the posterior distribution
+                        concordialine!(h1a, t0dist[I], tmindist[I], color=:darkred, alpha=0.02, label="Model: $(CI(tmindist)) $AgeUnit")
+                        savefig(h1a,joinpath(Path, Name[i]*"_Concordia.pdf"))
+                        savefig(h1a,joinpath(Path, Name[i]*"_Concordia.svg"))
+                        # Pb-loss histogram
+                        h1b = histogram(t0dist, xlabel="Age ($Age_Unit)", ylabel="Probability Density", normalize=true, label="Time of Pb-loss\n($(CI(t0dist)) $AgeUnit)", color=:darkblue, alpha=0.65, linealpha=0.1, framestyle=:box)
+                        plot!(h1b, xlims=(0,last(xlims(h1b))), ylims=(0,last(ylims(h1b))))
+                        savefig(h1a,joinpath(Path, Name[i]*"_Pbloss.pdf"))
+                        savefig(h1a,joinpath(Path, Name[i]*"_Pbloss.svg"))
+                    else
+                        # Rank-order plot of analyses and eruption/deposition age range
+                        h1 = rankorder(data[:,1],2*data[:,2]/smpl.inputSigmaLevel,ylabel="Age ($Age_Unit)",label="Data (observed ages)")
+                        m = ones(nanalyses).*smpl.Age[i]
+                        l = ones(nanalyses).*smpl.Age_025CI[i]
+                        u = ones(nanalyses).*smpl.Age_975CI[i]
+                        plot!(h1,1:nanalyses,l,fillto=u,fillalpha=0.6,linealpha=0, label="Model ($(round(m[1],digits=3)) +$(round(u[1]-m[1],digits=3))/-$(round(m[1]-l[1],digits=3)) $Age_Unit)")
+                        plot!(h1,1:nanalyses,m,linecolor=:black,linestyle=:dot,label="",legend=:topleft,fg_color_legend=:white,framestyle=:box)
+                        savefig(h1,joinpath(Path, Name[i]*"_rankorder.pdf"))
+                        savefig(h1,joinpath(Path, Name[i]*"_rankorder.svg"))
+                    end
 
                     # Plot model fit to histogram
                     h2 = plot(bincenters,N,label="Histogram",fg_color_legend=:white,framestyle=:box)
-                    plot!(h2,bincenters, bilinear_exponential(bincenters,smpl.Params[:,i]), label="Curve fit")
-                    plot!(h2,legend=:topleft, xlabel="Age ($(Age_Unit))", ylabel="Probability density")
+                    plot!(h2,bincenters, bilinear_exponential(bincenters,smpl.Params[:,i]), label="Distribution fit")
+                    plot!(h2,legend=:topleft, xlabel="Age ($Age_Unit)", ylabel="Probability density")
                     savefig(h2,joinpath(Path, Name[i]*"_distribution.svg"))
                     savefig(h2,joinpath(Path, Name[i]*"_distribution.pdf"))
                 end
