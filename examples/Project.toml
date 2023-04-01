@@ -1,3 +1,4 @@
 [deps]
 Chron = "68885b1f-77b5-52a7-b2e7-6a8014c56b98"
+IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"

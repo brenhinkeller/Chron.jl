@@ -55,6 +55,9 @@ julia> using IJulia
 julia> notebook()
 ```
 
+For an example of the Pb-loss-aware options, see also
+* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0CoupledConcordia.ipynb) [Age-depth modelling with simple Gaussian age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0CoupledConcordia.ipynb)
+
 ### Standalone age-depth modelling
 If you want to use Chron.jl for for age-depth modelling without the eruption/deposition age estimation step, there are also example notebooks standalone age-depth modelling using either
 * [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0StratOnly.ipynb) [Age-depth modelling with simple Gaussian age constraints](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0StratOnly.ipynb) or
