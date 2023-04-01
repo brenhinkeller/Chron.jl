@@ -84,7 +84,7 @@
     # Configure the stratigraphic Monte Carlo model
     config = NewStratAgeModelConfiguration()
     # If you in doubt, you can probably leave these parameters as-is
-    config.resolution = 1.0 # Same units as sample height. Smaller is slower!
+    config.resolution = 10.0 # Same units as sample height. Smaller is slower!
     config.bounding = 0.5 # how far away do we place runaway bounds, as a fraction of total section height
     (bottom, top) = extrema(smpl.Height)
     npoints_approx = round(Int,length(bottom:config.resolution:top) * (1 + 2*config.bounding))
