@@ -62,9 +62,7 @@ module Chron
 
 
     # Distributions
-    export UniformDistribution, TriangularDistribution,
-        HalfNormalDistribution, TruncatedNormalDistribution,
-        MeltsZirconDistribution, MeltsVolcanicZirconDistribution,
-        ExponentialDistribution, EllisDistribution, ArClosureDistribution
+    # Mostly already exported by reexporting Isoplot.jl
+    export TruncatedNormalDistribution, EllisDistribution, ArClosureDistribution
 
 end # module
