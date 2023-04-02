@@ -78,8 +78,8 @@
 ## --- Estimate the eruption age distributions for each sample  - - - - - - - -
 
     # Configure distribution model here
-    distSteps = 5*10^5 # Number of steps to run in distribution MCMC
-    distBurnin = distSteps÷2 # Number to discard
+    distSteps = 1*10^6 # Number of steps to run in distribution MCMC
+    distBurnin = distSteps÷10 # Number to discard
 
     # Choose the form of the prior closure/crystallization distribution to use
     dist = BootstrappedDistribution
@@ -98,7 +98,7 @@
 ## --- Run stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - - -
 
     # Configure the stratigraphic Monte Carlo model
-    config = NewStratAgeModelConfiguration()
+    config = StratAgeModelConfiguration()
     # If you in doubt, you can probably leave these parameters as-is
     config.resolution = 1.0 # Same units as sample height. Smaller is slower!
     config.bounding = 0.5 # how far away do we place runaway bounds, as a fraction of total section height
@@ -283,7 +283,7 @@
 
     # Data about hiatuses
     nHiatuses = 2 # The number of hiatuses you have data for
-    hiatus = NewHiatusData(nHiatuses) # Struct to hold data
+    hiatus = HiatusData(nHiatuses) # Struct to hold data
     hiatus.Height         = [-7.0, 35.0 ]
     hiatus.Height_sigma   = [ 0.0,  0.0 ]
     hiatus.Duration       = [ 0.3,  0.3 ]

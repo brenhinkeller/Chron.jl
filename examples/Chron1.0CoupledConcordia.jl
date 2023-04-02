@@ -56,16 +56,31 @@
     # This is the only change you have to make relative to regular "Chron1.0Coupled"
     # Just provide five columns of data instead of two.
 
+## --- (optional) Bootstrap pre-eruptive distribution - - - - - - - - - - - - -
+
+    # Bootstrap a KDE of the pre-eruptive (or pre-depositional) mineral age
+    # distribution using a KDE of stacked sample data from each data file
+    BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl, tpbloss=0)
+    x = range(0,1,length=length(BootstrappedDistribution))
+    h = plot(x, BootstrappedDistribution,
+        label="Bootstrapped distribution",
+        xlabel="Time (arbitrary units)",
+        ylabel="Probability Density",
+        framestyle=:box
+    )
+    savefig(h, joinpath(smpl.Path,"BootstrappedDistribution.pdf"))
+    display(h)
 
 ## --- Estimate the eruption age distributions for each sample  - - - - - - - -
 
     # Configure distribution model here
-    distSteps = 5*10^5 # Number of steps to run in distribution MCMC
-    distBurnin = distSteps÷2 # Number to discard
+    distSteps = 1*10^6 # Number of steps to run in distribution MCMC
+    distBurnin = distSteps÷10 # Number to discard
 
     # Choose the form of the prior closure/crystallization distribution to use
     dist = HalfNormalDistribution
     ## You might alternatively consider:
+    # dist = BootstrappedDistribution
     # dist = UniformDistribution              # A reasonable default
     # dist = MeltsVolcanicZirconDistribution  # A single magmatic pulse, truncated by eruption
 
@@ -82,7 +97,7 @@
 
 
     # Configure the stratigraphic Monte Carlo model
-    config = NewStratAgeModelConfiguration()
+    config = StratAgeModelConfiguration()
     # If you in doubt, you can probably leave these parameters as-is
     config.resolution = 10.0 # Same units as sample height. Smaller is slower!
     config.bounding = 0.5 # how far away do we place runaway bounds, as a fraction of total section height

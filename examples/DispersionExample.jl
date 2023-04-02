@@ -2,7 +2,7 @@
 mu = [8; 10:0.1:11; 12; 15]
 nAnalyses = length(mu)
 sigma = 0.05 * ones(nAnalyses)
-plot_rankorder_errorbar(mu, sigma)
+rankorder(mu, sigma)
 
 ## Estimate eruption age
 tmin_dist = metropolis_min(2*10^5, reverse(TriangularDistribution), mu, sigma, burnin=10^5)

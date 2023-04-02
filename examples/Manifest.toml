@@ -111,9 +111,9 @@ version = "1.15.7"
 
 [[deps.Chron]]
 deps = ["DelimitedFiles", "Distributions", "Isoplot", "KernelDensity", "LoopVectorization", "LsqFit", "NaNStatistics", "Plots", "Polyester", "ProgressMeter", "Reexport", "SpecialFunctions", "StatGeochemBase", "Statistics", "StatsBase", "Test", "VectorizedStatistics"]
-git-tree-sha1 = "264f02acfd4555b2a1173cf82fb0325c073542d7"
+git-tree-sha1 = "20489be06ef902de2d36b40fead39360e9b54db1"
 uuid = "68885b1f-77b5-52a7-b2e7-6a8014c56b98"
-version = "0.4.10"
+version = "0.4.11"
 
 [[deps.CloseOpenIntervals]]
 deps = ["Static", "StaticArrayInterface"]

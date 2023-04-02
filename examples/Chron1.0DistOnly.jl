@@ -73,8 +73,8 @@
 ## --- Estimate the eruption age distributions for each sample  - - - - - - - -
 
     # Configure distribution model here
-    distSteps = 5*10^5 # Number of steps to run in distribution MCMC
-    distBurnin = distSteps÷2 # Number to discard
+    distSteps = 1*10^6 # Number of steps to run in distribution MCMC
+    distBurnin = distSteps÷10 # Number to discard
 
     # Choose the form of the prior closure/crystallization distribution to use
     dist = BootstrappedDistribution
