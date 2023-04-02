@@ -58,7 +58,7 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 
 
 # Test that results match expectation, within some tolerance
-@test isa(mdl.Age, Array{Float64,1})
+@test mdl.Age isa Vector{Float64}
 @test all.(isapprox(mdl.Age, [8319.5, 8235.7, 8154.8, 8072.3, 8025.8, 7982.2, 7938.8, 7914.7, 7891.3, 7868.5, 7845.1], atol=20))
 @test all.(isapprox(mdl.Age_025CI, [8205.0, 8045.4, 7998.9, 7975.5, 7893.6, 7859.9, 7838.6, 7802.2, 7779.3, 7761.3, 7747.5], atol=30))
 @test all.(isapprox(mdl.Age_975CI, [8403.9, 8385.1, 8345.7, 8163.4, 8150.0, 8123.4, 8028.4, 8014.9, 8002.3, 7984.7, 7957.1], atol=30))
@@ -78,7 +78,7 @@ hiatus.Duration_sigma = [  30.5,   20.0 ]
 @time (mdl, agedist, hiatusdist, lldist) = StratMetropolis14C(smpl, hiatus, config); sleep(0.5)
 
 # Test that results match expectation, within some tolerance
-@test isa(mdl.Age, Array{Float64,1})
+@test mdl.Age isa Vector{Float64}
 @test all.(isapprox(mdl.Age, [8339.8, 8160.6, 8112.4, 8066.9, 8032.9, 7999.7, 7964.7, 7947.4, 7850.4, 7833.2, 7818.8], atol=20))
 @test all.(isapprox(mdl.Age_025CI, [8216.9, 8022.6, 7991.4, 7975.1, 7924.7, 7892.3, 7872.9, 7844.2, 7749.1, 7738.5, 7729.2], atol=30))
 @test all.(isapprox(mdl.Age_975CI, [8408.3, 8272.7, 8238.4, 8160.2, 8149.8, 8130.8, 8092.3, 8064.0, 7960.0, 7935.8, 7916.7], atol=30))
@@ -127,7 +127,7 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 
 
 # Test that results match expectation, within some tolerance
-@test isa(mdl.Age, Array{Float64,1})
+@test mdl.Age isa Vector{Float64}
 @test isapprox(mdl.Age, [8305.8, 8225.3, 8148.6, 8070.2, 8023.4, 7979.5, 7936.0, 7911.2, 7887.7, 7864.4, 7840.6], atol=20)
 @test isapprox(mdl.Age_025CI, [8199.6, 8033.1, 7990.0, 7970.1, 7887.1, 7853.6, 7830.8, 7794.2, 7768.6, 7751.8, 7737.9], atol=30)
 @test isapprox(mdl.Age_975CI, [8401.1, 8380.7, 8341.3, 8167.1, 8155.9, 8127.3, 8019.3, 8011.9, 8002.3, 7985.3, 7956.7], atol=30)
@@ -147,7 +147,7 @@ hiatus.Duration_sigma = [  30.5,   20.0 ]
 @time (mdl, agedist, hiatusdist, lldist) = StratMetropolis14C(smpl, hiatus, config); sleep(0.5)
 
 # Test that results match expectation, within some tolerance
-@test isa(mdl.Age, Array{Float64,1})
+@test mdl.Age isa Vector{Float64}
 @test isapprox(mdl.Age, [8329.2, 8151.5, 8105.1, 8061.2, 8027.3, 7994.5, 7960.1, 7942.3, 7843.9, 7826.6, 7812.2], atol=20)
 @test isapprox(mdl.Age_025CI, [8210.0, 8011.7, 7983.3, 7969.3, 7916.8, 7885.5, 7867.7, 7837.2, 7740.4, 7728.4, 7717.9], atol=30)
 @test isapprox(mdl.Age_975CI, [8405.7, 8268.8, 8234.8, 8164.0, 8153.6, 8131.5, 8073.4, 8038.7, 7952.0, 7929.3, 7913.6], atol=30)

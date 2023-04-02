@@ -16,7 +16,8 @@ smpl = screen_outliers(smpl, maxgap=50; make_plots)
 
 # Distribution boostrapping from chron strat object
 BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl)
-@test isa(BootstrappedDistribution, Array{Float64,1})
+@test BootstrappedDistribution isa Vector{Float64}
+@test BootstrappedDistribution[1] ≈ 1.0511396290122654
 
 # Estimate the eruption age distributions for each sample  - - - - - - - -
 
@@ -42,7 +43,7 @@ println("StratMetropolisDist:")
 @time (mdl, agedist, lldist) = StratMetropolisDist(smpl, config)
 
 # Test that results match expectation, within some tolerance
-@test isa(mdl.Age, Array{Float64,1})
+@test mdl.Age isa Vector{Float64}
 @test isapprox(mdl.Age, [66.06, 66.05, 66.03, 66.02, 66.01, 66.0, 65.98, 65.97, 65.96, 65.94, 65.94, 65.93, 65.93, 65.9], atol=0.1)
 @test isapprox(mdl.Age_025CI, [66.0, 65.98, 65.96, 65.95, 65.94, 65.93, 65.93, 65.92, 65.92, 65.91, 65.91, 65.89, 65.88, 65.82], atol=0.15)
 @test isapprox(mdl.Age_975CI, [66.09, 66.09, 66.08, 66.08, 66.07, 66.07, 66.05, 66.04, 66.02, 65.97, 65.97, 65.96, 65.96, 65.95], atol=0.15)
@@ -60,7 +61,7 @@ println("StratMetropolisDist with systematic uncertainties:")
 @time (mdl, agedist, lldist) = StratMetropolisDist(smpl, config, systematic)
 
 # Test that results match expectation, within some tolerance
-@test isa(mdl.Age, Array{Float64,1})
+@test mdl.Age isa Vector{Float64}
 @test isapprox(mdl.Age, [66.06, 66.05, 66.03, 66.02, 66.01, 66.0, 65.98, 65.97, 65.96, 65.94, 65.94, 65.93, 65.93, 65.9], atol=0.1)
 @test isapprox(mdl.Age_025CI, [66.0, 65.98, 65.96, 65.95, 65.94, 65.93, 65.93, 65.92, 65.92, 65.91, 65.91, 65.89, 65.88, 65.82], atol=0.15)
 @test isapprox(mdl.Age_975CI, [66.09, 66.09, 66.08, 66.08, 66.07, 66.07, 66.05, 66.04, 66.02, 65.97, 65.97, 65.96, 65.96, 65.95], atol=0.15)
@@ -81,7 +82,7 @@ println("StratMetropolisDist with hiata:")
 @time (mdl, agedist, hiatusdist, lldist) = StratMetropolisDist(smpl, hiatus, config)
 
 # Test that results match expectation, within some tolerance
-@test isa(mdl.Age, Array{Float64,1})
+@test mdl.Age isa Vector{Float64}
 @test isapprox(mdl.Age, [66.08, 66.07, 66.07, 66.07, 66.02, 66.01, 66.01, 66.01, 65.94, 65.94, 65.93, 65.93, 65.92, 65.9], atol=0.1)
 @test isapprox(mdl.Age_025CI, [66.05, 66.04, 66.03, 66.02, 65.94, 65.94, 65.93, 65.93, 65.91, 65.9, 65.9, 65.89, 65.88, 65.82], atol=0.15)
 @test isapprox(mdl.Age_975CI, [66.1, 66.1, 66.1, 66.1, 66.08, 66.08, 66.08, 66.08, 65.98, 65.96, 65.96, 65.96, 65.96, 65.95], atol=0.15)
@@ -100,7 +101,7 @@ smpl.inputSigmaLevel = 1
 # Run the stratigraphic MCMC model
 println("StratMetropolisDist with fitted Gaussians:")
 @time (mdl, agedist, lldist) = StratMetropolisDist(smpl, config)
-@test isa(mdl.Age, Array{Float64,1})
+@test mdl.Age isa Vector{Float64}
 @test isapprox(mdl.Age, [65.97, 65.97, 65.96, 65.95, 65.95, 65.94, 65.93, 65.92, 65.92, 65.91, 65.9, 65.89, 65.87, 65.85], atol=0.1)
 @test isapprox(mdl.Age_025CI, [65.86, 65.86, 65.85, 65.85, 65.84, 65.84, 65.84, 65.83, 65.83, 65.83, 65.82, 65.77, 65.74, 65.72], atol=0.15)
 @test isapprox(mdl.Age_975CI, [66.07, 66.06, 66.06, 66.06, 66.06, 66.05, 66.04, 66.03, 66.02, 66.0, 65.99, 65.98, 65.97, 65.96], atol=0.15)
@@ -119,12 +120,17 @@ smpl.inputSigmaLevel = 1 # i.e., are the data files 1-sigma or 2-sigma. Integer.
 smpl.Age_Unit = "Ma" # Unit of measurement for ages and errors in the data files
 smpl.Height_Unit = "m" # Unit of measurement for Height and Height_sigma
 
+
+BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl, tpbloss=0)
+@test BootstrappedDistribution isa Vector{Float64}
+@test BootstrappedDistribution[1] ≈ 0.3697041339884247
+
 # Configure distribution model here
 distSteps = 2*10^5 # Number of steps to run in distribution MCMC
 distBurnin = floor(Int,distSteps/2) # Number to discard
 
 # Run MCMC to estimate saturation and eruption/deposition age distributions
-@time tMinDistMetropolis(smpl,distSteps,distBurnin,BootstrappedDistribution; make_plots)
+@time tMinDistMetropolis(smpl,distSteps,distBurnin,HalfNormalDistribution; make_plots)
 
 
 # Configure the stratigraphic Monte Carlo model
@@ -141,7 +147,7 @@ println("StratMetropolisDist, Pb-loss-aware:")
 @time (mdl, agedist, lldist) = StratMetropolisDist(smpl, config)
 
 # Test that results match expectation, within some tolerance
-@test isa(mdl.Age, Array{Float64,1})
+@test mdl.Age isa Vector{Float64}
 @test isapprox(mdl.Age, [752.2, 752.14, 752.09, 752.03, 751.97, 751.68, 751.39, 751.09, 750.78], atol=0.3)
 @test isapprox(mdl.Age_025CI, [751.86, 751.8, 751.75, 751.7, 751.65, 750.93, 750.72, 750.61, 750.52], atol=0.7)
 @test isapprox(mdl.Age_975CI, [752.51, 752.47, 752.43, 752.37, 752.29, 752.2, 752.08, 751.85, 750.99], atol=0.7)

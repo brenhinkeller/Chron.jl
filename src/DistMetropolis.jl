@@ -13,11 +13,12 @@
     BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl)
     ```
     """
-    function BootstrapCrystDistributionKDE(smpl::ChronAgeData; cutoff::Number=-0.05)
+    function BootstrapCrystDistributionKDE(smpl::ChronAgeData; cutoff::Number=-0.05, tpbloss::Number=0)
         # Extact variables froms struct
-        Name = collect(smpl.Name)::Array{String,1}
+        Name = collect(smpl.Name)::Vector{String}
         Path = smpl.Path::String
         DistType = smpl.Age_DistType::Vector{Float64}
+        σstr = "$(smpl.inputSigmaLevel)-sigma 𝑎𝑏𝑠𝑜𝑙𝑢𝑡𝑒"
 
         # Load all data points and scale from 0 to 1
         allscaled = Float64[]
@@ -26,11 +27,22 @@
                 # Read data for each sample from file
                 filepath = joinpath(Path, Name[i]*".csv")
                 data = readclean(filepath, ',', Float64)::Matrix{Float64}
-                # First column should be means, second should be standard deviation
-                μ, σ = view(data,:,1), view(data, :, 2)
+
+                if size(data, 2) == 5
+                    @info "Interpreting the five columns of $(Name[i]).csv as:\n | ²⁰⁷Pb/²³⁵U | $σstr | ²⁰⁶Pb/²³⁸U | $σstr | correlation coefficient |"
+                    data[:,2]./=smpl.inputSigmaLevel
+                    data[:,4]./=smpl.inputSigmaLevel
+                    analyses = UPbAnalysis.(eachcol(data)...,)
+                    uis = upperintercept.(tpbloss, analyses)
+                    μ, σ = Isoplot.val.(uis), Isoplot.err.(uis)
+                else
+                    @info "Interpreting first two columns of $(Name[i]).csv as \n | Age | Age $σstr |"
+                    data[:,2]./=smpl.inputSigmaLevel
+                    μ, σ = view(data, :, 1), view(data, :, 2)
+                end
 
                 # Maximum extent of expected analytical tail (beyond eruption/deposition)
-                maxtaillength = nanmean(σ) ./ smpl.inputSigmaLevel .* norm_quantile(1 - 1/(1+countnotnans(μ)))
+                maxtaillength = nanmean(σ) .* norm_quantile(1 - 1/(1+countnotnans(μ)))
                 included = (μ .- nanminimum(μ)) .>= maxtaillength
                 included .|= μ .> nanmedian(μ) # Don't exclude more than half (could only happen in underdispersed datasets)
                 included .&= .!isnan.(μ) # Exclude NaNs

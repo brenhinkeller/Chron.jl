@@ -23,7 +23,7 @@
 
     function screen_outliers(smpl::ChronAgeData; maxgap=100, make_plots=true)
         # Variables from struct
-        Name = collect(smpl.Name)::Array{String,1}
+        Name = collect(smpl.Name)::Vector{String}
         Path = smpl.Path::String
         Age_Unit = smpl.Age_Unit::String
 
@@ -88,7 +88,7 @@
             make_plots=true,
         )
         # Extract variables from struct
-        Name = collect(smpl.Name)::Array{String,1}
+        Name = collect(smpl.Name)::Vector{String}
         Path = smpl.Path::String
         Age_Unit = smpl.Age_Unit::String
         DistType = smpl.Age_DistType::Vector{Float64}
@@ -107,6 +107,8 @@
                 # Run MCMC to estimate eruption/deposition age distributions
                 if size(data, 2) == 5
                     @info "Interpreting the five columns of $(Name[i]).csv as:\n | ²⁰⁷Pb/²³⁵U | $σstr | ²⁰⁶Pb/²³⁸U | $σstr | correlation coefficient |"
+                    data[:,2]./=smpl.inputSigmaLevel
+                    data[:,4]./=smpl.inputSigmaLevel
                     analyses = UPbAnalysis.(eachcol(data)...,)
                     tmindist, t0dist = metropolis_min(nsteps, dist, analyses; burnin)
                 else
