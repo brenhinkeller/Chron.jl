@@ -222,7 +222,7 @@ To run the stratigraphic MCMC model, we call the `StratMetropolisDist` function.
 
 ```julia
 # Configure the stratigraphic Monte Carlo model
-config = NewStratAgeModelConfiguration()
+config = StratAgeModelConfiguration()
 # If you in doubt, you can probably leave these parameters as-is
 config.resolution = 1.0 # Same units as sample height. Smaller is slower!
 config.bounding = 0.1 # how far away do we place runaway bounds, as a fraction of total section height
@@ -351,7 +351,7 @@ We can also deal with discrete hiatuses in the stratigraphic section if we know 
 ```julia
 # Data about hiatuses
 nHiatuses = 2 # The number of hiatuses you have data for
-hiatus = NewHiatusData(nHiatuses) # Struct to hold data
+hiatus = HiatusData(nHiatuses) # Struct to hold data
 hiatus.Height         = [20.0, 35.0 ]
 hiatus.Height_sigma   = [ 0.0,  0.0 ]
 hiatus.Duration       = [ 0.2,  0.43]
