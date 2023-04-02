@@ -117,17 +117,16 @@
                 # Read data for each sample from file
                 filepath = joinpath(Path, Name[i]*".csv")
                 data = readclean(filepath, ',', Float64)::Matrix{Float64}
-                @info "$i: $(Name[i])"
 
                 # Run MCMC to estimate eruption/deposition age distributions
                 if size(data, 2) == 5
-                    @info "Interpreting the five columns of $(Name[i]).csv as:\n | ²⁰⁷Pb/²³⁵U | $σstr | ²⁰⁶Pb/²³⁸U | $σstr | correlation coefficient |"
+                    @info "$i: $(Name[i])\nInterpreting the five columns of $(Name[i]).csv as:\n | ²⁰⁷Pb/²³⁵U | $σstr | ²⁰⁶Pb/²³⁸U | $σstr | correlation coefficient |"
                     data[:,2]./=smpl.inputSigmaLevel
                     data[:,4]./=smpl.inputSigmaLevel
                     analyses = UPbAnalysis.(eachcol(data)...,)
                     tmindist, t0dist = metropolis_min(nsteps, dist, analyses; burnin)
                 else
-                    @info "Interpreting first two columns of $(Name[i]).csv as \n | Age | Age $σstr |"
+                    @info "$i: $(Name[i])\nInterpreting first two columns of $(Name[i]).csv as \n | Age | Age $σstr |"
                     μ = view(data, :, 1)
                     σ = view(data, :, 2)./=smpl.inputSigmaLevel
                     tmindist = metropolis_min(nsteps, dist, μ, σ; burnin)
