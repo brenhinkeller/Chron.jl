@@ -31,6 +31,13 @@
     @test std(dist_ar) > std(dist)
     @test isapprox(std(dist_ar) - std(dist), 0.005, atol=0.002)
 
+    dist = (200 .+ randn(100000)) / 1000 # ~100 Ka
+
+    dist_uth = add_systematic_uncert_UTh(dist)
+    @test std(dist_uth) > std(dist)
+    @test isapprox(std(dist_uth) - std(dist), 1e-4, atol=1e-4)
+
+
     dist2d = 100 .+ randn(1000,1000)
 
     dist_upb = add_systematic_uncert_UPb(dist2d)
@@ -42,5 +49,13 @@
     # Check that uncertainty is added in vertical bands
     diff = dist_ar .- dist2d
     @test all(std(diff,dims=2) .> std(diff,dims=1)')
+
+    dist2d = (200 .+ randn(1000,1000)) ./ 1000 # ~200 Ka
+
+    dist_uth = add_systematic_uncert_UTh(dist2d)
+    # Check that uncertainty is added in vertical bands
+    diff = dist_uth .- dist2d
+    @test all(std(diff,dims=2) .> std(diff,dims=1)')
+
 
 ## ---
