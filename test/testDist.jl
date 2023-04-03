@@ -27,9 +27,13 @@
     @test std(dist_upb) > std(dist)
     @test isapprox(std(dist_upb) - std(dist), 0.0015, atol=0.0006)
 
-    dist_ar = add_systematic_uncert_ArAr(dist)
+    dist_ar = add_systematic_uncert_ArAr(dist; constants=:Renne)
     @test std(dist_ar) > std(dist)
     @test isapprox(std(dist_ar) - std(dist), 0.005, atol=0.002)
+
+    dist_ar = add_systematic_uncert_ArAr(dist; constants=:Min)
+    @test std(dist_ar) > std(dist)
+    @test isapprox(std(dist_ar) - std(dist), 0.5, atol=0.2)
 
     dist = (200 .+ randn(100000)) / 1000 # ~100 Ka
 
@@ -45,7 +49,12 @@
     diff = dist_upb .- dist2d
     @test all(std(diff,dims=2) .> std(diff,dims=1)')
 
-    dist_ar = add_systematic_uncert_ArAr(dist2d)
+    dist_ar = add_systematic_uncert_ArAr(dist2d; constants=:Renne)
+    # Check that uncertainty is added in vertical bands
+    diff = dist_ar .- dist2d
+    @test all(std(diff,dims=2) .> std(diff,dims=1)')
+
+    dist_ar = add_systematic_uncert_ArAr(dist2d; constants=:Min)
     # Check that uncertainty is added in vertical bands
     diff = dist_ar .- dist2d
     @test all(std(diff,dims=2) .> std(diff,dims=1)')

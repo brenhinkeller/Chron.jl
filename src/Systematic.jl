@@ -17,20 +17,35 @@
 
     export add_systematic_uncert_UPb
 
-    function add_systematic_uncert_ArAr(agedistmyr::Vector{<:AbstractFloat})
-        # Optimization intercalibration values from Renne 2011 reply
-        # Values
-        κ = 1.6417E-03
-        λϵ = 0.5757E-10 # 1/years
-        λβ = 4.9548E-10 # 1/years
-        # Uncertainties
-        σκ = 0.0045E-03
-        σλϵ = 0.0017E-10 # 1/years
-        σλβ = 0.0134E-10 # 1/years
-        # Covariances
-        σκσλϵ =  7.1903E-19
-        σκσλβ = -6.5839E-19
-        σλϵσλβ = -3.4711E-26
+    function add_systematic_uncert_ArAr(agedistmyr::Vector{<:AbstractFloat}; constants=:Renne)
+        if constants==:Min
+            # Min et al., 200 compilation
+            κ = 1.6408E-03
+            λϵ = 0.580E-10 # 1/years
+            λβ = 4.884E-10 # 1/years
+            # Uncertainties
+            σκ = 0.0047E-03
+            σλϵ = 0.007E-10 # 1/years
+            σλβ = 0.049E-10 # 1/years
+            # Covariances
+            σκσλϵ = 0.0
+            σκσλβ = 0.0
+            σλϵσλβ = 0.0
+        else
+            # Optimization intercalibration values from Renne 2011 reply
+            # Values
+            κ = 1.6417E-03
+            λϵ = 0.5757E-10 # 1/years
+            λβ = 4.9548E-10 # 1/years
+            # Uncertainties
+            σκ = 0.0045E-03
+            σλϵ = 0.0017E-10 # 1/years
+            σλβ = 0.0134E-10 # 1/years
+            # Covariances
+            σκσλϵ =  7.1903E-19
+            σκσλβ = -6.5839E-19
+            σλϵσλβ = -3.4711E-26
+        end
 
         # Create a multivariate normal distribution from the decay constant
         # means and covariance matrix
@@ -52,20 +67,35 @@
         λ_ = λβ_ .+ λϵ_
         return log.(Rdist.*κ_.*λ_./λϵ_ .+ 1)./(λ_.*1000000)
     end
-    function add_systematic_uncert_ArAr(agedistmyr::Matrix{<:AbstractFloat})
-        # Optimization intercalibration values from Renne 2011 reply
-        # Values
-        κ = 1.6417E-03
-        λϵ = 0.5757E-10
-        λβ = 4.9548E-10
-        # Uncertainties
-        σκ = 0.0045E-03
-        σλϵ = 0.0017E-10
-        σλβ = 0.0134E-10
-        # Covariances
-        σκσλϵ =  7.1903E-19
-        σκσλβ = -6.5839E-19
-        σλϵσλβ = -3.4711E-26
+    function add_systematic_uncert_ArAr(agedistmyr::Matrix{<:AbstractFloat}; constants=:Renne)
+        if constants==:Min
+            # Min et al., 200 compilation
+            κ = 1.6408E-03
+            λϵ = 0.580E-10 # 1/years
+            λβ = 4.884E-10 # 1/years
+            # Uncertainties
+            σκ = 0.0047E-03
+            σλϵ = 0.007E-10 # 1/years
+            σλβ = 0.049E-10 # 1/years
+            # Covariances
+            σκσλϵ = 0.0
+            σκσλβ = 0.0
+            σλϵσλβ = 0.0
+        else
+            # Optimization intercalibration values from Renne 2011 reply
+            # Values
+            κ = 1.6417E-03
+            λϵ = 0.5757E-10 # 1/years
+            λβ = 4.9548E-10 # 1/years
+            # Uncertainties
+            σκ = 0.0045E-03
+            σλϵ = 0.0017E-10 # 1/years
+            σλβ = 0.0134E-10 # 1/years
+            # Covariances
+            σκσλϵ =  7.1903E-19
+            σκσλβ = -6.5839E-19
+            σλϵσλβ = -3.4711E-26
+        end
 
         # Create a multivariate normal distribution from the decay constant
         # means and covariance matrix
