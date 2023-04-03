@@ -110,6 +110,7 @@
         σstr = "$(smpl.inputSigmaLevel)-sigma 𝑎𝑏𝑠𝑜𝑙𝑢𝑡𝑒"
 
         # Estimate the eruption/deposition distribution for each sample
+        Age_Summary = fill("", length(Name))
         @info "Estimating eruption/deposition age distributions..."
         for i ∈ eachindex(Name)
             include[i] || continue # Only calculate if include is true
@@ -133,12 +134,13 @@
                 end
 
                 # Fill in the strat sample object with our new results
-                tmindistₜ = copy(tmindist)
-                smpl.Age[i] = vmean(tmindist)
-                smpl.Age_sigma[i] = vstd(tmindist)
-                smpl.Age_025CI[i] = vpercentile!(tmindistₜ, 2.5)
-                smpl.Age_975CI[i] = vpercentile!(tmindistₜ,97.5)
+                terupt = CI(tmindist)
+                smpl.Age[i] = terupt.mean
+                smpl.Age_sigma[i] = terupt.sigma
+                smpl.Age_025CI[i] = terupt.lower
+                smpl.Age_975CI[i] = terupt.upper
                 smpl.Age_Distribution[i] = tmindist
+                Age_Summary[i] = "$terupt"
 
                 # Fit custom many-parametric distribution function to histogram
                 binedges = range(vminimum(tmindist),vmaximum(tmindist),length=101)
@@ -206,6 +208,7 @@
                 smpl.Age_sigma[i] = σ
                 smpl.Age_025CI[i] = μ - 1.95996398454*σ
                 smpl.Age_975CI[i] = μ + 1.95996398454*σ
+                Age_Summary[i] = "$μ +/- $σ"
 
                 # Initial guess for parameters
                 p = ones(5)
@@ -223,7 +226,7 @@
         end
 
         # Save results as csv
-        results = vcat(["Sample" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(Name,smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_sigma))::Array{Any,2}
+        results = vcat(["Sample" "Age summary" "Age" "2.5% CI" "97.5% CI" "sigma"], hcat(Name, Age_Summary, smpl.Age,smpl.Age_025CI,smpl.Age_975CI,smpl.Age_sigma))
         writedlm(joinpath(Path, "distresults.csv"), results, ',')
 
         return smpl
