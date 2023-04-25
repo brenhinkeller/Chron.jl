@@ -205,23 +205,26 @@
                 smpl.Age_Distribution[i] = tmindist
                 Age_Summary[i] = "$terupt"
 
-                # Fit custom many-parametric distribution function to histogram
-                binedges = range(vminimum(tmindist),vmaximum(tmindist),length=101)
-                bincounts = histcounts(tmindist, binedges)
+                l, u = vminimum(tmindist), vmaximum(tmindist)
+                if isfinite(u-l)
+                    # Fit custom many-parametric distribution function to histogram
+                    binedges = range(l, u, length=101)
+                    bincounts = histcounts(tmindist, binedges)
 
-                t = bincounts.>0 # Only look at bins with one or more results
-                N = bincounts[t] ./ nsteps .* count(t) # Normalized number of MCMC steps per bin
-                bincenters = cntr(binedges)[t] # Vector of bin centers
+                    t = bincounts.>0 # Only look at bins with one or more results
+                    N = bincounts[t] ./ nsteps .* count(t) # Normalized number of MCMC steps per bin
+                    bincenters = cntr(binedges)[t] # Vector of bin centers
 
-                # Initial guess for parameters
-                p = ones(5)
-                p[2] = vmean(tmindist)
-                p[3] = vstd(tmindist)
+                    # Initial guess for parameters
+                    p = ones(5)
+                    p[2] = vmean(tmindist)
+                    p[3] = vstd(tmindist)
 
-                # Fit nonlinear model
-                fobj = curve_fit(bilinear_exponential,bincenters,N,p)
-                fobj.param[2:end] .= abs.(fobj.param[2:end]) # Ensure positive
-                smpl.Params[:,i] = fobj.param
+                    # Fit nonlinear model
+                    fobj = curve_fit(bilinear_exponential,bincenters,N,p)
+                    fobj.param[2:end] .= abs.(fobj.param[2:end]) # Ensure positive
+                    smpl.Params[:,i] = fobj.param
+                end
 
                 if make_plots
                     nanalyses = size(data,1)
