@@ -77,16 +77,18 @@
 
     See also `bilinear_exponential`
     """
-    function bilinear_exponential_ll(x::Number, p::AbstractVector{<:Number})
+    function bilinear_exponential_ll(x::Number, p::AbstractVector{T}) where {T<:Number}
         @assert length(p) == 5
+        isnan(p[2]) && return zero(T)
         _, μ, σ, shp, skw = (abs(x) for x in p)
         xs = (x - μ)/σ # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
         return shp*skw*xs*v - shp/skw*xs*(1-v)
     end
-    function bilinear_exponential_ll(x::AbstractVector, p::AbstractMatrix{<:Number})
-        ll = 0.0
+    function bilinear_exponential_ll(x::AbstractVector, p::AbstractMatrix{T}) where {T<:Number}
+        ll = zero(T)
         @inbounds for i ∈ eachindex(x)
+            any(isnan, p[2,i]) && continue
             xs = (x[i]-p[2,i])/abs(p[3,i]) # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
             shp = abs(p[4,i])
@@ -99,6 +101,7 @@
         ll = zero(T)
         @inbounds for i ∈ eachindex(x,ages)
             pᵢ = ages[i]
+            isnan(pᵢ.μ) && continue
             xs = (x[i]-pᵢ.μ)/(pᵢ.σ) # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
             shp, skw = pᵢ.sharpness, pᵢ.skew
