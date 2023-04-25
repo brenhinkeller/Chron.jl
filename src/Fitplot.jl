@@ -25,7 +25,7 @@
 
     """
     ```julia
-    screen_outliers(smpl::ChronAgeData; agemin=0.0, agemax=Inf, maxgap=100, make_plots=true)
+    screen_outliers(smpl::ChronAgeData; agemin=0.0, agemax=Inf, maxgap=100, make_plots=true, discordancemin=0, discordancemax=100)
     ```
     Screen outliers from the `ChronAgeData` struct `smpl` (making new data files in
     a `screened` subdirectory within `smpl.Path`) rejecting samples that either
@@ -36,8 +36,11 @@
 
     If `make_plots` is `true`, plots showing screening results will be made in
     `smpl.Path/screened`.
+
+    If the underlying data is in the form of U-Pb ratios, the `discordancemin`
+    and `discordancemax` keyword arguments may also be used for additional screening.
     """
-    function screen_outliers(smpl::ChronAgeData; agemin=0.0, agemax=Inf, maxgap=100, make_plots=true)
+    function screen_outliers(smpl::ChronAgeData; agemin=0.0, agemax=Inf, maxgap=100, make_plots=true, discordancemin=0, discordancemax=100)
         # Variables from struct
         Name = collect(smpl.Name)::Vector{String}
         Path = smpl.Path::String
@@ -85,10 +88,14 @@
             end
 
             t = agemin .< ages .< agemax
+            if size(data,2) == 5
+                t .&= discordancemin .< discordance.(analyses) .< discordancemax
+            end
+
             keepat!(ages, t)
             keepat!(sigmas, t)
             keepat!(index, t)
-            data = data[t, :]
+            data = data[t,:]
             nanalyses = length(ages)
 
             if nanalyses > 1

@@ -120,6 +120,7 @@ smpl.inputSigmaLevel = 1 # i.e., are the data files 1-sigma or 2-sigma. Integer.
 smpl.Age_Unit = "Ma" # Unit of measurement for ages and errors in the data files
 smpl.Height_Unit = "m" # Unit of measurement for Height and Height_sigma
 
+smpl = screen_outliers(smpl, maxgap=100; make_plots, discordancemin=-5)
 
 BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl, tpbloss=0)
 @test BootstrappedDistribution isa Vector{Float64}

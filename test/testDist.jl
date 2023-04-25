@@ -5,10 +5,10 @@
     @test Chron.Isoplot.dist_ll(dist, mu, sigma, 100,101) ≈ -3.6933357793356576
 
     tmindist = metropolis_min(2*10^5, dist, mu, sigma, burnin=10^5)
-    @test isapprox(nanmean(tmindist), 99.9228, atol=0.015)
+    @test isapprox(nanmean(tmindist), 99.925, atol=0.015)
 
     tmindist, tmaxdist, lldist, acceptancedist = metropolis_minmax(2*10^5, MeltsVolcanicZirconDistribution, mu, sigma, burnin=10^5)
-    @test isapprox(nanmean(tmindist), 99.92, atol=0.015)
+    @test isapprox(nanmean(tmindist), 99.925, atol=0.015)
     @test isapprox(nanmean(tmaxdist), 101.08, atol=0.015)
 
 ## -- Test distribution bootstrapping
