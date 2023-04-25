@@ -1,6 +1,7 @@
 ## --- Utility function for file IO
 
     @inline function readclean(filepath, delim, T)
+        filesize(filepath) > 0 || return fill(NaN,0,0)
         io = open(filepath, "r")
         if read(io, Char) == '\ufeff'
             @warn """Skipping hidden \'\\ufeff\' (U+FEFF) character at start of input file.
@@ -175,6 +176,10 @@
                 # Read data for each sample from file
                 filepath = joinpath(Path, Name[i]*".csv")
                 data = readclean(filepath, ',', Float64)::Matrix{Float64}
+                if isempty(data)
+                    @info "$i: $(Name[i]).csv is empty, skipping"
+                    continue
+                end
 
                 # Run MCMC to estimate eruption/deposition age distributions
                 if size(data, 2) == 5
@@ -256,6 +261,10 @@
                 # Read data for each sample from file
                 filepath = joinpath(Path, Name[i]*".csv")
                 data = readclean(filepath, ',', Float64)::Matrix{Float64}
+                if isempty(data)
+                    @info "$i: $(Name[i]).csv is empty, skipping"
+                    continue
+                end
                 @info "$i: $(Name[i]): Interpreting $(Name[i]).csv as a single Gaussian age constraint:\n | Age | Age $σstr |"
                 μ = data[1,1]
                 σ = data[1,2]/smpl.inputSigmaLevel
