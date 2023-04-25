@@ -1,6 +1,7 @@
 ## --- Utility function for file IO
 
     @inline function readclean(filepath, delim, T)
+        isfile(filepath) || return fill(NaN,0,0)
         filesize(filepath) > 0 || return fill(NaN,0,0)
         io = open(filepath, "r")
         if read(io, Char) == '\ufeff'
@@ -177,7 +178,7 @@
                 filepath = joinpath(Path, Name[i]*".csv")
                 data = readclean(filepath, ',', Float64)::Matrix{Float64}
                 if isempty(data)
-                    @info "$i: $(Name[i]).csv is empty, skipping"
+                    @warn "$i: $(Name[i]).csv is empty or missing, skipping"
                     continue
                 end
 
@@ -262,7 +263,7 @@
                 filepath = joinpath(Path, Name[i]*".csv")
                 data = readclean(filepath, ',', Float64)::Matrix{Float64}
                 if isempty(data)
-                    @info "$i: $(Name[i]).csv is empty, skipping"
+                    @warn "$i: $(Name[i]).csv is empty or missing, skipping"
                     continue
                 end
                 @info "$i: $(Name[i]): Interpreting $(Name[i]).csv as a single Gaussian age constraint:\n | Age | Age $σstr |"
