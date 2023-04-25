@@ -40,22 +40,25 @@
         Name = collect(smpl.Name)::Vector{String}
         Path = smpl.Path::String
         Age_Unit = smpl.Age_Unit::String
+        σstr = "$(smpl.inputSigmaLevel)-sigma 𝑎𝑏𝑠𝑜𝑙𝑢𝑡𝑒"
 
         # Create and populate directory of screened output
         screenedpath = joinpath(Path, "screened/")
         mkpath(screenedpath)
         for i ∈ eachindex(Name)
-            # With screening
-            # Maximum offset before cutoff
             # Read data for each sample from file
             filepath = joinpath(Path, Name[i]*".csv")
             data_raw = readclean(filepath, ',', Float64)::Matrix{Float64}
+
             # Sort ages in ascending order
             data = sortslices(data_raw, dims=1)
-            ages, sigmas = if size(data,2) == 4
+            ages, sigmas = if size(data,2) == 5
+                # @info "$i: $(Name[i])\nInterpreting the five columns of $(Name[i]).csv as:\n | ²⁰⁷Pb/²³⁵U | $σstr | ²⁰⁶Pb/²³⁸U | $σstr | correlation coefficient |"
                 analyses = UPbAnalysis.(eachcol(data)...,)
-                val.(age68(analyses)), err.(age68(analyses)) ./ smpl.inputSigmaLevel
+                dates = age68.(analyses)
+                val.(dates), err.(dates) ./ smpl.inputSigmaLevel
             else
+                # @info "$i: $(Name[i])\nInterpreting first two columns of $(Name[i]).csv as \n | Age | Age $σstr |"
                 data[:,1], data[:,2] ./ smpl.inputSigmaLevel
             end
             sI = sortperm(ages)
@@ -69,7 +72,7 @@
                     fg_color_legend=:white,
                     legend=:topleft,
                     xlabel="N",
-                    ylabel="Age ($(smpl.Age_Unit))",
+                    ylabel="Age ($Age_Unit)",
                 )
                 plot!(hdl, index, ages, yerror=2sigmas,
                     seriestype=:scatter,
