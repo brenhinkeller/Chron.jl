@@ -9,7 +9,7 @@
     end
     function BilinearExponential(p::AbstractVector)
         @assert length(p) == 5
-        @assert all(x->x>0, Iterators.drop(p,1))
+        @assert all(x->!(x<0), Iterators.drop(p,1))
         BilinearExponential(p...)
     end
 
