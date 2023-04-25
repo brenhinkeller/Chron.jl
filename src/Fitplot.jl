@@ -86,20 +86,22 @@
             data = data[t, :]
             nanalyses = length(ages)
 
-            maxdt_sigma = maxgap*norm_width(nanalyses)/nanalyses
+            if nanalyses > 1
+                # Filter data to exclude outliers
+                maxdt_sigma = maxgap*norm_width(nanalyses)/nanalyses
+                sigma_mutual = nanmean(sigmas) * sqrt(2)
+                for j=nanalyses:-1:2
+                    dt_sigma = abs(ages[j]-ages[j-1]) / sigma_mutual # Time gap divided by relative sigma
 
-            # Filter data to exclude outliers
-            sigma_mutual = nanmean(sigmas) * sqrt(2)
-            for j=nanalyses:-1:2
-                dt_sigma = abs(ages[j]-ages[j-1]) / sigma_mutual # Time gap divided by relative sigma
-
-                # If we exceed the maximum allowed dt/sigma, delete any points
-                # below (older than) the gap
-                if dt_sigma>maxdt_sigma && j>2
-                    data = data[1:j-1,:]
-                    index = index[1:j-1]
+                    # If we exceed the maximum allowed dt/sigma, delete any points
+                    # below (older than) the gap
+                    if dt_sigma>maxdt_sigma && j>2
+                        data = data[1:j-1,:]
+                        index = index[1:j-1]
+                    end
                 end
             end
+
             if make_plots
                 # Rank-order plot of all individual ages for comparison
                 plot!(hdl, index, ages[1:length(index)], yerror=2sigmas[1:length(index)],
