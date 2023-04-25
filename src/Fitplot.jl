@@ -21,7 +21,21 @@
 
 ## --- Remove outliers
 
-    function screen_outliers(smpl::ChronAgeData; maxgap=100, make_plots=true)
+    """
+    ```julia
+    screen_outliers(smpl::ChronAgeData; agemin=0.0, agemax=Inf, maxgap=100, make_plots=true)
+    ```
+    Screen outliers from the `ChronAgeData` struct `smpl` (making new data files in
+    a `screened` subdirectory within `smpl.Path`) rejecting samples that either
+
+    a) Are older than `agemax` or younger than `agemin`
+
+    b) Are on the old side of a gap of more than `maxgap/N` sigma (e.g., xenocrysts)
+
+    If `make_plots` is `true`, plots showing screening results will be made in
+    `smpl.Path/screened`.
+    """
+    function screen_outliers(smpl::ChronAgeData; agemin=0.0, agemax=Inf, maxgap=100, make_plots=true)
         # Variables from struct
         Name = collect(smpl.Name)::Vector{String}
         Path = smpl.Path::String
@@ -38,24 +52,62 @@
             data_raw = readclean(filepath, ',', Float64)::Matrix{Float64}
             # Sort ages in ascending order
             data = sortslices(data_raw, dims=1)
-            nanalyses = size(data,1)
+            ages, sigmas = if size(data,2) == 4
+                analyses = UPbAnalysis.(eachcol(data)...,)
+                val.(age68(analyses)), err.(age68(analyses)) ./ smpl.inputSigmaLevel
+            else
+                data[:,1], data[:,2] ./ smpl.inputSigmaLevel
+            end
+            sI = sortperm(ages)
+            permute!(ages, sI)
+            permute!(sigmas, sI)
+            data = data[sI, :]
+            index = collect(1:length(ages))
+
+            if make_plots
+                hdl = plot(framestyle=:box,
+                    fg_color_legend=:white,
+                    legend=:topleft,
+                    xlabel="N",
+                    ylabel="Age ($(smpl.Age_Unit))",
+                )
+                plot!(hdl, index, ages, yerror=2sigmas,
+                    seriestype=:scatter,
+                    color=:red,
+                    mscolor=:red,
+                    label="rejected"
+                )
+            end
+
+            t = agemin .< ages .< agemax
+            keepat!(ages, t)
+            keepat!(sigmas, t)
+            keepat!(index, t)
+            data = data[t, :]
+            nanalyses = length(ages)
+
             maxdt_sigma = maxgap*norm_width(nanalyses)/nanalyses
 
             # Filter data to exclude outliers
-            sigma_mutual = nanmean(data[:,2]) / smpl.inputSigmaLevel * sqrt(2)
+            sigma_mutual = nanmean(sigmas) * sqrt(2)
             for j=nanalyses:-1:2
-                dt_sigma = abs(data[j,1]-data[j-1,1]) / sigma_mutual # Time gap divided by relative sigma
+                dt_sigma = abs(ages[j]-ages[j-1]) / sigma_mutual # Time gap divided by relative sigma
 
                 # If we exceed the maximum allowed dt/sigma, delete any points
                 # below (older than) the gap
                 if dt_sigma>maxdt_sigma && j>2
-                    data=data[1:j-1,:]
+                    data = data[1:j-1,:]
+                    index = index[1:j-1]
                 end
             end
             if make_plots
                 # Rank-order plot of all individual ages for comparison
-                hdl = plot(1:nanalyses,data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:red, markerstrokecolor=:red,label="rejected",legend=:topleft,framestyle=:box,fg_color_legend=:white)
-                plot!(hdl, 1:size(data,1),data[:,1],yerror=data[:,2]*2/smpl.inputSigmaLevel, seriestype=:scatter, color=:blue,markerstrokecolor=:blue,label="included",xlabel="N",ylabel="Age ($Age_Unit)")
+                plot!(hdl, index, ages[1:length(index)], yerror=2sigmas[1:length(index)],
+                    seriestype=:scatter,
+                    color=:blue,
+                    mscolor=:blue,
+                    label="included"
+                )
                 savefig(hdl, joinpath(screenedpath, Name[i]*"_screening.pdf"))
             end
             writedlm(joinpath(screenedpath, Name[i]*".csv"), data, ',')
