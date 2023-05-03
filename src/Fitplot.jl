@@ -54,6 +54,10 @@
             # Read data for each sample from file
             filepath = joinpath(Path, Name[i]*".csv")
             data_raw = readclean(filepath, ',', Float64)::Matrix{Float64}
+            if isempty(data_raw)
+                @warn "$i: $(Name[i]).csv is empty or missing, skipping"
+                continue
+            end
 
             # Sort ages in ascending order
             data = sortslices(data_raw, dims=1)
