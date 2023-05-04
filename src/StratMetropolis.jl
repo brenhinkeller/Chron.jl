@@ -49,7 +49,7 @@
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             (youngest, oldest) = extrema(Age)
             dt_dH = (oldest-youngest)/(top-bottom)
-            offset = (top-bottom)*bounding
+            offset = round((top-bottom)*bounding/resolution)*resolution
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
             Age_sigma = [aveuncert/10; Age_sigma; aveuncert/10]
             Height = [bottom-offset; Height; top+offset]
@@ -109,7 +109,7 @@
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             (youngest, oldest) = extrema(Age)
             dt_dH = (oldest-youngest)/(top-bottom)
-            offset = (top-bottom)*bounding
+            offset = round((top-bottom)*bounding/resolution)*resolution
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
             Age_sigma = [aveuncert/10; Age_sigma; aveuncert/10]
             Height = [bottom-offset; Height; top+offset]
@@ -196,7 +196,7 @@
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             (youngest, oldest) = extrema(Age)
             dt_dH = (oldest-youngest)/(top-bottom)
-            offset = (top-bottom)*bounding
+            offset = round((top-bottom)*bounding/resolution)*resolution
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
             Age_sigma = [aveuncert/10; Age_sigma; aveuncert/10]
             Height = [bottom-offset; Height; top+offset]
@@ -261,7 +261,7 @@
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             (youngest, oldest) = extrema(Age)
             dt_dH = (oldest-youngest)/(top-bottom)
-            offset = (top-bottom)*bounding
+            offset = round((top-bottom)*bounding/resolution)*resolution
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
             Age_sigma = [aveuncert/10; Age_sigma; aveuncert/10]
             Height = [bottom-offset; Height; top+offset]
@@ -349,7 +349,7 @@
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             (youngest, oldest) = extrema(Age)
             dt_dH = (oldest-youngest)/(top-bottom)
-            offset = (top-bottom)*bounding
+            offset = round((top-bottom)*bounding/resolution)*resolution
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
             Age_sigma = [aveuncert/10; Age_sigma; aveuncert/10]
             Height = [bottom-offset; Height; top+offset]
@@ -417,7 +417,7 @@
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             (youngest, oldest) = extrema(Age)
             dt_dH = (oldest-youngest)/(top-bottom)
-            offset = (top-bottom)*bounding
+            offset = round((top-bottom)*bounding/resolution)*resolution
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
             Age_sigma = [aveuncert/10; Age_sigma; aveuncert/10]
             Height = [bottom-offset; Height; top+offset]

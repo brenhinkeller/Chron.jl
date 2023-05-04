@@ -44,9 +44,9 @@ println("StratMetropolisDist:")
 
 # Test that results match expectation, within some tolerance
 @test mdl.Age isa Vector{Float64}
-@test isapprox(mdl.Age, [66.06, 66.05, 66.03, 66.02, 66.01, 66.0, 65.98, 65.97, 65.96, 65.94, 65.94, 65.93, 65.93, 65.9], atol=0.1)
-@test isapprox(mdl.Age_025CI, [66.0, 65.98, 65.96, 65.95, 65.94, 65.93, 65.93, 65.92, 65.92, 65.91, 65.91, 65.89, 65.88, 65.82], atol=0.15)
-@test isapprox(mdl.Age_975CI, [66.09, 66.09, 66.08, 66.08, 66.07, 66.07, 66.05, 66.04, 66.02, 65.97, 65.97, 65.96, 65.96, 65.95], atol=0.15)
+@test mdl.Age ≈ [66.07, 66.06, 66.05, 66.03, 66.02, 66.01, 65.99, 65.98, 65.97, 65.96, 65.94, 65.94, 65.93, 65.93, 65.89] atol=0.1
+@test mdl.Age_025CI ≈ [66.04, 66.0, 65.98, 65.96, 65.95, 65.94, 65.94, 65.93, 65.93, 65.92, 65.92, 65.91, 65.9, 65.89, 65.82] atol=0.15
+@test mdl.Age_975CI ≈ [66.1, 66.09, 66.09, 66.08, 66.08, 66.07, 66.06, 66.05, 66.03, 66.01, 65.97, 65.97, 65.96, 65.96, 65.95] atol=0.15
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 
@@ -62,9 +62,9 @@ println("StratMetropolisDist with systematic uncertainties:")
 
 # Test that results match expectation, within some tolerance
 @test mdl.Age isa Vector{Float64}
-@test isapprox(mdl.Age, [66.06, 66.05, 66.03, 66.02, 66.01, 66.0, 65.98, 65.97, 65.96, 65.94, 65.94, 65.93, 65.93, 65.9], atol=0.1)
-@test isapprox(mdl.Age_025CI, [66.0, 65.98, 65.96, 65.95, 65.94, 65.93, 65.93, 65.92, 65.92, 65.91, 65.91, 65.89, 65.88, 65.82], atol=0.15)
-@test isapprox(mdl.Age_975CI, [66.09, 66.09, 66.08, 66.08, 66.07, 66.07, 66.05, 66.04, 66.02, 65.97, 65.97, 65.96, 65.96, 65.95], atol=0.15)
+@test mdl.Age ≈ [66.07, 66.06, 66.05, 66.03, 66.02, 66.01, 65.99, 65.98, 65.97, 65.95, 65.94, 65.94, 65.93, 65.93, 65.89] atol=0.1
+@test mdl.Age_025CI ≈ [66.04, 66.0, 65.98, 65.96, 65.95, 65.94, 65.93, 65.93, 65.92, 65.92, 65.92, 65.91, 65.9, 65.88, 65.82] atol=0.15
+@test mdl.Age_975CI ≈ [66.1, 66.09, 66.09, 66.08, 66.08, 66.07, 66.06, 66.05, 66.03, 66.01, 65.97, 65.97, 65.96, 65.96, 65.95] atol=0.15
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 
@@ -83,9 +83,9 @@ println("StratMetropolisDist with hiata:")
 
 # Test that results match expectation, within some tolerance
 @test mdl.Age isa Vector{Float64}
-@test isapprox(mdl.Age, [66.08, 66.07, 66.07, 66.07, 66.02, 66.01, 66.01, 66.01, 65.94, 65.94, 65.93, 65.93, 65.92, 65.9], atol=0.1)
-@test isapprox(mdl.Age_025CI, [66.05, 66.04, 66.03, 66.02, 65.94, 65.94, 65.93, 65.93, 65.91, 65.9, 65.9, 65.89, 65.88, 65.82], atol=0.15)
-@test isapprox(mdl.Age_975CI, [66.1, 66.1, 66.1, 66.1, 66.08, 66.08, 66.08, 66.08, 65.98, 65.96, 65.96, 65.96, 65.96, 65.95], atol=0.15)
+@test mdl.Age ≈ [66.08, 66.08, 66.07, 66.07, 66.07, 66.02, 66.02, 66.01, 66.01, 65.94, 65.94, 65.93, 65.93, 65.92, 65.89] atol=0.1
+@test mdl.Age_025CI ≈ [66.06, 66.05, 66.04, 66.03, 66.02, 65.94, 65.94, 65.94, 65.93, 65.91, 65.91, 65.9, 65.89, 65.88, 65.82] atol=0.15
+@test mdl.Age_975CI ≈ [66.11, 66.1, 66.1, 66.1, 66.1, 66.08, 66.08, 66.08, 66.08, 65.98, 65.96, 65.96, 65.96, 65.96, 65.95] atol=0.15
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 
@@ -102,9 +102,9 @@ smpl.inputSigmaLevel = 1
 println("StratMetropolisDist with fitted Gaussians:")
 @time (mdl, agedist, lldist) = StratMetropolisDist(smpl, config)
 @test mdl.Age isa Vector{Float64}
-@test isapprox(mdl.Age, [65.97, 65.97, 65.96, 65.95, 65.95, 65.94, 65.93, 65.92, 65.92, 65.91, 65.9, 65.89, 65.87, 65.85], atol=0.1)
-@test isapprox(mdl.Age_025CI, [65.86, 65.86, 65.85, 65.85, 65.84, 65.84, 65.84, 65.83, 65.83, 65.83, 65.82, 65.77, 65.74, 65.72], atol=0.15)
-@test isapprox(mdl.Age_975CI, [66.07, 66.06, 66.06, 66.06, 66.06, 66.05, 66.04, 66.03, 66.02, 66.0, 65.99, 65.98, 65.97, 65.96], atol=0.15)
+@test mdl.Age ≈ [65.99, 65.98, 65.97, 65.96, 65.96, 65.95, 65.94, 65.93, 65.92, 65.91, 65.91, 65.9, 65.88, 65.86, 65.84] atol=0.1
+@test mdl.Age_025CI ≈ [65.87, 65.86, 65.86, 65.85, 65.85, 65.84, 65.84, 65.83, 65.83, 65.83, 65.82, 65.8, 65.75, 65.73, 65.7] atol=0.15
+@test mdl.Age_975CI ≈ [66.09, 66.09, 66.08, 66.08, 66.08, 66.07, 66.06, 66.05, 66.04, 66.02, 66.0, 65.99, 65.98, 65.97, 65.96] atol=0.15
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 
@@ -149,8 +149,8 @@ println("StratMetropolisDist, Pb-loss-aware:")
 
 # Test that results match expectation, within some tolerance
 @test mdl.Age isa Vector{Float64}
-@test isapprox(mdl.Age, [752.2, 752.14, 752.09, 752.03, 751.97, 751.68, 751.39, 751.09, 750.78], atol=0.3)
-@test isapprox(mdl.Age_025CI, [751.86, 751.8, 751.75, 751.7, 751.65, 750.93, 750.72, 750.61, 750.52], atol=0.7)
-@test isapprox(mdl.Age_975CI, [752.51, 752.47, 752.43, 752.37, 752.29, 752.2, 752.08, 751.85, 750.99], atol=0.7)
+@test mdl.Age ≈ [752.2, 752.14, 752.09, 752.03, 751.97, 751.68, 751.39, 751.09, 750.78] atol=0.3
+@test mdl.Age_025CI ≈ [751.86, 751.8, 751.75, 751.7, 751.65, 750.93, 750.72, 750.61, 750.52] atol=0.7
+@test mdl.Age_975CI ≈ [752.51, 752.47, 752.43, 752.37, 752.29, 752.2, 752.08, 751.85, 750.99] atol=0.7
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
