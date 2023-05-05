@@ -184,15 +184,18 @@
         @info "Estimating eruption/deposition age distributions..."
         for i ∈ eachindex(Name)
             include[i] || continue # Only calculate if include is true
-            if DistType[i] == 0 # A distribution to fit properly
-                # Read data for each sample from file
-                filepath = joinpath(Path, Name[i]*".csv")
-                data = readclean(filepath, ',', Float64)::Matrix{Float64}
-                if isempty(data)
-                    @warn "$i: $(Name[i]).csv is empty or missing, skipping"
-                    continue
-                end
 
+            # Read data for each sample from file
+            filepath = joinpath(Path, Name[i]*".csv")
+            data = readclean(filepath, ',', Float64)::Matrix{Float64}
+            if isempty(data)
+                @warn "$i: $(Name[i]).csv is empty or missing, skipping"
+                continue
+            end
+            # Interpret as simple Gaussian if only one row
+            size(data) == (2,1) && (DistType[i] = 1)
+
+            if DistType[i] == 0 # A distribution to fit properly
                 # Run MCMC to estimate eruption/deposition age distributions
                 if size(data, 2) == 5
                     @info "$i: $(Name[i])\nInterpreting the five columns of $(Name[i]).csv as:\n | ²⁰⁷Pb/²³⁵U | $σstr | ²⁰⁶Pb/²³⁸U | $σstr | correlation coefficient |"
@@ -273,13 +276,6 @@
                 end
 
             elseif DistType[i] == 1 # A single Gaussian
-                # Read data for each sample from file
-                filepath = joinpath(Path, Name[i]*".csv")
-                data = readclean(filepath, ',', Float64)::Matrix{Float64}
-                if isempty(data)
-                    @warn "$i: $(Name[i]).csv is empty or missing, skipping"
-                    continue
-                end
                 @info "$i: $(Name[i]): Interpreting $(Name[i]).csv as a single Gaussian age constraint:\n | Age | Age $σstr |"
                 μ = data[1,1]
                 σ = data[1,2]/smpl.inputSigmaLevel
