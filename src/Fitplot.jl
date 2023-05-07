@@ -193,7 +193,7 @@
                 continue
             end
             # Interpret as simple Gaussian if only one row
-            size(data) == (2,1) && (DistType[i] = 1)
+            size(data) == (1,2) && (DistType[i] = 1)
 
             if DistType[i] == 0 # A distribution to fit properly
                 # Run MCMC to estimate eruption/deposition age distributions
