@@ -51,11 +51,11 @@
     burnin = 100000 # Number of steps to discard at beginning of Markov chain
 
     # Run MCMC
-    tminDist = metropolis_min(nsteps,dist,ages,uncert)
+    tminDist = metropolis_min(nsteps,dist,ages,uncert; burnin)
 
     # Print results
-    AgeEst = nanmean(tminDist[burnin:end]);
-    AgeEst_sigma = nanstd(tminDist[burnin:end]);
+    AgeEst = nanmean(tminDist)
+    AgeEst_sigma = nanstd(tminDist)
     print("\nEstimated eruption age of synthetic dataset:\n $AgeEst +/- $(2*AgeEst_sigma) Ma (2σ)\n (True synthetic age 0 Ma)")
 
     # Plot results
@@ -92,24 +92,26 @@
 
 ## --  Run MCMC to estimate eruption age
     # Configure model
-    nsteps = 400000; # Length of Markov chain
+    nsteps = 4000000; # Length of Markov chain
     burnin = 150000; # Number of steps to discard at beginning of Markov chain
 
     # Run MCMC
-    tminDist = metropolis_min(nsteps,dist,ages,uncert);
+    tminDist = metropolis_min(nsteps,dist,ages,uncert; burnin);
     # Consider also:
-    # tminDist = metropolis_min(nsteps,UniformDistribution,ages,uncert);
-    # tminDist = metropolis_min(nsteps,TriangularDistribution,ages,uncert);
-    # tminDist = metropolis_min(nsteps,HalfNormalDistribution,ages,uncert);
-    # tminDist = metropolis_min(nsteps,MeltsVolcanicZirconDistribution,ages,uncert);
+    # tminDist = metropolis_min(nsteps,UniformDistribution,ages,uncert; burnin)
+    # tminDist = metropolis_min(nsteps,TriangularDistribution,ages,uncert; burnin)
+    # tminDist = metropolis_min(nsteps,HalfNormalDistribution,ages,uncert; burnin)
+    # tminDist = metropolis_min(nsteps,MeltsVolcanicZirconDistribution,ages,uncert; burnin)
 
     # Print results
-    AgeEst = nanmean(tminDist[burnin:end]);
-    AgeEst_sigma = nanstd(tminDist[burnin:end]);
-    print("\nEstimated eruption age:\n $AgeEst +/- $(2*AgeEst_sigma) Ma (2σ)\n")
+    AgeEst = nanmean(tminDist);
+    AgeEst_sigma = nanstd(tminDist);
+    ci = CI(tminDist)
+    flush(stdout)
+    print("\nEstimated eruption age:\n $AgeEst +/- $(2*AgeEst_sigma) Ma (2σ)\n $ci Ma (95% CI)")
 
     # Plot results
-    h = histogram(tminDist[burnin:end],nbins=100,
+    h = histogram(tminDist,nbins=100,
         label="Posterior distribution",
         xlabel="Eruption Age (Ma)",
         ylabel="N",
