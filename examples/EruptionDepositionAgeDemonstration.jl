@@ -78,11 +78,11 @@
 ## --- Calculate bootstrapped $\ \mathcal{\vec{f}}_{xtal}(t_r)$
     # Bootstrap the crystallization distribution,
     # accounting for any expected analytical "tail" beyond eruption/deposition
-    dist = BootstrapCrystDistributionKDE(ages, uncert)
-    dist ./= nanmean(dist) # Normalize
+    BootstrappedDistribution = BootstrapCrystDistributionKDE(ages, uncert)
+    BootstrappedDistribution ./= nanmean(BootstrappedDistribution) # Normalize
 
     # Plot bootstrapped distribution
-    plot(range(0,1,length=length(dist)),dist,
+    plot(range(0,1,length=length(BootstrappedDistribution)),BootstrappedDistribution,
         label="Bootstrapped f_xtal",
         ylabel="Probability Density",
         xlabel="Time before eruption (unitless)",
@@ -95,13 +95,16 @@
     nsteps = 4000000; # Length of Markov chain
     burnin = 150000; # Number of steps to discard at beginning of Markov chain
 
+
+    # Choose the form of the prior closure/crystallization distribution to use
+    dist = BootstrappedDistribution
+    ## You might alternatively consider:
+    # dist = UniformDistribution              # A reasonable default
+    # dist = MeltsVolcanicZirconDistribution  # A single magmatic pulse, truncated by eruption
+    # dist = ExponentialDistribution          # Applicable for survivorship processes, potentially including inheritance/dispersion in Ar-Ar dates
+
     # Run MCMC
     tminDist = metropolis_min(nsteps,dist,ages,uncert; burnin);
-    # Consider also:
-    # tminDist = metropolis_min(nsteps,UniformDistribution,ages,uncert; burnin)
-    # tminDist = metropolis_min(nsteps,TriangularDistribution,ages,uncert; burnin)
-    # tminDist = metropolis_min(nsteps,HalfNormalDistribution,ages,uncert; burnin)
-    # tminDist = metropolis_min(nsteps,MeltsVolcanicZirconDistribution,ages,uncert; burnin)
 
     # Print results
     AgeEst = nanmean(tminDist);
