@@ -41,7 +41,7 @@
                     data[:,4]./=smpl.inputSigmaLevel
                     analyses = UPbAnalysis.(eachcol(data)...,)
                     uis = upperintercept.(tpbloss, analyses)
-                    μ, σ = Isoplot.val.(uis), Isoplot.err.(uis)
+                    μ, σ = val.(uis), err.(uis)
                 else
                     @info "Interpreting first two columns of $(Name[i]).csv as \n | Age | Age $σstr |"
                     data[:,2]./=smpl.inputSigmaLevel

@@ -25,7 +25,7 @@ VectorizedStatistics = "3b853605-1c98-4422-8364-4bd93ee0529e"
 [compat]
 DelimitedFiles = "1"
 Distributions = "0.15 - 0.25"
-Isoplot = "0.2.10"
+Isoplot = "0.3"
 KernelDensity = "0.4 - 0.6"
 LoopVectorization = "0.12.113"
 LsqFit = "0.7 - 0.13"

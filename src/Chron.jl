@@ -25,6 +25,7 @@ module Chron
     @reexport using NaNStatistics
     @reexport using StatGeochemBase
     @reexport using Isoplot
+    using Isoplot: val, err
 
     # Basic statistics and UI resources
     using ProgressMeter: @showprogress, Progress, update!
