@@ -120,7 +120,7 @@
     function interpolate_ll(x::AbstractVector,p::AbstractMatrix{T}) where {T<:Number}
         ll = zero(T)
         @inbounds for i ∈ eachindex(x)
-            ll += linterp_at_index(view(p,:,i), x[i], -Inf)
+            ll += linterp_at_index(view(p,:,i), x[i], -1e9)
         end
         return ll
     end
@@ -128,7 +128,7 @@
         ll = zero(T)
         @inbounds for i ∈ eachindex(x,ages)
             dist = ages[i].dist
-            ll += linterp_at_index(dist, x[i], -Inf)
+            ll += linterp_at_index(dist, x[i], -1e9)
         end
         return ll
     end
