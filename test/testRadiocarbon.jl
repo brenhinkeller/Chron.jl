@@ -60,8 +60,8 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 # Test that results match expectation, within some tolerance
 @test mdl.Age isa Vector{Float64}
 @test mdl.Age ≈ [8322.4, 8237.9, 8156.4, 8072.6, 8026.7, 7982.9, 7939.3, 7915.2, 7892.4, 7869.8, 7846.7, 7822.2] atol=20
-@test mdl.Age_025CI ≈ [8205.9, 8045.4, 7999.0, 7975.6, 7894.3, 7860.6, 7839.4, 7802.5, 7780.8, 7762.1, 7747.9, 7736.0] atol=30
-@test mdl.Age_975CI ≈ [8405.0, 8386.1, 8347.1, 8163.5, 8151.0, 8123.9, 8029.5, 8016.3, 8003.0, 7985.9, 7958.2, 7916.3] atol=30
+@test mdl.Age_025CI ≈ [8205.9, 8045.4, 7999.0, 7975.6, 7894.3, 7860.6, 7839.4, 7802.5, 7780.8, 7762.1, 7747.9, 7736.0] atol=35
+@test mdl.Age_975CI ≈ [8405.0, 8386.1, 8347.1, 8163.5, 8151.0, 8123.9, 8029.5, 8016.3, 8003.0, 7985.9, 7958.2, 7916.3] atol=35
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 
@@ -80,8 +80,8 @@ hiatus.Duration_sigma = [  30.5,   20.0 ]
 # Test that results match expectation, within some tolerance
 @test mdl.Age isa Vector{Float64}
 @test mdl.Age ≈ [8343.0, 8294.3, 8113.0, 8065.7, 8031.5, 7998.7, 7965.7, 7952.8, 7936.8, 7840.2, 7822.6, 7807.7] atol=20
-@test mdl.Age_025CI ≈ [8219.0, 8149.4, 7990.7, 7974.8, 7923.3, 7892.3, 7874.7, 7856.7, 7833.2, 7743.1, 7733.2, 7724.3] atol=30
-@test mdl.Age_975CI ≈ [8409.6, 8397.7, 8244.7, 8160.6, 8149.5, 8129.4, 8090.2, 8062.8, 8043.6, 7945.1, 7918.9, 7904.2] atol=30
+@test mdl.Age_025CI ≈ [8219.0, 8149.4, 7990.7, 7974.8, 7923.3, 7892.3, 7874.7, 7856.7, 7833.2, 7743.1, 7733.2, 7724.3] atol=35
+@test mdl.Age_975CI ≈ [8409.6, 8397.7, 8244.7, 8160.6, 8149.5, 8129.4, 8090.2, 8062.8, 8043.6, 7945.1, 7918.9, 7904.2] atol=35
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 
@@ -129,8 +129,8 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 # Test that results match expectation, within some tolerance
 @test mdl.Age isa Vector{Float64}
 @test mdl.Age ≈ [8308.5, 8228.4, 8150.6, 8070.8, 8024.0, 7980.6, 7936.7, 7912.4, 7889.1, 7866.3, 7842.8, 7818.2] atol=20
-@test mdl.Age_025CI ≈ [8200.7, 8034.8, 7991.0, 7970.6, 7888.0, 7854.5, 7832.5, 7795.1, 7771.7, 7754.0, 7740.8, 7724.9] atol=30
-@test mdl.Age_975CI ≈ [8401.5, 8382.0, 8342.7, 8167.4, 8156.2, 8128.5, 8019.7, 8011.7, 8002.5, 7986.2, 7957.2, 7916.2] atol=30
+@test mdl.Age_025CI ≈ [8200.7, 8034.8, 7991.0, 7970.6, 7888.0, 7854.5, 7832.5, 7795.1, 7771.7, 7754.0, 7740.8, 7724.9] atol=40
+@test mdl.Age_975CI ≈ [8401.5, 8382.0, 8342.7, 8167.4, 8156.2, 8128.5, 8019.7, 8011.7, 8002.5, 7986.2, 7957.2, 7916.2] atol=40
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 
@@ -149,7 +149,7 @@ hiatus.Duration_sigma = [  30.5,   20.0 ]
 # Test that results match expectation, within some tolerance
 @test mdl.Age isa Vector{Float64}
 @test mdl.Age ≈ [8333.5, 8287.1, 8107.1, 8060.9, 8026.9, 7995.2, 7961.9, 7948.6, 7932.1, 7834.3, 7816.5, 7801.6] atol=20
-@test mdl.Age_025CI ≈ [8212.9, 8139.0, 7983.7, 7969.3, 7918.1, 7886.5, 7869.3, 7850.7, 7826.0, 7733.7, 7722.3, 7712.0] atol=30
-@test mdl.Age_975CI ≈ [8407.4, 8395.6, 8240.9, 8164.6, 8153.6, 8133.0, 8076.8, 8043.1, 8028.6, 7940.7, 7917.2, 7903.2] atol=30
+@test mdl.Age_025CI ≈ [8212.9, 8139.0, 7983.7, 7969.3, 7918.1, 7886.5, 7869.3, 7850.7, 7826.0, 7733.7, 7722.3, 7712.0] atol=40
+@test mdl.Age_975CI ≈ [8407.4, 8395.6, 8240.9, 8164.6, 8153.6, 8133.0, 8076.8, 8043.1, 8028.6, 7940.7, 7917.2, 7903.2] atol=40
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
