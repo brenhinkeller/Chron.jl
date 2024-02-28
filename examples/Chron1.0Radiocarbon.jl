@@ -35,7 +35,7 @@
 ## --- Calculate and plot calendar age PDFs for each sample - - - - - - - - - -
 
     # Choice of radiocarbon calibration
-    # Options include: intcal13, intcal20, shcal20
+    # Options include: intcal13, intcal20, shcal20, marine20
     calibration = intcal20
 
     smpl.Params = fill(NaN, length(calibration.Age_Calendar), nSamples)
