@@ -110,3 +110,5 @@
         Age_025CI::Vector{Float64}
         Age_975CI::Vector{Float64}
     end
+
+    Base.NamedTuple(mdl::StratAgeModel) = NamedTuple{fieldnames(typeof(mdl))}(ntuple(i->getfield(mdl, i), nfields(mdl)))

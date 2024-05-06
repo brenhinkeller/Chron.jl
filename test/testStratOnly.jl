@@ -31,6 +31,7 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 
+@test NamedTuple(mdl) isa NamedTuple
 
 # Data about hiatuses
 nHiatuses = 2 # The number of hiatuses you have data for
