@@ -111,4 +111,16 @@
         Age_975CI::Vector{Float64}
     end
 
+    function StratAgeModel(heights, agedist)
+        agedistₜ = copy(agedist)
+        StratAgeModel(
+            heights, # Model heights
+            vmean(agedistₜ,dim=2), # Mean age
+            vstd(agedistₜ,dim=2), # Standard deviation
+            vmedian!(agedistₜ,dim=2), # Median age
+            vpercentile!(agedistₜ,2.5,dim=2), # 2.5th percentile
+            vpercentile!(agedistₜ,97.5,dim=2) # 97.5th percentile
+        )
+    end
+
     Base.NamedTuple(mdl::StratAgeModel) = NamedTuple{fieldnames(typeof(mdl))}(ntuple(i->getfield(mdl, i), nfields(mdl)))

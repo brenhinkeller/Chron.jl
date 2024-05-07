@@ -70,16 +70,8 @@
 
         # Crop the result
         agedist = agedist[active_height_t,:]
-        agedistₜ = copy(agedist)
-
-        mdl = StratAgeModel(
-            model_heights[active_height_t], # Model heights
-            vmean(agedist,dim=2), # Mean age
-            vstd(agedist,dim=2), # Standard deviation
-            vmedian!(agedistₜ,dim=2), # Median age
-            vpercentile!(agedistₜ,2.5,dim=2), # 2.5th percentile
-            vpercentile!(agedistₜ,97.5,dim=2) # 97.5th percentile
-        )
+        model_heights = model_heights[active_height_t]
+        mdl = StratAgeModel(model_heights, agedist)
 
         return mdl, agedist, lldist
     end
@@ -130,16 +122,8 @@
 
         # Crop the result
         agedist = agedist[active_height_t,:]
-        agedistₜ = copy(agedist)
-
-        mdl = StratAgeModel(
-            model_heights[active_height_t], # Model heights
-            vmean(agedist,dim=2), # Mean age
-            vstd(agedist,dim=2), # Standard deviation
-            vmedian!(agedistₜ,dim=2), # Median age
-            vpercentile!(agedistₜ,2.5,dim=2), # 2.5th percentile
-            vpercentile!(agedistₜ,97.5,dim=2) # 97.5th percentile
-        )
+        model_heights = model_heights[active_height_t]
+        mdl = StratAgeModel(model_heights, agedist)
 
         return mdl, agedist, lldist, hiatusdist
     end
@@ -221,16 +205,8 @@
 
         # Crop the result
         agedist = agedist[active_height_t,:]
-        agedistₜ = copy(agedist)
-
-        mdl = StratAgeModel(
-            model_heights[active_height_t], # Model heights
-            vmean(agedist,dim=2), # Mean age
-            vstd(agedist,dim=2), # Standard deviation
-            vmedian!(agedistₜ,dim=2), # Median age
-            vpercentile!(agedistₜ,2.5,dim=2), # 2.5th percentile
-            vpercentile!(agedistₜ,97.5,dim=2) # 97.5th percentile
-        )
+        model_heights = model_heights[active_height_t]
+        mdl = StratAgeModel(model_heights, agedist)
 
         return mdl, agedist, lldist
     end
@@ -285,17 +261,9 @@
 
         # Crop the result
         agedist = agedist[active_height_t,:]
-        agedistₜ = copy(agedist)
-
-        mdl = StratAgeModel(
-            model_heights[active_height_t], # Model heights
-            vmean(agedist,dim=2), # Mean age
-            vstd(agedist,dim=2), # Standard deviation
-            vmedian!(agedistₜ,dim=2), # Median age
-            vpercentile!(agedistₜ,2.5,dim=2), # 2.5th percentile
-            vpercentile!(agedistₜ,97.5,dim=2) # 97.5th percentile
-        )
-
+        model_heights = model_heights[active_height_t]
+        mdl = StratAgeModel(model_heights, agedist)
+        
         return mdl, agedist, lldist, hiatusdist
     end
 
@@ -374,16 +342,8 @@
 
         # Crop the result
         agedist = agedist[active_height_t,:]
-        agedistₜ = copy(agedist)
-
-        mdl = StratAgeModel(
-            model_heights[active_height_t], # Model heights
-            vmean(agedist,dim=2), # Mean age
-            vstd(agedist,dim=2), # Standard deviation
-            vmedian!(agedistₜ,dim=2), # Median age
-            vpercentile!(agedistₜ,2.5,dim=2), # 2.5th percentile
-            vpercentile!(agedistₜ,97.5,dim=2) # 97.5th percentile
-        )
+        model_heights = model_heights[active_height_t]
+        mdl = StratAgeModel(model_heights, agedist)
 
         return mdl, agedist, lldist
     end
@@ -442,16 +402,8 @@
 
         # Crop the result
         agedist = agedist[active_height_t,:]
-        agedistₜ = copy(agedist)
-
-        mdl = StratAgeModel(
-            model_heights[active_height_t], # Model heights
-            vmean(agedist,dim=2), # Mean age
-            vstd(agedist,dim=2), # Standard deviation
-            vmedian!(agedistₜ,dim=2), # Median age
-            vpercentile!(agedistₜ,2.5,dim=2), # 2.5th percentile
-            vpercentile!(agedistₜ,97.5,dim=2) # 97.5th percentile
-        )
+        model_heights = model_heights[active_height_t]
+        mdl = StratAgeModel(model_heights, agedist)
 
         return mdl, agedist, lldist, hiatusdist
     end
