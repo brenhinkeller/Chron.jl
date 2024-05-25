@@ -47,8 +47,8 @@ hiatus.Duration_sigma = [   3.1,    2.0 ]
 
 # Test that results match expectation, within some tolerance
 @test mdl.Age isa Vector{Float64}
-@test mdl.Age ≈ [753.23, 748.14, 729.73, 724.3, 721.09, 718.04, 714.96, 713.54, 711.82, 701.99, 699.95, 698.21] atol=1
-@test mdl.Age_025CI ≈ [744.19, 734.06, 718.01, 715.91, 710.5, 707.73, 705.75, 703.97, 701.87, 694.01, 693.25, 692.56] atol=3
-@test mdl.Age_975CI ≈ [762.31, 760.19, 743.82, 732.92, 730.96, 728.45, 724.28, 723.32, 722.16, 712.29, 708.49, 703.75] atol=4
+@test mdl.Age ≈ [752.73, 747.82, 728.84, 724.13, 720.83, 717.67, 714.49, 713.02, 711.48, 700.71, 699.33, 697.95] atol=1
+@test mdl.Age_025CI ≈ [743.41, 734.96, 717.54, 715.41, 709.67, 707.05, 705.26, 703.72, 702.49, 693.27, 692.65, 692.06] atol=3
+@test mdl.Age_975CI ≈ [761.77, 759.23, 741.37, 732.59, 730.64, 728.05, 723.52, 722.34, 720.9, 709.03, 706.78, 703.46] atol=4
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])

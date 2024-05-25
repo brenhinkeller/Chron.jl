@@ -79,9 +79,9 @@ hiatus.Duration_sigma = [  30.5,   20.0 ]
 
 # Test that results match expectation, within some tolerance
 @test mdl.Age isa Vector{Float64}
-@test mdl.Age ≈ [8343.0, 8294.3, 8113.0, 8065.7, 8031.5, 7998.7, 7965.7, 7952.8, 7936.8, 7840.2, 7822.6, 7807.7] atol=20
-@test mdl.Age_025CI ≈ [8219.0, 8149.4, 7990.7, 7974.8, 7923.3, 7892.3, 7874.7, 7856.7, 7833.2, 7743.1, 7733.2, 7724.3] atol=35
-@test mdl.Age_975CI ≈ [8409.6, 8397.7, 8244.7, 8160.6, 8149.5, 8129.4, 8090.2, 8062.8, 8043.6, 7945.1, 7918.9, 7904.2] atol=35
+@test mdl.Age ≈ [8339.84, 8294.33, 8107.77, 8064.14, 8029.11, 7995.66, 7961.79, 7949.08, 7936.17, 7828.04, 7815.81, 7803.7] atol=20
+@test mdl.Age_025CI ≈ [8217.14, 8161.73, 7991.82, 7974.87, 7921.84, 7891.41, 7874.27, 7858.89, 7844.64, 7739.61, 7730.51, 7721.97] atol=35
+@test mdl.Age_975CI ≈ [8408.06, 8394.94, 8231.34, 8159.62, 8147.76, 8123.97, 8054.25, 8039.57, 8025.91, 7918.86, 7907.9, 7889.46] atol=35
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 
@@ -117,7 +117,7 @@ config.resolution = 5 # Same units as sample height. Smaller is slower!
 config.bounding = 0.5 # how far away do we place runaway bounds, as a fraction of total section height
 (bottom, top) = extrema(smpl.Height)
 npoints_approx = round(Int,length(bottom:config.resolution:top) * (1 + 2*config.bounding))
-config.nsteps = 100000 # Number of steps to run in distribution MCMC
+config.nsteps = 1000000 # Number of steps to run in distribution MCMC
 config.burnin = 100000*npoints_approx # Number to discard
 config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -148,8 +148,8 @@ hiatus.Duration_sigma = [  30.5,   20.0 ]
 
 # Test that results match expectation, within some tolerance
 @test mdl.Age isa Vector{Float64}
-@test mdl.Age ≈ [8333.5, 8287.1, 8107.1, 8060.9, 8026.9, 7995.2, 7961.9, 7948.6, 7932.1, 7834.3, 7816.5, 7801.6] atol=20
-@test mdl.Age_025CI ≈ [8212.9, 8139.0, 7983.7, 7969.3, 7918.1, 7886.5, 7869.3, 7850.7, 7826.0, 7733.7, 7722.3, 7712.0] atol=40
-@test mdl.Age_975CI ≈ [8407.4, 8395.6, 8240.9, 8164.6, 8153.6, 8133.0, 8076.8, 8043.1, 8028.6, 7940.7, 7917.2, 7903.2] atol=40
+@test mdl.Age ≈ [8328.02, 8284.17, 8099.46, 8057.85, 8023.46, 7991.04, 7958.17, 7945.3, 7932.21, 7821.86, 7809.53, 7797.44] atol=20
+@test mdl.Age_025CI ≈ [8202.92, 8138.36, 7974.42, 7960.03, 7896.94, 7874.23, 7858.76, 7842.18, 7827.89, 7717.17, 7709.2, 7703.73] atol=40
+@test mdl.Age_975CI ≈ [8405.45, 8391.43, 8225.43, 8163.38, 8151.17, 8123.45, 8030.52, 8023.59, 8016.78, 7913.76, 7904.32, 7877.73] atol=40
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])

@@ -711,28 +711,14 @@
                     end
                 end
 
-                # If chosen_point is a hiatus point, let there be a 20 percent chance of
-                # adjusting the point below the hiatus as well
-                if rand() < 0.2
-                    # if Hiatus_height_uncert>0
-                    #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
-                    # end
-                    if any(closest_hiatus_unique.==chosen_point)
-                        chosen_point -= 1
-                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
-                        #Resolve conflicts
-                        if r > 0 # If proposing increased age
-                            @inbounds for i=1:chosen_point # younger points below
-                                if model_agesₚ[i] < model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
-                        else # if proposing decreased age
-                            @inbounds for i=chosen_point:npoints # older points above
-                                if model_agesₚ[i] > model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
+                # Move discontinuities to the nearest hiatus, if one not already present
+                for h in rand(closest_hiatus_unique, length(closest_hiatus_unique))
+                    if model_agesₚ[h-1] == model_agesₚ[h]
+                        n = findclosestunequal(model_agesₚ, h)
+                        if n < h
+                            model_agesₚ[n:h-1] .= model_agesₚ[n]
+                        elseif n > h
+                            model_agesₚ[h:n] .= model_agesₚ[n]
                         end
                     end
                 end
@@ -818,28 +804,14 @@
                     end
                 end
 
-                # If chosen_point is a hiatus point, let there be a 20 percent chance of
-                # adjusting the point below the hiatus as well
-                if rand() < 0.2
-                    # if Hiatus_height_uncert>0
-                    #     closest_hiatus = findclosestabove(h.Height+randn(size(h.Height)).*Hiatus_height_uncert,heights)
-                    # end
-                    if any(closest_hiatus_unique.==chosen_point)
-                        chosen_point -= 1
-                        model_agesₚ[chosen_point] = model_ages[chosen_point] + r
-                        #Resolve conflicts
-                        if r > 0 # If proposing increased age
-                            @inbounds for i=1:chosen_point # younger points below
-                                if model_agesₚ[i] < model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
-                        else # if proposing decreased age
-                            @inbounds for i=chosen_point:npoints # older points above
-                                if model_agesₚ[i] > model_agesₚ[chosen_point]
-                                    model_agesₚ[i] = model_agesₚ[chosen_point]
-                                end
-                            end
+                # Move discontinuities to the nearest hiatus, if one not already present
+                for h in rand(closest_hiatus_unique, length(closest_hiatus_unique))
+                    if model_agesₚ[h-1] == model_agesₚ[h]
+                        n = findclosestunequal(model_agesₚ, h)
+                        if n < h
+                            model_agesₚ[n:h-1] .= model_agesₚ[n]
+                        elseif n > h
+                            model_agesₚ[h:n] .= model_agesₚ[n]
                         end
                     end
                 end
