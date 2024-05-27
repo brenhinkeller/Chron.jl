@@ -712,7 +712,8 @@
                 end
 
                 # Move discontinuities to the nearest hiatus, if one not already present
-                for h in rand(closest_hiatus_unique, length(closest_hiatus_unique))
+                for _ in 1:(length(closest_hiatus_unique)÷2)
+                    h = rand(closest_hiatus_unique)
                     if model_agesₚ[h-1] == model_agesₚ[h]
                         n = findclosestunequal(model_agesₚ, h)
                         if n < h
@@ -809,7 +810,8 @@
                 end
 
                 # Move discontinuities to the nearest hiatus, if one not already present
-                for h in rand(closest_hiatus_unique, length(closest_hiatus_unique))
+                for _ in 1:(length(closest_hiatus_unique)÷2)
+                    h = rand(closest_hiatus_unique)
                     if model_agesₚ[h-1] == model_agesₚ[h]
                         n = findclosestunequal(model_agesₚ, h)
                         if n < h

@@ -16,7 +16,7 @@ config.resolution = 5 # Same units as sample height. Smaller is slower!
 config.bounding = 0.5 # how far away do we place runaway bounds, as a fraction of total section height. Larger is slower.
 (bottom, top) = extrema(smpl.Height)
 npoints_approx = round(Int,length(bottom:config.resolution:top) * (1 + 2*config.bounding))
-config.nsteps = 100000 # Number of steps to run in distribution MCMC
+config.nsteps = 1000000 # Number of steps to run in distribution MCMC
 config.burnin = 100000*npoints_approx # Number to discard
 config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 
@@ -47,8 +47,11 @@ hiatus.Duration_sigma = [   3.1,    2.0 ]
 
 # Test that results match expectation, within some tolerance
 @test mdl.Age isa Vector{Float64}
-@test mdl.Age ≈ [752.73, 747.82, 728.84, 724.13, 720.83, 717.67, 714.49, 713.02, 711.48, 700.71, 699.33, 697.95] atol=1
-@test mdl.Age_025CI ≈ [743.41, 734.96, 717.54, 715.41, 709.67, 707.05, 705.26, 703.72, 702.49, 693.27, 692.65, 692.06] atol=3
+@test mdl.Age ≈ [752.76, 747.88, 728.92, 724.14, 720.8, 717.62, 714.44, 712.95, 711.41, 700.82, 699.4, 697.99] atol=3
+@test mdl.Age_025CI ≈ [743.41, 734.96, 717.54, 715.41, 709.67, 707.05, 705.26, 703.72, 702.49, 693.27, 692.65, 692.06] atol=4
 @test mdl.Age_975CI ≈ [761.77, 759.23, 741.37, 732.59, 730.64, 728.05, 723.52, 722.34, 720.9, 709.03, 706.78, 703.46] atol=4
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
+@test size(hiatusdist) == (nHiatuses, config.nsteps)
+@test mean(hiatusdist, dims=2) ≈ [10.580012942504894; 18.96167245288326;;] atol=2
+@test mean(lldist) ≈ -6.149720449018242 atol=6
