@@ -125,7 +125,7 @@
         model_heights = model_heights[active_height_t]
         mdl = StratAgeModel(model_heights, agedist)
 
-        return mdl, agedist, lldist, hiatusdist
+        return mdl, agedist, hiatusdist, lldist
     end
 
 ## --- Stratigraphic MCMC model without hiatus, with distribution LL # # # # # #
@@ -264,7 +264,7 @@
         model_heights = model_heights[active_height_t]
         mdl = StratAgeModel(model_heights, agedist)
         
-        return mdl, agedist, lldist, hiatusdist
+        return mdl, agedist, hiatusdist, lldist
     end
 
 ## --- Stratigraphic MCMC model without hiatus, for radiocarbon ages # # # # # #
@@ -405,7 +405,7 @@
         model_heights = model_heights[active_height_t]
         mdl = StratAgeModel(model_heights, agedist)
 
-        return mdl, agedist, lldist, hiatusdist
+        return mdl, agedist, hiatusdist, lldist
     end
 
 ## --- # Internals of the Markov chain
@@ -716,9 +716,13 @@
                     if model_agesₚ[h-1] == model_agesₚ[h]
                         n = findclosestunequal(model_agesₚ, h)
                         if n < h
-                            model_agesₚ[n:h-1] .= model_agesₚ[n]
+                            @inbounds for i = n:h-1
+                                model_agesₚ[i] = model_agesₚ[n]
+                            end
                         elseif n > h
-                            model_agesₚ[h:n] .= model_agesₚ[n]
+                            @inbounds for i = h:n
+                                model_agesₚ[i] = model_agesₚ[n]
+                            end
                         end
                     end
                 end
@@ -740,7 +744,7 @@
 
             # Add log likelihood for hiatus duration
             @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
-            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+            llₚ += normcdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
@@ -809,9 +813,13 @@
                     if model_agesₚ[h-1] == model_agesₚ[h]
                         n = findclosestunequal(model_agesₚ, h)
                         if n < h
-                            model_agesₚ[n:h-1] .= model_agesₚ[n]
+                            @inbounds for i = n:h-1
+                                model_agesₚ[i] = model_agesₚ[n]
+                            end
                         elseif n > h
-                            model_agesₚ[h:n] .= model_agesₚ[n]
+                            @inbounds for i = h:n
+                                model_agesₚ[i] = model_agesₚ[n]
+                            end
                         end
                     end
                 end
@@ -832,7 +840,7 @@
 
             # Add log likelihood for hiatus duration
             @. durationₚ = model_agesₚ[closest_hiatus_unique - 1] - model_agesₚ[closest_hiatus_unique]
-            llₚ += normcdf_ll!(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
+            llₚ += normcdf_ll(Hiatus_duration, Hiatus_duration_sigma, durationₚ)
 
             # Accept or reject proposal based on likelihood
             if log(rand(Float64)) < (llₚ - ll)
