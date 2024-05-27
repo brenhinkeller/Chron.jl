@@ -543,8 +543,8 @@
 
         # Run Markov Chain Monte Carlo
         @info "Collecting sieved stationary distribution: $(nsteps*sieve) steps"
-        agedist = Array{Float64}(undef,npoints,nsteps)
-        lldist = Array{Float64}(undef,nsteps)
+        agedist = fill(NaN, npoints,nsteps)
+        lldist = fill(NaN, nsteps)
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
@@ -764,9 +764,9 @@
 
         # Run Markov Chain Monte Carlo
         @info "Collecting sieved stationary distribution: $(nsteps*sieve) steps"
-        agedist = Array{Float64}(undef,npoints,nsteps)
-        lldist = Array{Float64}(undef,nsteps)
-        hiatusdist = Array{Float64}(undef,length(duration),nsteps)
+        agedist = fill(NaN, npoints,nsteps)
+        lldist = fill(NaN, nsteps)
+        hiatusdist = fill(NaN, length(duration),nsteps)
 
         # Run the model
         pgrs = Progress(nsteps*sieve, desc="Collecting...")
@@ -852,6 +852,7 @@
                 copyto!(duration, durationₚ)
                 copyto!(sample_height, sample_heightₚ)
             end
+            isnan(ll) && error("aaaaaaaaaaaaa")
 
             # Record sieved results
             if mod(n,sieve) == 0

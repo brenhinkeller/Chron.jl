@@ -44,7 +44,6 @@ hiatus.Duration_sigma = [   3.1,    2.0 ]
 # Run the model. Note the additional `hiatus` arguments
 @time (mdl, agedist, hiatusdist, lldist) = StratMetropolis(smpl, hiatus, config); sleep(0.5)
 
-
 # Test that results match expectation, within some tolerance
 @test mdl.Age isa Vector{Float64}
 @test mdl.Age ≈ [752.76, 747.88, 728.92, 724.14, 720.8, 717.62, 714.44, 712.95, 711.41, 700.82, 699.4, 697.99] atol=3
