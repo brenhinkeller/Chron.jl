@@ -36,13 +36,17 @@
         # Stratigraphic age constraints
         Age = copy(smpl.Age)::Vector{Float64}
         Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
-        aveuncert = nanmean(Age_sigma)
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
         Chronometer = smpl.Chronometer
         (bottom, top) = extrema(Height)
         model_heights = bottom:resolution:top
+
+        aveuncert = nanmean(Age_sigma)
+        absdiff = diff(sort!(Age[Age_Sidedness.==0]))
+        maxdiff = isempty(absdiff) ? 0.0 : nanmaximum(absdiff)
+        proposal_sigma = sqrt(aveuncert^2 + (maxdiff/10)^2)
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
@@ -66,7 +70,7 @@
 
         # Run the Markov chain
         ages = Normal.(Age, Age_sigma)
-        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, aveuncert, burnin, nsteps, sieve, Chronometer, systematic)
+        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve, Chronometer, systematic)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -89,12 +93,16 @@
         # Stratigraphic age constraints. Type assertions for stability
         Age = copy(smpl.Age)::Vector{Float64}
         Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
-        aveuncert = nanmean(Age_sigma)
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
         (bottom, top) = extrema(Height)
         model_heights = bottom:resolution:top
+
+        aveuncert = nanmean(Age_sigma)
+        absdiff = diff(sort!(Age[Age_Sidedness.==0]))
+        maxdiff = isempty(absdiff) ? 0.0 : nanmaximum(absdiff)
+        proposal_sigma = sqrt(aveuncert^2 + (maxdiff/10)^2)
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
@@ -118,7 +126,7 @@
 
         # Run the Markov chain
         ages = Normal.(Age, Age_sigma)
-        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, aveuncert, burnin, nsteps, sieve)
+        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -165,7 +173,6 @@
         # Stratigraphic age constraints
         Age = copy(smpl.Age)::Vector{Float64}
         Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
-        aveuncert = nanmean(Age_sigma)
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
@@ -174,6 +181,10 @@
         (bottom, top) = extrema(Height)
         model_heights = bottom:resolution:top
 
+        aveuncert = nanmean(Age_sigma)
+        absdiff = diff(sort!(Age[Age_Sidedness.==0]))
+        maxdiff = isempty(absdiff) ? 0.0 : nanmaximum(absdiff)
+        proposal_sigma = sqrt(aveuncert^2 + (maxdiff/10)^2)
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
@@ -201,7 +212,7 @@
 
         # Run the Markov chain
         ages = BilinearExponential.(eachcol(p))
-        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, aveuncert, burnin, nsteps, sieve, Chronometer, systematic)
+        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve, Chronometer, systematic)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -224,13 +235,17 @@
         # Stratigraphic age constraints
         Age = copy(smpl.Age)::Vector{Float64}
         Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
-        aveuncert = nanmean(Age_sigma)
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
         p = copy(smpl.Params)::Matrix{Float64}
         (bottom, top) = extrema(Height)
         model_heights = bottom:resolution:top
+
+        aveuncert = nanmean(Age_sigma)
+        absdiff = diff(sort!(Age[Age_Sidedness.==0]))
+        maxdiff = isempty(absdiff) ? 0.0 : nanmaximum(absdiff)
+        proposal_sigma = sqrt(aveuncert^2 + (maxdiff/10)^2)
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
@@ -257,7 +272,7 @@
 
         # Run the Markov chain
         ages = BilinearExponential.(eachcol(p))
-        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, aveuncert, burnin, nsteps, sieve)
+        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -304,13 +319,17 @@
         # Stratigraphic age constraints
         Age = copy(smpl.Age)::Vector{Float64}
         Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
-        aveuncert = nanmean(Age_sigma)
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
         p = copy(smpl.Params)::Matrix{Float64}
         (bottom, top) = extrema(Height)
         model_heights = bottom:resolution:top
+
+        aveuncert = nanmean(Age_sigma)
+        absdiff = diff(sort!(Age[Age_Sidedness.==0]))
+        maxdiff = isempty(absdiff) ? 0.0 : nanmaximum(absdiff)
+        proposal_sigma = sqrt(aveuncert^2 + (maxdiff/10)^2)
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
@@ -338,7 +357,7 @@
 
         # Run the Markov chain
         ages = Radiocarbon.(Age, Age_sigma, (collect(c) for c in eachcol(p)))
-        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, aveuncert, burnin, nsteps, sieve)
+        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -364,13 +383,17 @@
         # Stratigraphic age constraints
         Age = copy(smpl.Age)::Vector{Float64}
         Age_sigma = copy(smpl.Age_sigma)::Vector{Float64}
-        aveuncert = nanmean(Age_sigma)
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
         p = copy(smpl.Params)::Matrix{Float64}
         (bottom, top) = extrema(Height)
         model_heights = bottom:resolution:top
+
+        aveuncert = nanmean(Age_sigma)
+        absdiff = diff(sort!(Age[Age_Sidedness.==0]))
+        maxdiff = isempty(absdiff) ? 0.0 : nanmaximum(absdiff)
+        proposal_sigma = sqrt(aveuncert^2 + (maxdiff/10)^2)
 
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
@@ -398,7 +421,7 @@
 
         # Run the Markov chain
         ages = Radiocarbon.(Age, Age_sigma, (collect(c) for c in eachcol(p)))
-        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, aveuncert, burnin, nsteps, sieve)
+        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -443,7 +466,7 @@
         return ages
     end
 
-    function stratmetropolis(Height, Height_sigma, model_heights::AbstractRange, Age_Sidedness, ages, model_ages, aveuncert, burnin::Integer, nsteps::Integer, sieve::Integer, Chronometer=nothing, systematic=nothing)
+    function stratmetropolis(Height, Height_sigma, model_heights::AbstractRange, Age_Sidedness, ages, model_ages, proposal_sigma, burnin::Integer, nsteps::Integer, sieve::Integer, Chronometer=nothing, systematic=nothing)
         resolution = step(model_heights)
         npoints = length(model_heights)
 
@@ -494,7 +517,7 @@
                 end
             else
                 # Adjust one point at a time then resolve conflicts
-                r = randn() * aveuncert # Generate a random adjustment
+                r = randn() * proposal_sigma # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
                 model_agesₚ[chosen_point] += r
                 #Resolve conflicts
@@ -569,7 +592,7 @@
                 end
             else
                 # Adjust one point at a time then resolve conflicts
-                r = randn() * aveuncert # Generate a random adjustment
+                r = randn() * proposal_sigma # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
                 model_agesₚ[chosen_point] += r
                 #Resolve conflicts
@@ -623,7 +646,7 @@
         return agedist, lldist
     end
 
-    function stratmetropolis(hiatus::HiatusData, Height, Height_sigma, model_heights::AbstractRange, Age_Sidedness, ages, model_ages, aveuncert, burnin::Integer, nsteps::Integer, sieve::Integer, Chronometer=nothing, systematic=nothing)
+    function stratmetropolis(hiatus::HiatusData, Height, Height_sigma, model_heights::AbstractRange, Age_Sidedness, ages, model_ages, proposal_sigma, burnin::Integer, nsteps::Integer, sieve::Integer, Chronometer=nothing, systematic=nothing)
         resolution = step(model_heights)
         npoints = length(model_heights)
 
@@ -693,7 +716,7 @@
                 end
             else
                 # Adjust one point at a time then resolve conflicts
-                r = randn() * aveuncert # Generate a random adjustment
+                r = randn() * proposal_sigma # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
                 model_agesₚ[chosen_point] += r
                 #Resolve conflicts
@@ -787,7 +810,7 @@
                 end
             else
                 # Adjust one point at a time then resolve conflicts
-                r = randn() * aveuncert # Generate a random adjustment
+                r = randn() * proposal_sigma # Generate a random adjustment
                 chosen_point = ceil(Int, rand() * npoints) # Pick a point
                 model_agesₚ[chosen_point] += r
                 #Resolve conflicts
