@@ -715,15 +715,11 @@
                 for _ in 1:(length(closest_hiatus_unique)÷2)
                     h = rand(closest_hiatus_unique)
                     if model_agesₚ[h-1] == model_agesₚ[h]
-                        n = findclosestunequal(model_agesₚ, h)
-                        if n < h
-                            @inbounds for i = n:h-1
-                                model_agesₚ[i] = model_agesₚ[n]
-                            end
-                        elseif n > h
-                            @inbounds for i = h:n
-                                model_agesₚ[i] = model_agesₚ[n]
-                            end
+                        iₙ = findclosestunequal(model_agesₚ, h)
+                        if iₙ < h
+                            model_agesₚ[iₙ:h-1] .= model_agesₚ[iₙ]
+                        elseif iₙ > h
+                            model_agesₚ[h:iₙ] .= model_agesₚ[iₙ]
                         end
                     end
                 end
@@ -813,15 +809,11 @@
                 for _ in 1:(length(closest_hiatus_unique)÷2)
                     h = rand(closest_hiatus_unique)
                     if model_agesₚ[h-1] == model_agesₚ[h]
-                        n = findclosestunequal(model_agesₚ, h)
-                        if n < h
-                            @inbounds for i = n:h-1
-                                model_agesₚ[i] = model_agesₚ[n]
-                            end
-                        elseif n > h
-                            @inbounds for i = h:n
-                                model_agesₚ[i] = model_agesₚ[n]
-                            end
+                        iₙ = findclosestunequal(model_agesₚ, h)
+                        if iₙ < h
+                            model_agesₚ[iₙ:h-1] .= model_agesₚ[iₙ]
+                        elseif iₙ > h
+                            model_agesₚ[h:iₙ] .= model_agesₚ[iₙ]
                         end
                     end
                 end

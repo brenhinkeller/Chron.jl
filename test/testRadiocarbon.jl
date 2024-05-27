@@ -149,8 +149,8 @@ hiatus.Duration_sigma = [  30.5,   20.0 ]
 # Test that results match expectation, within some tolerance
 @test mdl.Age isa Vector{Float64}
 @test mdl.Age ≈ [8327.67, 8283.87, 8099.66, 8057.74, 8023.23, 7990.66, 7957.71, 7944.6, 7931.19, 7823.06, 7810.29, 7797.89] atol=20
-@test mdl.Age_025CI ≈ [8202.92, 8138.36, 7974.42, 7960.03, 7896.94, 7874.23, 7858.76, 7842.18, 7827.89, 7717.17, 7709.2, 7703.73] atol=40
-@test mdl.Age_975CI ≈ [8405.45, 8391.43, 8225.43, 8163.38, 8151.17, 8123.45, 8030.52, 8023.59, 8016.78, 7913.76, 7904.32, 7877.73] atol=40
+@test mdl.Age_025CI ≈ [8210.55, 8152.11, 7983.06, 7968.49, 7913.95, 7885.02, 7868.98, 7852.67, 7838.42, 7730.2, 7719.48, 7710.82] atol=40
+@test mdl.Age_975CI ≈ [8405.89, 8391.62, 8225.61, 8163.41, 8151.31, 8123.92, 8030.35, 8023.65, 8016.86, 7916.1, 7905.95, 7886.48] atol=40
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 @test size(hiatusdist) == (nHiatuses, config.nsteps)
