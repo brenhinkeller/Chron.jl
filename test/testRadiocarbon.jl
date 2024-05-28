@@ -64,6 +64,7 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 @test mdl.Age_975CI ≈ [8405.0, 8386.1, 8347.1, 8163.5, 8151.0, 8123.9, 8029.5, 8016.3, 8003.0, 7985.9, 7958.2, 7916.3] atol=35
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
+@test -Inf < mean(lldist) < 0
 
 
 # Data about hiatuses
@@ -84,7 +85,9 @@ hiatus.Duration_sigma = [  30.5,   20.0 ]
 @test mdl.Age_975CI ≈ [8408.06, 8394.94, 8231.34, 8159.62, 8147.76, 8123.97, 8054.25, 8039.57, 8025.91, 7918.86, 7907.9, 7889.46] atol=35
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
-
+@test size(hiatusdist) == (nHiatuses, config.nsteps)
+@test mean(hiatusdist, dims=2) ≈ [108.4; 189.0;;] atol=20
+@test -Inf < mean(lldist) < 0
 
 ## --- IntCal20
 
@@ -133,6 +136,7 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 @test mdl.Age_975CI ≈ [8401.5, 8382.0, 8342.7, 8167.4, 8156.2, 8128.5, 8019.7, 8011.7, 8002.5, 7986.2, 7957.2, 7916.2] atol=40
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
+@test -Inf < mean(lldist) < 0
 
 
 # Data about hiatuses
@@ -154,3 +158,5 @@ hiatus.Duration_sigma = [  30.5,   20.0 ]
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 @test size(hiatusdist) == (nHiatuses, config.nsteps)
+@test mean(hiatusdist, dims=2) ≈ [110.5; 187.3;;]  atol=20
+@test -Inf < mean(lldist) < 0

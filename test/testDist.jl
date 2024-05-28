@@ -10,6 +10,8 @@
     tmindist, tmaxdist, lldist, acceptancedist = metropolis_minmax(2*10^5, MeltsVolcanicZirconDistribution, mu, sigma, burnin=10^5)
     @test isapprox(nanmean(tmindist), 99.925, atol=0.015)
     @test isapprox(nanmean(tmaxdist), 101.08, atol=0.015)
+    @test -Inf < mean(lldist) < 0
+    @test 0 < mean(acceptancedist) < 1
 
 ## -- Test distribution bootstrapping
 

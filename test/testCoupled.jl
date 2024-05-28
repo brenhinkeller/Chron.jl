@@ -49,6 +49,8 @@ println("StratMetropolisDist:")
 @test mdl.Age_975CI ≈ [66.1, 66.09, 66.09, 66.08, 66.08, 66.07, 66.06, 66.05, 66.03, 66.01, 65.97, 65.97, 65.96, 65.96, 65.95] atol=0.15
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
+@test size(lldist) == (config.nsteps,)
+@test !isnan(mean(lldist))
 
 # Try adding systematic uncertainties too
 smpl.Chronometer = (:UPb, :UPb, :ArAr, :UPb, :UPb)
@@ -67,6 +69,8 @@ println("StratMetropolisDist with systematic uncertainties:")
 @test mdl.Age_975CI ≈ [66.1, 66.09, 66.09, 66.08, 66.08, 66.07, 66.06, 66.05, 66.03, 66.01, 65.97, 65.97, 65.96, 65.96, 65.95] atol=0.15
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
+@test size(lldist) == (config.nsteps,)
+@test !isnan(mean(lldist))
 
 ## --- As above, but with hiata
 
@@ -88,6 +92,10 @@ println("StratMetropolisDist with hiata:")
 @test mdl.Age_975CI ≈ [66.11, 66.1, 66.1, 66.1, 66.1, 66.08, 66.08, 66.08, 66.08, 65.98, 65.96, 65.96, 65.96, 65.96, 65.95] atol=0.15
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
+@test size(hiatusdist) == (nHiatuses, config.nsteps)
+@test mean(hiatusdist, dims=2) ≈ [0.064; 0.061;;] atol=0.3
+@test size(lldist) == (config.nsteps,)
+@test !isnan(mean(lldist))
 
 ## --- As above, but treat everything as a gaussian/weighted mean
 
@@ -107,6 +115,8 @@ println("StratMetropolisDist with fitted Gaussians:")
 @test mdl.Age_975CI ≈ [66.09, 66.09, 66.08, 66.08, 66.08, 66.07, 66.06, 66.05, 66.04, 66.02, 66.0, 65.99, 65.98, 65.97, 65.96] atol=0.15
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
+@test size(lldist) == (config.nsteps,)
+@test !isnan(mean(lldist))
 
 ## -- Test coupled with Isoplot.jl Pb-loss-aware eruption ages
 
@@ -154,3 +164,5 @@ println("StratMetropolisDist, Pb-loss-aware:")
 @test mdl.Age_975CI ≈ [752.51, 752.47, 752.43, 752.37, 752.29, 752.2, 752.08, 751.85, 750.99] atol=0.7
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
+@test size(lldist) == (config.nsteps,)
+@test !isnan(mean(lldist))
