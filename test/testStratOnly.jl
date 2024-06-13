@@ -30,6 +30,7 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 @test mdl.Age_975CI ≈ [761.17, 757.98, 752.64, 733.57, 731.21, 728.07, 722.24, 720.59, 718.6, 716.11, 712.48, 704.28] atol=3
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
+@test all(!isnan, agedist)
 @test -Inf < mean(lldist) < 0
 
 @test NamedTuple(mdl) isa NamedTuple
@@ -52,6 +53,7 @@ hiatus.Duration_sigma = [   3.1,    2.0 ]
 @test mdl.Age_975CI ≈ [761.77, 759.23, 741.37, 732.59, 730.64, 728.05, 723.52, 722.34, 720.9, 709.03, 706.78, 703.46] atol=3
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
+@test all(!isnan, agedist)
 @test size(hiatusdist) == (nHiatuses, config.nsteps)
 @test mean(hiatusdist, dims=2) ≈ [10.580012942504894; 18.96167245288326;;] atol=2
 @test -Inf < mean(lldist) < 0

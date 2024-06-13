@@ -219,7 +219,7 @@
                 smpl.Age_Distribution[i] = tmindist
                 Age_Summary[i] = "$terupt"
 
-                l, u = vminimum(tmindist), vmaximum(tmindist)
+                l, u = nanminimum(tmindist), nanmaximum(tmindist)
                 if isfinite(u-l)
                     # Fit custom many-parametric distribution function to histogram
                     binedges = range(l, u, length=101)
@@ -231,8 +231,8 @@
 
                     # Initial guess for parameters
                     p = ones(5)
-                    p[2] = vmean(tmindist)
-                    p[3] = vstd(tmindist)
+                    p[2] = nanmean(tmindist)
+                    p[3] = nanstd(tmindist)
 
                     # Fit nonlinear model
                     fobj = curve_fit(bilinear_exponential,bincenters,N,p)

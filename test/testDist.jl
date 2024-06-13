@@ -1,7 +1,7 @@
 ## --- Test simple metropolis_min and metropolis_minmax functions
 
     mu, sigma = collect(100:0.1:101), 0.01*ones(11);
-    dist = MeltsVolcanicZirconDistribution ./ vmean(MeltsVolcanicZirconDistribution)
+    dist = MeltsVolcanicZirconDistribution ./ nanmean(MeltsVolcanicZirconDistribution)
     @test Chron.Isoplot.dist_ll(dist, mu, sigma, 100,101) ≈ -3.6933357793356576
 
     tmindist = metropolis_min(2*10^5, dist, mu, sigma, burnin=10^5)

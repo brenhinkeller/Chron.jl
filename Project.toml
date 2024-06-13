@@ -15,7 +15,6 @@ ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 StatGeochemBase = "61e559cd-58b4-4257-8528-26bb26ff2b9a"
-VectorizedStatistics = "3b853605-1c98-4422-8364-4bd93ee0529e"
 
 [compat]
 DelimitedFiles = "1"
@@ -29,5 +28,4 @@ ProgressMeter = "1"
 Reexport = "0.2, 1.0"
 SpecialFunctions = "0.10, 1, 2"
 StatGeochemBase = "0.5.9"
-VectorizedStatistics = "0.5"
 julia = "1"

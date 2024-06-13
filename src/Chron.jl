@@ -21,7 +21,6 @@
 module Chron
 
     using Reexport
-    @reexport using VectorizedStatistics
     @reexport using NaNStatistics
     @reexport using StatGeochemBase
     @reexport using Isoplot
