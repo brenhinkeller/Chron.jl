@@ -5,7 +5,7 @@
 #  stratigraphic age-depth model based on any Gaussian age constraints          #
 #                                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-## --- Load required pacages, install Chron if required - - - - - - - - - - - -
+## --- Load required pacages  - - - - - - - - - - - - - - - - - - - - - - - - -
 
     using Chron
     using Plots

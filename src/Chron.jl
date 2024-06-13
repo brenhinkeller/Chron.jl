@@ -33,8 +33,6 @@ module Chron
     using KernelDensity: kde
     using DelimitedFiles
     using Distributions
-    using LoopVectorization: @turbo
-    # using Polyester: @batch
 
     include("Utilities.jl")
     # Functions for propagating systematic uncertainties
