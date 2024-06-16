@@ -195,26 +195,16 @@
     binwidth = round(nanrange(mdl.Age)/10,sigdigits=1) # Can also set manually, commented out below
     # binwidth = 0.01 # Same units as smpl.Age
     binoverlap = 10
-    ages = collect(minimum(mdl.Age):binwidth/binoverlap:maximum(mdl.Age))
-    bincenters = ages[1+Int(binoverlap/2):end-Int(binoverlap/2)]
-    spacing = binoverlap
+
+    agebinedges = collect(minimum(mdl.Age):binwidth/binoverlap:maximum(mdl.Age))
+    agebincenters = (agebinedges[1:end-binoverlap] + agebinedges[1+binoverlap:end])/2
 
     # Calculate rates for the stratigraphy of each markov chain step
-    dhdt_dist = Array{Float64}(undef, length(ages)-binoverlap, config.nsteps)
+    dhdt_dist = zeros(length(agebincenters), config.nsteps)
     @time for i=1:config.nsteps
-        heights = linterp1(reverse(agedist[:,i]), reverse(mdl.Height), ages)
-        dhdt_dist[:,i] .= abs.(heights[1:end-spacing] - heights[spacing+1:end]) ./ binwidth
+        heights = linterp1(reverse(agedist[:,i]), reverse(mdl.Height), agebinedges, extrapolate=NaN)
+        dhdt_dist[:,i] .= (heights[1:end-binoverlap] - heights[binoverlap+1:end]) ./ binwidth
     end
-
-    # # Exact (added precision is below sampling resolution, so not visible) and rather slow
-    # let t = Array{Bool}(undef,size(agedist,1))
-    #     @showprogress "Calculating dh/dt..." for i=1:config.nsteps
-    #         for j=1:length(bincenters)
-    #             t .= (agedist[:,i] .> bincenters[j] - binwidth/2) .& (agedist[:,i] .< bincenters[j] + binwidth/2)
-    #             dhdt_dist[j,i] = count(t) * config.resolution / binwidth
-    #         end
-    #     end
-    # end
 
     # Find mean and 1-sigma (68%) CI
     dhdt = nanmean(dhdt_dist,dim=2)
@@ -223,49 +213,16 @@
     dhdt_84p = nanpctile(dhdt_dist,84.135,dim=2) # Plus 1-sigma (84.135th percentile)
 
     # Plot results
-    hdl = plot(framestyle=:box,
-        fg_color_legend=:white,
-        xlabel="Age ($(smpl.Age_Unit))",
-        ylabel="Accumulation Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))",
-    )
-    plot!(hdl, bincenters, dhdt, label="Mean", color=:black, linewidth=2)
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(0,0.4,:darkblue), linealpha=0, label="68% CI")
-    plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
-    savefig(hdl,"AccumulationRateModel.pdf")
-    display(hdl)
-
-## --- Multiple confidence intervals (every 10) - - - - - - - - - - - - - - - -
-
-    dhdt_20p = nanpctile(dhdt_dist,20,dim=2)
-    dhdt_80p = nanpctile(dhdt_dist,80,dim=2)
-    dhdt_25p = nanpctile(dhdt_dist,25,dim=2)
-    dhdt_75p = nanpctile(dhdt_dist,75,dim=2)
-    dhdt_30p = nanpctile(dhdt_dist,30,dim=2)
-    dhdt_70p = nanpctile(dhdt_dist,70,dim=2)
-    dhdt_35p = nanpctile(dhdt_dist,35,dim=2)
-    dhdt_65p = nanpctile(dhdt_dist,65,dim=2)
-    dhdt_40p = nanpctile(dhdt_dist,40,dim=2)
-    dhdt_60p = nanpctile(dhdt_dist,60,dim=2)
-    dhdt_45p = nanpctile(dhdt_dist,45,dim=2)
-    dhdt_55p = nanpctile(dhdt_dist,55,dim=2)
-
-    # Plot results
-    hdl = plot(framestyle=:box,
-        fg_color_legend=:white,
-        xlabel="Age ($(smpl.Age_Unit))",
-        ylabel="Accumulation Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))",
-    )
-    plot!(hdl, bincenters, dhdt, label="Mean", color=:black, linewidth=2)
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(0,0.2,:darkblue), linealpha=0, label="68% CI")
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_20p; reverse(dhdt_80p)], fill=(0,0.2,:darkblue), linealpha=0, label="")
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_25p; reverse(dhdt_75p)], fill=(0,0.2,:darkblue), linealpha=0, label="")
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_30p; reverse(dhdt_70p)], fill=(0,0.2,:darkblue), linealpha=0, label="")
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_35p; reverse(dhdt_65p)], fill=(0,0.2,:darkblue), linealpha=0, label="")
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_40p; reverse(dhdt_60p)], fill=(0,0.2,:darkblue), linealpha=0, label="")
-    plot!(hdl,[bincenters; reverse(bincenters)],[dhdt_45p; reverse(dhdt_55p)], fill=(0,0.2,:darkblue), linealpha=0, label="")
-    plot!(hdl,bincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
-    plot!(hdl, )
-    savefig(hdl,"AccumulationRateModelCI.pdf")
+    hdl = plot(agebincenters,dhdt, label="Mean", color=:black, linewidth=2)
+    plot!(hdl,[agebincenters; reverse(agebincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(0,0.2,:darkblue), linealpha=0, label="68% CI")
+    for lci in 20:5:45
+        dhdt_lp = nanpctile(dhdt_dist,lci,dim=2)
+        dhdt_up = nanpctile(dhdt_dist,100-lci,dim=2)
+        plot!(hdl,[agebincenters; reverse(agebincenters)],[dhdt_lp; reverse(dhdt_up)], fill=(0,0.2,:darkblue), linealpha=0, label="")
+    end
+    plot!(hdl, agebincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
+    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Depositional Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))", fg_color_legend=:white)
+    # savefig(hdl,"DepositionRateModelCI.pdf")
     display(hdl)
 
 ## --- Probability that a given interval of stratigraphy was deposited entirely before/after a given time
