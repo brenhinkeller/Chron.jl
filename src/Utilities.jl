@@ -1,17 +1,51 @@
 ## --- Fitting non-Gaussian distributions
 
-    struct BilinearExponential{T}
+    struct BilinearExponential{T<:Real} <: ContinuousUnivariateDistribution
         A::T
         μ::T
         σ::T
-        sharpness::T
-        skew::T
+        shp::T
+        skw::T
     end
-    function BilinearExponential(p::AbstractVector)
+    function BilinearExponential(p::AbstractVector{T}) where {T}
         @assert length(p) == 5
         @assert all(x->!(x<0), Iterators.drop(p,1))
-        BilinearExponential(p...)
+        BilinearExponential{T}(p...)
     end
+    function BilinearExponential(p::NTuple{5,T}) where {T}
+        @assert all(x->!(x<0), Iterators.drop(p,1))
+        BilinearExponential{T}(p...)
+    end
+
+    ## Conversions
+    Base.convert(::Type{BilinearExponential{T}}, d::Normal) where {T<:Real} = BilinearExponential{T}(T(d.A), T(d.μ), T(d.σ), T(d.shp), T(d.skw))
+    Base.convert(::Type{BilinearExponential{T}}, d::Normal{T}) where {T<:Real} = d
+
+    ## Parameters
+    Distributions.params(d::BilinearExponential) = (d.A, d.μ, d.σ, d.shp, d.skw)
+    @inline Distributions.partype(d::BilinearExponential{T}) where {T<:Real} = T
+
+    Distributions.location(d::BilinearExponential) = d.μ
+    Distributions.scale(d::BilinearExponential) = d.σ
+
+    Base.eltype(::Type{BilinearExponential{T}}) where {T} = T
+
+    ## Evaluation
+    function Distributions.pdf(d::BilinearExponential, x::Real)
+        xs = (x - d.μ)/d.σ # X scaled by mean and variance
+        v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
+        return exp(d.A + d.shp*d.skw*xs*v - d.shp/d.skw*xs*(1-v))
+    end
+
+    function Distributions.logpdf(d::BilinearExponential, x::Real)
+        xs = (x - d.μ)/d.σ # X scaled by mean and variance
+        v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
+        return d.A + d.shp*d.skw*xs*v - d.shp/d.skw*xs*(1-v)
+    end
+
+    ## Affine transformations
+    Base.:+(d::BilinearExponential{T}, c::Real) where {T} = BilinearExponential{T}(d.A, d.μ + c, d.σ, d.shp, d.skw)
+    Base.:*(d::BilinearExponential{T}, c::Real) where {T} = BilinearExponential{T}(d.A, d.μ * c, d.σ * abs(c), d.shp, d.skw)
 
     """
     ```Julia
@@ -95,7 +129,7 @@
             skw = abs(p[5,i])
             ll += shp*skw*xs*v - shp/skw*xs*(1-v)
         end
-        return ll
+        return lles
     end
     function bilinear_exponential_ll(x::AbstractVector, ages::AbstractVector{BilinearExponential{T}}) where T
         ll = zero(T)
@@ -104,7 +138,7 @@
             isnan(pᵢ.μ) && continue
             xs = (x[i]-pᵢ.μ)/(pᵢ.σ) # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-            shp, skw = pᵢ.sharpness, pᵢ.skew
+            shp, skw = pᵢ.shp, pᵢ.skw
             ll += shp*skw*xs*v - shp/skw*xs*(1-v)
         end
         return ll
@@ -146,12 +180,12 @@
 ## --- Biquadratic distribution (like bilinear, with quadratic sides)
 
 
-    struct BiquadraticExponential{T}
+    struct BiquadraticExponential{T<:Real}
         A::T
         μ::T
         σ::T
-        sharpness::T
-        skew::T
+        shp::T
+        skw::T
     end
     function BiquadraticExponential(p::AbstractVector)
         @assert length(p) == 5
@@ -191,8 +225,8 @@
             pᵢ = ages[i]
             xs = (x[i]-pᵢ.μ)/(pᵢ.σ) # X scaled by mean and variance
             v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
-            shp = pᵢ.sharpness
-            skw = pᵢ.skew
+            shp = pᵢ.shp
+            skw = pᵢ.skw
             ll -= (shp*skw*xs*v - shp/skw*xs*(1-v))^2
         end
         return ll

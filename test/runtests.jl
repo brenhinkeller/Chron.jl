@@ -1,5 +1,5 @@
 using Chron
-using Test, Statistics
+using Test, Statistics, Distributions
 
 const make_plots = get(ENV, "MAKE_PLOTS", false) == "true"
 @testset "Utilities" begin include("testUtilities.jl") end

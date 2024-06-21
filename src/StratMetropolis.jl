@@ -446,19 +446,6 @@
     end
 
     adjust!(ages::AbstractVector, chronometer, systematic::Nothing) = ages
-    function adjust!(ages::AbstractVector{BilinearExponential{T}}, chronometer, systematic::SystematicUncertainty) where T
-        systUPb = randn()*systematic.UPb
-        systArAr = randn()*systematic.ArAr
-        @assert eachindex(ages)==eachindex(chronometer)
-        @inbounds for i ∈ eachindex(ages)
-            age = ages[i]
-            μ = age.μ
-            chronometer[i] === :UPb && (μ += systUPb)
-            chronometer[i] === :ArAr && (μ += systArAr)
-            ages[i] = BilinearExponential{T}(age.A, μ, age.σ, age.shp, age.skw)
-        end
-        return ages
-    end
     function adjust!(ages::AbstractVector, chronometer, systematic::SystematicUncertainty) where T
         systUPb = randn()*systematic.UPb
         systArAr = randn()*systematic.ArAr
