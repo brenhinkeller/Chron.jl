@@ -434,11 +434,18 @@
 ## --- # Internals of the Markov chain
 
     # Use dispatch to let us reduce duplication
-    strat_ll(x, ages::Vector{<:BilinearExponential}) = bilinear_exponential_ll(x, ages)
-    strat_ll(x, ages::Vector{<:Radiocarbon}) = interpolate_ll(x, ages)
-    strat_ll(x, ages::Vector{<:Normal}) = normpdf_ll(x, ages)
+    strat_ll(x, ages::AbstractVector{<:BilinearExponential}) = bilinear_exponential_ll(x, ages)
+    strat_ll(x, ages::AbstractVector{<:Radiocarbon}) = interpolate_ll(x, ages)
+    strat_ll(x, ages::AbstractVector{<:Normal}) = normpdf_ll(x, ages)
+    function strat_ll(x, ages::AbstractVector)
+        ll = zero(float(eltype(x)))
+        @inbounds for i in eachindex(x,ages)
+            ll += logpdf(ages[i], x[i])
+        end
+        return ll
+    end
 
-    adjust!(ages::AbstractVector, chronometer, systematic::Nothing) = (return ages)
+    adjust!(ages::AbstractVector, chronometer, systematic::Nothing) = ages
     function adjust!(ages::AbstractVector{BilinearExponential{T}}, chronometer, systematic::SystematicUncertainty) where T
         systUPb = randn()*systematic.UPb
         systArAr = randn()*systematic.ArAr
@@ -448,20 +455,20 @@
             μ = age.μ
             chronometer[i] === :UPb && (μ += systUPb)
             chronometer[i] === :ArAr && (μ += systArAr)
-            ages[i] = BilinearExponential{T}(age.A, μ, age.σ, age.sharpness, age.skew)
+            ages[i] = BilinearExponential{T}(age.A, μ, age.σ, age.shp, age.skw)
         end
         return ages
     end
-    function adjust!(ages::AbstractVector{Normal{T}}, chronometer, systematic::SystematicUncertainty) where T
+    function adjust!(ages::AbstractVector, chronometer, systematic::SystematicUncertainty) where T
         systUPb = randn()*systematic.UPb
         systArAr = randn()*systematic.ArAr
         @assert eachindex(ages)==eachindex(chronometer)
         @inbounds for i ∈ eachindex(ages)
-            age = ages[i]
-            μ = age.μ
-            chronometer[i] === :UPb && (μ += systUPb)
-            chronometer[i] === :ArAr && (μ += systArAr)
-            ages[i] = Normal{T}(μ, age.σ)
+            if  chronometer[i] === :UPb 
+                ages[i] += systUPb
+            elseif chronometer[i] === :ArAr
+                ages[i] += systArAr
+            end
         end
         return ages
     end
