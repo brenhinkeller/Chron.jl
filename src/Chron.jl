@@ -55,12 +55,16 @@ module Chron
     export  StratMetropolis, StratMetropolisDist, StratMetropolis14C,
         tMinDistMetropolis, metropolis_min!, metropolis_min,
         metropolis_minmax!, metropolis_minmax,
-        bilinear_exponential, bilinear_exponential_ll,
         screen_outliers, BootstrapCrystDistributionKDE
 
+    # Custom distributions and related functions
+    export strat_ll, BilinearExponential, Radiocarbon
+    
+    # Dealing with systematic uncertainty
+    export add_systematic_uncert_UPb, add_systematic_uncert_ArAr, add_systematic_uncert_UTh, SystematicUncertainty
 
-    # Distributions
-    # Mostly already exported by reexporting Isoplot.jl
+    # Relative crystallization/closure distributions
+    # (mostly already exported by reexporting Isoplot.jl)
     export TruncatedNormalDistribution, EllisDistribution, ArClosureDistribution
 
 end # module

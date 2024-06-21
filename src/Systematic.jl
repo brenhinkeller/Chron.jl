@@ -15,8 +15,6 @@
         return log.(r .* σtracer .+ 1) ./ λ238_
     end
 
-    export add_systematic_uncert_UPb
-
     function add_systematic_uncert_ArAr(agedistmyr::Vector{<:AbstractFloat}; constants=:Renne)
         if constants==:Min
             # Min et al., 200 compilation
@@ -118,10 +116,6 @@
         return log.(Rdist.*κ_.*λ_./λϵ_ .+ 1)./(λ_.*1000000)
     end
 
-    export add_systematic_uncert_ArAr
-
-## --- End of File
-
     function add_systematic_uncert_UTh(agedistmyr::Vector{<:AbstractFloat})
         # Age = -log(1-Th230ₐ/U238ₐ))/λ230Th
         # Th230ₐ/U238ₐ = 1-exp(-Age*λ230Th)
@@ -160,4 +154,5 @@
         # Maximum possible activity ratio is 1.0, corresponding to secular equilibrium
         return @. -log(1 - min(sTh230_U238_dist*λ230_/λ238_, 1.0)) / λ230_
     end
-    export add_systematic_uncert_UTh
+
+## --- End of File

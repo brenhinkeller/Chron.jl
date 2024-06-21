@@ -137,6 +137,42 @@
 
 ## --- Fit and plot results from stationary distribution of depostion/eruption age distribution model
 
+    # """
+    # ```Julia
+    # bilinear_exponential(x::Number, p::AbstractVector)
+    # ```
+    # Evaluate the value of a "bilinear exponential" function defined by the parameters
+    # `p` at point `x`. This function, which can be used to approximate various asymmetric
+    # probability distributions found in geochronology, is defined by an exponential
+    # function with two log-linear segments joined by an `atan` sigmoid:
+    # ```math
+    # ℯ^{p_1} * ℯ^{v x_s p_4 p_5 - (1-v) x_s p_4/p_5}
+    # ```
+    # where
+    # ```math
+    # v = 1/2 - atan(x_s)/π
+    # ```
+    # is a sigmoid, positive on the left-hand side, and
+    # ```math
+    # x_s = (x - p_2)/p_3
+    # ```
+    # is `x` scaled by mean and standard deviation.
+
+    # The elements of the parameter array `p` may be considered to approximately represent\n
+    #     p[1] # pre-exponential (normaliation constant)
+    #     p[2] # mean (central moment)
+    #     p[3] # standard deviation
+    #     p[4] # sharpness
+    #     p[5] # skew
+
+    # where all parameters `pᵢ` must be nonnegative.
+    # """
+    function bilinear_exponential(x, p)
+        i₀ = firstindex(p)
+        d = BilinearExponential(p[i₀], p[i₀+1], abs(p[i₀+2]), abs(p[i₀+3]), abs(p[i₀+4]))
+        return pdf.(d, x)
+    end
+
     """
     ```julia
     tMinDistMetropolis(smpl::ChronAgeData, nsteps::Int, burnin::Int, dist::Array{Float64})
@@ -144,7 +180,7 @@
     Calculate the minimum limiting (eruption/deposition) age of each sample defined
     in the `smpl` struct, using the `Isoplot.metropolis_min` function, assuming mineral
     ages for each sample are drawn from the source distribution `dist`. Fits a
-    `bilinear_exponential` function to the resulting stationary distribution
+    `BilinearExponential` function to the resulting stationary distribution
     for each sample and stores the results in `smpl.Params` for use by the
     `StratMetropolisDist` function.
 

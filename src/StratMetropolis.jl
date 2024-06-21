@@ -144,7 +144,7 @@
     ```
     Runs the main Chron.jl age-depth model routine for a stratigraphic set of
     samples defined by sample heights and fitted asymmetric age distributions
-    (`bilinear_exponential`) in the `smpl` struct, and an age-depth model
+    (`BilinearExponential`) in the `smpl` struct, and an age-depth model
     configuration defined by the `config` struct.
 
     Optionally, if a `hiatus` struct is provided, the model will additionally
@@ -434,19 +434,19 @@
 ## --- # Internals of the Markov chain
 
     # Use dispatch to let us reduce duplication
-    strat_ll(x, ages::AbstractVector{<:BilinearExponential}) = bilinear_exponential_ll(x, ages)
     strat_ll(x, ages::AbstractVector{<:Radiocarbon}) = interpolate_ll(x, ages)
     strat_ll(x, ages::AbstractVector{<:Normal}) = normpdf_ll(x, ages)
-    function strat_ll(x, ages::AbstractVector)
+    strat_ll(x::Real, age::Distribution) = logpdf(age, x)
+    function strat_ll(x, ages)
         ll = zero(float(eltype(x)))
-        @inbounds for i in eachindex(x,ages)
+        @inbounds for i in eachindex(x, ages)
             ll += logpdf(ages[i], x[i])
         end
         return ll
     end
 
-    adjust!(ages::AbstractVector, chronometer, systematic::Nothing) = ages
-    function adjust!(ages::AbstractVector, chronometer, systematic::SystematicUncertainty) where T
+    adjust!(ages, chronometer, systematic::Nothing) = ages
+    function adjust!(ages, chronometer, systematic::SystematicUncertainty)
         systUPb = randn()*systematic.UPb
         systArAr = randn()*systematic.ArAr
         @assert eachindex(ages)==eachindex(chronometer)
