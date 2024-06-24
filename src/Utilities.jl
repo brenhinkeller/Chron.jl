@@ -86,25 +86,70 @@
 
 ## --- Radiocarbon distribution type
 
-    struct Radiocarbon{T}
+    struct Radiocarbon{T<:Real} <: ContinuousUnivariateDistribution
         μ::T
         σ::T
         dist::Vector{T}
+        ldist::Vector{T}
     end
 
+    function Radiocarbon(μ::T, σ::T, ldist::Vector{T}) where {T<:Real}
+        dist = exp.(ldist)
+        dist ./= sum(dist) * 1 # Normalize
+        return Radiocarbon{T}(μ, σ, dist, ldist)
+    end
+
+    function Radiocarbon(Age_14C::Real, Age_14C_sigma::Real, calibration::NamedTuple=intcal13)
+        @assert calibration.Age_Calendar == 1:1:length(calibration.Age_14C)
+        @assert step(calibration.Age_Calendar) == calibration.dt == 1
+
+        ldist = normproduct_ll.(Age_14C, Age_14C_sigma, calibration.Age_14C, calibration.Age_sigma)
+
+        dist = exp.(ldist)
+        dist ./= sum(dist) * calibration.dt # Normalize
+        samples = draw_from_distribution(dist, 10^6) .* maximum(calibration.Age_Calendar)
+        μ, σ = nanmean(samples), nanstd(samples)
+
+        return Radiocarbon(μ, σ, ldist)
+    end
+
+    ## Conversions
+    Base.convert(::Type{Radiocarbon{T}}, d::Normal) where {T<:Real} = Radiocarbon{T}(T(d.μ), T(d.σ), T.(d.ldist))
+    Base.convert(::Type{Radiocarbon{T}}, d::Normal{T}) where {T<:Real} = d
+
+    ## Parameters
+    Distributions.params(d::Radiocarbon) = (d.dist, d.ldist)
+    @inline Distributions.partype(d::Radiocarbon{T}) where {T<:Real} = T
+
+    Distributions.location(d::Radiocarbon) = d.μ
+    Distributions.scale(d::Radiocarbon) = d.σ
+
+    Base.eltype(::Type{Radiocarbon{T}}) where {T} = T
+
+    ## Evaluation
+    @inline function Distributions.pdf(d::Radiocarbon{T}, x::Real) where {T}
+        return linterp_at_index(d.dist, x, zero(T))
+    end
+
+    @inline function Distributions.logpdf(d::Radiocarbon{T}, x::Real) where {T}
+        return linterp_at_index(d.ldist, x, -maxintfloat(T))
+    end
+
+## --- 
+
     # Interpolate log likelihood from an array
-    function interpolate_ll(x::AbstractVector,p::AbstractMatrix{T}) where {T<:Number}
+    function interpolate_ll(x::AbstractVector,p::AbstractMatrix{T}) where {T<:Real}
         ll = zero(T)
         @inbounds for i ∈ eachindex(x)
-            ll += linterp_at_index(view(p,:,i), x[i], -1e9)
+            ll += linterp_at_index(view(p,:,i), x[i], -maxintfloat(T))
         end
         return ll
     end
     function interpolate_ll(x::AbstractVector,ages::AbstractVector{Radiocarbon{T}}) where T
         ll = zero(T)
         @inbounds for i ∈ eachindex(x,ages)
-            dist = ages[i].dist
-            ll += linterp_at_index(dist, x[i], -1e9)
+            ldist = ages[i].ldist
+            ll += linterp_at_index(ldist, x[i], -maxintfloat(T))
         end
         return ll
     end
