@@ -1,0 +1,6 @@
+Name,Height,Height_sigma,Age_Sidedness,Path,inputSigmaLevel,Age_Unit,Height_Unit
+KJ08-157,-52,3,0,DenverUPbExampleData,2,Ma,cm
+KJ04-75,44,1,0,,,,
+KJ09-66,54,3,0,,,,
+KJ04-72,82,3,0,,,,
+KJ04-70,93,3,0,,,,

@@ -1,0 +1,5 @@
+Name,Age,Age_sigma,Height,Height_sigma,Age_Sidedness,Age_Unit,Height_Unit
+Sample 1,6991,30,-355,0.01,0,Years BP,m
+Sample 2,7088,70,-380,0.01,0,,
+Sample 3,7230,50,-397,0.01,0,,
+Sample 4,7540,50,-411.5,0.01,0,,

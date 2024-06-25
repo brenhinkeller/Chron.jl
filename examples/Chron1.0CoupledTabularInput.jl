@@ -15,26 +15,18 @@
 
 ## --- Define sample properties - - - - - - - - - - - - - - - - - - - - - - - -
 
-    # This example data is from Clyde et al. (2016) "Direct high-precision
-    # U–Pb geochronology of the end-Cretaceous extinction and calibration of
-    # Paleocene astronomical timescales" EPSL 452, 272–280.
-    # doi: 10.1016/j.epsl.2016.07.041
+    # As in Chron1.0Coupled, but here we read in the information from a csv table:
+    ds = importdataset(joinpath(@__DIR__, "coupled_example_input.csv"), importas=:Tuple)
 
-    nSamples = 5 # The number of samples you have data for
-    smpl = ChronAgeData(nSamples)
-    smpl.Name      =  ("KJ08-157", "KJ04-75", "KJ09-66", "KJ04-72", "KJ04-70",)
-    smpl.Height   .=  [     -52.0,      44.0,      54.0,      82.0,      93.0,]
-    smpl.Height_sigma .= [    3.0,       1.0,       3.0,       3.0,       3.0,]
-    smpl.Age_Sidedness .= zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
-    smpl.Path = joinpath(@__DIR__, "DenverUPbExampleData") # Where are the data files?
-    smpl.inputSigmaLevel = 2 # i.e., are the data files 1-sigma or 2-sigma. Integer.
-    smpl.Age_Unit = "Ma" # Unit of measurement for ages and errors in the data files
-    smpl.Height_Unit = "cm" # Unit of measurement for Height and Height_sigma
-
-    # IMPORTANT: smpl.Height must increase with increasing stratigraphic height
-    # -- i.e., stratigraphically younger samples must be more positive. For this
-    # reason, it is convenient to represent depths below surface as negative
-    # numbers.
+    smpl = ChronAgeData(length(ds.Name))
+    smpl.Name      =  Tuple(ds.Name)
+    smpl.Height   .=  ds.Height
+    smpl.Height_sigma .= ds.Height_sigma
+    smpl.Age_Sidedness .= ds.Age_Sidedness              # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+    smpl.Path = joinpath(@__DIR__, first(ds.Path))      # Where are the data files?
+    smpl.inputSigmaLevel = first(ds.inputSigmaLevel)    # i.e., are the data files 1-sigma or 2-sigma. Integer.
+    smpl.Age_Unit = first(ds.Age_Unit)                  # Unit of measurement for ages and errors in the data files
+    smpl.Height_Unit = first(ds.Height_Unit)            # Unit of measurement for Height and Height_sigma
 
     # For each sample in smpl.Name, we must have a csv file at smpl.Path which
     # contains two columns of data, namely:
@@ -211,32 +203,6 @@
     plot!(h, ylims = extrema(cntr(ratebinedges)), size=(600,400), aspectratio=2/3/(yrange/xrange))
     savefig(h,"AccumulationRateModelHeatmap.pdf")
     display(h)
-
-## --- Probability that a given interval of stratigraphy was deposited entirely before/after a given time
-
-    # Stratigraphic height and absoltue age/uncert to test
-    testHeight = -40.0
-    testAge = 66.0
-    testAge_sigma = 0.05
-
-    # Find index of nearest model height node
-    nearest = argmin((testHeight .- mdl.Height).^2)
-
-    # Cycle through each possible age within testAge +/- 5 sigma, with resolution of 1/50 sigma
-    test_ages = (testAge-5*testAge_sigma):testAge_sigma/50:(testAge+5*testAge_sigma)
-    test_prob_older = Array{Float64}(undef,size(test_ages))
-    # Evaluate the probability that model age is older than each test_age at the given strat level
-    for i=1:length(test_ages)
-        test_prob_older[i] = sum(agedist[nearest,:] .> test_ages[i]) ./ size(agedist,2)
-    end
-
-    # Normalized probability for each distance away from testAge between +5sigma and -5sigma
-    prob_norm = normpdf.(testAge, testAge_sigma, test_ages) ./ sum(normpdf.(testAge, testAge_sigma, test_ages));  # SUM = 1
-
-    # Integrate the product
-    prob_older = sum(test_prob_older .* prob_norm)
-    print("$(prob_older*100) % chance that $(mdl.Height[nearest]) $(smpl.Height_Unit) was deposited before $testAge +/- $testAge_sigma $(smpl.Age_Unit) Gaussian")
-
 
 ## --- (Optional) If your section has hiata / exposure surfaces of known duration, try this:
 
