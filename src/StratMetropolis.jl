@@ -552,6 +552,7 @@
                 copyto!(sample_height, sample_heightₚ)
                 # acceptancedist[i] = true
             end
+            isnan(ll) && error("Log likelihood is `NaN`")
 
             # Update progress meter every `pgrs_interval` steps
             mod(n,pgrs_interval)==0 && update!(pgrs, n)
@@ -861,7 +862,7 @@
                 copyto!(duration, durationₚ)
                 copyto!(sample_height, sample_heightₚ)
             end
-            isnan(ll) && error("aaaaaaaaaaaaa")
+            isnan(ll) && error("Log likelihood is `NaN`")
 
             # Record sieved results
             if mod(n,sieve) == 0
