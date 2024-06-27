@@ -1,6 +1,7 @@
 # Make an instance of a ChronAgeData object for nSamples
 nSamples = 4
 smpl = ChronAgeData(nSamples)
+@test smpl isa ChronAgeData
 smpl.Name          = ("Sample 1", "Sample 2", "Sample 3", "Sample 4") # Et cetera
 smpl.Age          .= [ 699.1,  708.8,  723.0,  754.0,] # Measured ages
 smpl.Age_sigma    .= [   3.0,    7.0,    5.0,    5.0,] # Measured 1-σ uncertainties
@@ -57,3 +58,10 @@ hiatus.Duration_sigma = [   3.1,    2.0 ]
 @test size(hiatusdist) == (nHiatuses, config.nsteps)
 @test mean(hiatusdist, dims=2) ≈ [10.580012942504894; 18.96167245288326;;] atol=2
 @test -Inf < mean(lldist) < 0
+
+## --- Strat only, general Distributions-based case
+
+# Make an instance of a ChronAgeData object for nSamples
+nSamples = 4
+smpl = GeneralAgeData(nSamples)
+@test smpl isa GeneralAgeData

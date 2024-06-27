@@ -49,7 +49,8 @@ module Chron
     include("Fitplot.jl")
 
     # Structs
-    export ChronAgeData, HiatusData, StratAgeModelConfiguration, StratAgeModel
+    export ChronAgeData, GeneralAgeData, HiatusData
+    export SystematicUncertainty, StratAgeModelConfiguration, StratAgeModel
 
     # High-level functions
     export  StratMetropolis, StratMetropolisDist, StratMetropolis14C,
@@ -66,5 +67,7 @@ module Chron
     # Relative crystallization/closure distributions
     # (mostly already exported by reexporting Isoplot.jl)
     export TruncatedNormalDistribution, EllisDistribution, ArClosureDistribution
+
+    include("Deprecations.jl")
 
 end # module

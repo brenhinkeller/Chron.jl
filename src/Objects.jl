@@ -2,7 +2,7 @@
 
     # Define a type of struct object to hold data about geochron samples from
     # a region or stratigraphic section of interest
-    mutable struct ChronAgeData{N}
+    @kwdef mutable struct ChronAgeData{N}
         Name::NTuple{N, String}
         Height::Vector{Float64}
         Height_sigma::Vector{Float64}
@@ -24,7 +24,7 @@
     end
 
     function ChronAgeData(nSamples::Integer)
-        smpl = ChronAgeData{nSamples}(
+        ChronAgeData{nSamples}(
             ntuple(i->"Sample name", nSamples),
             collect(1.0:nSamples),  # Sample Height
             zeros(nSamples),     # Sample Height_sigma
@@ -44,15 +44,31 @@
             "Ma",
             "m",
         )
-        return smpl
     end
-    # For backwards compatibility
-    const NewChronAgeData = ChronAgeData
-    export NewChronAgeData
-    const NewStratAgeData = ChronAgeData
-    export NewStratAgeData
-    const StratAgeData = ChronAgeData
-    export StratAgeData
+
+    @kwdef mutable struct GeneralAgeData{N}
+        Name::NTuple{N, String}
+        Height::Vector{Float64}
+        Height_sigma::Vector{Float64}
+        Age::Vector{Distribution{Univariate, Continuous}}
+        Age_Sidedness::Vector{Float64}
+        Chronometer::NTuple{N, Symbol}
+        Age_Unit::String
+        Height_Unit::String
+    end
+
+    function GeneralAgeData(nSamples::Integer)
+        GeneralAgeData{nSamples}(
+            ntuple(i->"Sample name", nSamples),
+            collect(1.0:nSamples),  # Sample Height
+            zeros(nSamples),     # Sample Height_sigma
+            fill(Uniform(0,4567),nSamples),  # Sample ages
+            zeros(nSamples), # Sidedness (zeros by default, geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+            ntuple(i->:Chronometer, nSamples), # Age Types (e.g., :UPb or :ArAr)
+            "Ma",
+            "m",
+        )
+    end
 
     # One-sigma systematic uncertainty
     mutable struct SystematicUncertainty
@@ -60,7 +76,6 @@
         ArAr::Float64
     end
     SystematicUncertainty() = SystematicUncertainty(NaN, NaN)
-    export SystematicUncertainty
 
     # A type of object to hold data about hiatuses
     mutable struct HiatusData
@@ -73,7 +88,7 @@
     end
 
     function HiatusData(nHiatuses::Integer)
-        hiatus = HiatusData(
+        HiatusData(
             fill(NaN,nHiatuses),  # Height
             fill(NaN,nHiatuses),  # Height_sigma
             fill(NaN,nHiatuses),  # Duration
@@ -81,10 +96,7 @@
             "Ma",
             "m",
         )
-        return hiatus
     end
-    const NewHiatusData = HiatusData
-    export NewHiatusData
 
     # A type of object to specify the configuration of the stratigraphic model
     mutable struct StratAgeModelConfiguration
@@ -96,7 +108,7 @@
     end
 
     function StratAgeModelConfiguration()
-        return StratAgeModelConfiguration(NaN, 0, 0, 0, NaN)
+        StratAgeModelConfiguration(NaN, 0, 0, 0, NaN)
     end
     const NewStratAgeModelConfiguration = StratAgeModelConfiguration
     export NewStratAgeModelConfiguration
