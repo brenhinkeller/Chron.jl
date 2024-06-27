@@ -50,6 +50,7 @@
 
     # Run the stratigraphic MCMC model
     @time (mdl, agedist, lldist) = StratMetropolis(smpl, config)
+    exportdataset(NamedTuple(mdl), "AgeDepthModel.csv")
 
     # Plot results (mean and 95% CI for model / 2-sigma for data)
     hdl = plot(framestyle=:box,
@@ -114,7 +115,13 @@
     dhdt_84p = nanpctile(dhdt_dist,84.135,dim=2) # Plus 1-sigma (84.135th percentile)
 
     # Plot results
-    hdl = plot(agebincenters,dhdt, label="Mean", color=:black, linewidth=2)
+    hdl = plot(
+        xlabel="Age ($(smpl.Age_Unit))", 
+        ylabel="Depositional Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))", 
+        fg_color_legend=:white,
+        framestyle=:box,
+    )
+    plot!(hdl, agebincenters,dhdt, label="Mean", color=:black, linewidth=2)
     plot!(hdl,[agebincenters; reverse(agebincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(0,0.2,:darkblue), linealpha=0, label="68% CI")
     for lci in 20:5:45
         dhdt_lp = nanpctile(dhdt_dist,lci,dim=2)
@@ -122,10 +129,8 @@
         plot!(hdl,[agebincenters; reverse(agebincenters)],[dhdt_lp; reverse(dhdt_up)], fill=(0,0.2,:darkblue), linealpha=0, label="")
     end
     plot!(hdl, agebincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
-    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Depositional Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))", fg_color_legend=:white)
-    # savefig(hdl,"DepositionRateModelCI.pdf")
+    savefig(hdl,"DepositionRateModelCI.pdf")
     display(hdl)
-
 ## --- Optional: Stratigraphic model including hiatuses - - - - - - - - - - - -
 
     # Data about hiatuses
@@ -138,11 +143,14 @@
 
     # Run the model. Note the additional `hiatus` arguments
     @time (mdl, agedist, hiatusdist, lldist) = StratMetropolis(smpl, hiatus, config); sleep(0.5)
+    exportdataset(NamedTuple(mdl), "AgeDepthModel.csv")
 
     # Plot results (mean and 95% confidence interval for both model and data)
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white)
     plot!(hdl, smpl.Age, smpl.Height, xerror=smpl.Age_sigma*2,label="data",seriestype=:scatter,color=:black)
     plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
+    savefig(hdl, "Interpolated age distribution.pdf")
+    display(hdl)
 
 ## --- End of File - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

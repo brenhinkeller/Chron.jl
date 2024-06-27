@@ -124,6 +124,7 @@
 
     # Run the stratigraphic MCMC model
     @time (mdl, agedist, lldist) = StratMetropolisDist(smpl, config, systematic)
+    exportdataset(NamedTuple(mdl), "AgeDepthModel.csv")
 
     # # Other options:
     # # Youngest Zircon
@@ -213,7 +214,13 @@
     dhdt_84p = nanpctile(dhdt_dist,84.135,dim=2) # Plus 1-sigma (84.135th percentile)
 
     # Plot results
-    hdl = plot(agebincenters,dhdt, label="Mean", color=:black, linewidth=2)
+    hdl = plot(
+        xlabel="Age ($(smpl.Age_Unit))", 
+        ylabel="Depositional Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))", 
+        fg_color_legend=:white,
+        framestyle=:box,
+    )
+    plot!(hdl, agebincenters,dhdt, label="Mean", color=:black, linewidth=2)
     plot!(hdl,[agebincenters; reverse(agebincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(0,0.2,:darkblue), linealpha=0, label="68% CI")
     for lci in 20:5:45
         dhdt_lp = nanpctile(dhdt_dist,lci,dim=2)
@@ -221,8 +228,7 @@
         plot!(hdl,[agebincenters; reverse(agebincenters)],[dhdt_lp; reverse(dhdt_up)], fill=(0,0.2,:darkblue), linealpha=0, label="")
     end
     plot!(hdl, agebincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
-    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Depositional Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))", fg_color_legend=:white)
-    # savefig(hdl,"DepositionRateModelCI.pdf")
+    savefig(hdl,"DepositionRateModelCI.pdf")
     display(hdl)
 
 ## --- Probability that a given interval of stratigraphy was deposited entirely before/after a given time

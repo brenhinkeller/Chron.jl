@@ -9,13 +9,14 @@
 
     using Chron
     using Plots
+    cd(@__DIR__) # Move to script directory
 
 ## --- Define sample properties - - - - - - - - - - - - - - - - - - - - - - - -
 
     # As in Chron1.0Coupled, but here we read in the information from a csv table:
 
     # # # # # # # # # # # Enter sample information here # # # # # # # # # # # # #
-    ds = importdataset(joinpath(@__DIR__, "stratonly_example_input.csv"), importas=:Tuple)
+    ds = importdataset("stratonly_example_input.csv", importas=:Tuple)
     smpl = ChronAgeData(length(ds.Name))
     smpl.Name       = Tuple(ds.Name)
     smpl.Age       .= ds.Age
@@ -50,6 +51,7 @@
 
     # Run the stratigraphic MCMC model
     @time (mdl, agedist, lldist) = StratMetropolis(smpl, config)
+    exportdataset(NamedTuple(mdl), "AgeDepthModel.csv")
 
     # Plot results (mean and 95% CI for model / 2-sigma for data)
     hdl = plot(framestyle=:box,
@@ -70,25 +72,19 @@
     savefig(hdl,"AgeDepthModel.pdf")
     display(hdl)
 
-## --- Interpolate results at a specific height - - - - - - - - - - - - - - - -
+## --- Interpolate results at a specific heights read from file  - - - - - - - -
 
-    # Stratigraphic height at which to interpolate
-    height = -404
+    # Stratigraphic heights at which to interpolate
+    hds = importdataset("stratonly_example_height_query.csv", importas=:Tuple)
 
-    age_at_height = linterp1s(mdl.Height,mdl.Age,height)
-    age_at_height_min = linterp1s(mdl.Height,mdl.Age_025CI,height)
-    age_at_height_max = linterp1s(mdl.Height,mdl.Age_975CI,height)
-    print("Interpolated age at height=$height: $age_at_height +$(age_at_height_max-age_at_height)/-$(age_at_height-age_at_height_min) $(smpl.Age_Unit)")
-
-    # Optional: interpolate full age distribution
-    interpolated_distribution = Array{Float64}(undef,size(agedist,2))
-    for i=1:size(agedist,2)
-        interpolated_distribution[i] = linterp1s(mdl.Height,agedist[:,i],height)
-    end
-    hdl = histogram(interpolated_distribution, nbins=50, label="")
-    plot!(hdl, xlabel="Age ($(smpl.Age_Unit)) at height=$height", ylabel="Likelihood (unnormalized)")
-    savefig(hdl, "Interpolated age distribution.pdf")
-    display(hdl)
+    hds = (;
+        Height = hds.Height,
+        Age = linterp1s(mdl.Height, mdl.Age, hds.Height),
+        Age_sigma = linterp1s(mdl.Height, mdl.Age_sigma, hds.Height),
+        Age_025CI = linterp1s(mdl.Height, mdl.Age_025CI, hds.Height),
+        Age_975CI = linterp1s(mdl.Height, mdl.Age_975CI, hds.Height),
+    )
+    exportdataset(hds, "stratonly_example_height_results.csv")
 
 ## --- Calculate deposition rate binned by age - - - - - - - - - - - - - - - - -
 
@@ -114,7 +110,13 @@
     dhdt_84p = nanpctile(dhdt_dist,84.135,dim=2) # Plus 1-sigma (84.135th percentile)
 
     # Plot results
-    hdl = plot(agebincenters,dhdt, label="Mean", color=:black, linewidth=2)
+    hdl = plot(
+        xlabel="Age ($(smpl.Age_Unit))", 
+        ylabel="Depositional Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))", 
+        fg_color_legend=:white,
+        framestyle=:box,
+    )
+    plot!(hdl, agebincenters,dhdt, label="Mean", color=:black, linewidth=2)
     plot!(hdl,[agebincenters; reverse(agebincenters)],[dhdt_16p; reverse(dhdt_84p)], fill=(0,0.2,:darkblue), linealpha=0, label="68% CI")
     for lci in 20:5:45
         dhdt_lp = nanpctile(dhdt_dist,lci,dim=2)
@@ -122,8 +124,7 @@
         plot!(hdl,[agebincenters; reverse(agebincenters)],[dhdt_lp; reverse(dhdt_up)], fill=(0,0.2,:darkblue), linealpha=0, label="")
     end
     plot!(hdl, agebincenters,dhdt_50p, label="Median", color=:grey, linewidth=1)
-    plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Depositional Rate ($(smpl.Height_Unit) / $(smpl.Age_Unit) over $binwidth $(smpl.Age_Unit))", fg_color_legend=:white)
-    # savefig(hdl,"DepositionRateModelCI.pdf")
+    savefig(hdl,"DepositionRateModelCI.pdf")
     display(hdl)
 
 ## --- Optional: Stratigraphic model including hiatuses - - - - - - - - - - - -
@@ -138,11 +139,14 @@
 
     # Run the model. Note the additional `hiatus` arguments
     @time (mdl, agedist, hiatusdist, lldist) = StratMetropolis(smpl, hiatus, config); sleep(0.5)
+    exportdataset(NamedTuple(mdl), "AgeDepthModel.csv")
 
     # Plot results (mean and 95% confidence interval for both model and data)
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white)
     plot!(hdl, smpl.Age, smpl.Height, xerror=smpl.Age_sigma*2,label="data",seriestype=:scatter,color=:black)
     plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
+    savefig(hdl,"AgeDepthModel.pdf")
+    display(hdl)
 
 ## --- End of File - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -18,6 +18,8 @@ Manifest.toml
 examples/DenverUPbExampleData/results.csv
 results.csv
 distresults.csv
+AgeDepthModel.csv
+stratonly_example_height_results.csv
 
 .ipynb_check*
 /etc
