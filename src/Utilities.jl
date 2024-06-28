@@ -107,10 +107,10 @@
 
         dist = exp.(ldist)
         dist ./= sum(dist) * calibration.dt # Normalize
-        samples = draw_from_distribution(dist, 10^6) .* maximum(calibration.Age_Calendar)
-        μ, σ = nanmean(samples), nanstd(samples)
+        μ = histmean(dist, calibration.Age_Calendar)
+        σ = histstd(dist, calibration.Age_Calendar, corrected=false)
 
-        return Radiocarbon(μ, σ, ldist)
+        return Radiocarbon(μ, σ, dist, ldist)
     end
 
     ## Conversions
@@ -134,6 +134,10 @@
     @inline function Distributions.logpdf(d::Radiocarbon{T}, x::Real) where {T}
         return linterp_at_index(d.ldist, x, -maxintfloat(T))
     end
+
+    ## Statistics
+    Distributions.mean(d::Radiocarbon) = d.μ
+    Distributions.std(d::Radiocarbon) = d.σ
 
 ## --- 
 

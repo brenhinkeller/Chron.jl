@@ -24,8 +24,11 @@
     @test pdf.(d, [900, 950, 1000]) ≈ [3.372067127114498e-7, 0.0036210273644940918, 1.5582187464154278e-12]
 
     @test eltype(d) === partype(d) === Float64
-    @test location(d) ≈ 926.3094740428785 atol=0.1
-    @test scale(d) ≈ 7.411299532288234 atol=0.1
+    @test location(d) ≈ 927.2875322569857
+    @test scale(d) ≈ 7.412902965559571
+
+    @test mean(d) ≈ 927.2875322569857
+    @test std(d) ≈ 7.412902965559571
 
 ## --- Other utility functions for log likelihoods
 
