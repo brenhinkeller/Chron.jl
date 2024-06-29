@@ -272,7 +272,10 @@
 
                     # Fit nonlinear model
                     fobj = curve_fit(bilinear_exponential,bincenters,N,p)
-                    fobj.param[2:end] .= abs.(fobj.param[2:end]) # Ensure positive
+                    fobj.param[3:end] .= abs.(fobj.param[3:end]) # Ensure positive
+                    μ, σ, shp = fobj.param[2:4]
+                    area, e = quadgk(x->bilinear_exponential(x,fobj.param), μ-200σ/shp, μ+200σ/shp)
+                    fobj.param[1] -= log(area) # Normalize
                     smpl.Params[:,i] = fobj.param
                 end
 
@@ -332,7 +335,9 @@
                 # Fit nonlinear model
                 x = μ .+ (-10σ:σ/10:10σ)
                 fobj = curve_fit(bilinear_exponential, x, normpdf(μ, σ, x), p)
-                fobj.param[2:end] .= abs.(fobj.param[2:end]) # Ensure positive
+                area, e = quadgk(x->bilinear_exponential(x,fobj.param), μ-200σ, μ+200σ)
+                fobj.param[1] -= log(area) # Normalize
+                fobj.param[3:end] .= abs.(fobj.param[3:end]) # Ensure positive
                 fobj.param[5] = 1 # Must be symmetrical
                 smpl.Params[:,i] = fobj.param
             end

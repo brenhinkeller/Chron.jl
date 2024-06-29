@@ -5,6 +5,8 @@
 
     """
     ```Julia
+    BilinearExponential(μ, σ, shp, skw)
+    BilinearExponential(p::AbstractVector)
     struct BilinearExponential{T<:Real} <: ContinuousUnivariateDistribution
         A::T
         μ::T
@@ -12,8 +14,6 @@
         shp::T
         skw::T
     end
-    BilinearExponential(p::AbstractVector)
-    BilinearExponential(p::NTuple{5,T})
     ```
     A five-parameter pseudo-distribution which can be used to approximate various 
     asymmetric probability distributions found in geochronology (including as a result 
@@ -36,6 +36,9 @@
     In addition to the scale parameter `σ`, the additional shape parameters `shp` and `skw` 
     (which control the sharpness and skew of the resulting distribution, respectively), are 
     all three required to be nonnegative.
+
+    If only four parameters `(μ, σ, shp, skw)` are specified, the normalization constant `A` 
+    will be calculated such that the resulting distribution is normalized.
     """
     struct BilinearExponential{T<:Real} <: ContinuousUnivariateDistribution
         A::T
@@ -43,15 +46,23 @@
         σ::T
         shp::T
         skw::T
+        function BilinearExponential(A::T, μ::T, σ::T, shp::T, skw::T) where {T}
+            new{T}(A, μ, abs(σ), abs(shp), abs(skw))
+        end
+        function BilinearExponential{T}(A, μ, σ, shp, skw) where {T<:Real}
+            new{T}(A, μ, abs(σ), abs(shp), abs(skw))
+        end
     end
     function BilinearExponential(p::AbstractVector{T}) where {T}
-        @assert length(p) == 5
-        @assert all(x->!(x<0), Iterators.drop(p,1))
-        BilinearExponential{T}(p...)
+        i₀ = firstindex(p)
+        @assert eachindex(p) == i₀:i₀+4
+        BilinearExponential{T}(p[i₀], p[i₀+1], p[i₀+2], p[i₀+3], p[i₀+4])
     end
-    function BilinearExponential(p::NTuple{5,T}) where {T}
-        @assert all(x->!(x<0), Iterators.drop(p,1))
-        BilinearExponential{T}(p...)
+    function BilinearExponential(μ::T, σ::T, shp::T, skw::T) where {T<:Real}
+        # Calculate A such that the resulting distribution is properly normalized
+        d₀ = BilinearExponential{T}(zero(T), μ, σ, shp, skw)
+        area, e = quadgk(x->pdf(d₀, x), μ-200abs(σ/shp), μ+200abs(σ/shp))
+        BilinearExponential{float(T)}(-log(area), μ, σ, shp, skw)
     end
 
     ## Conversions
@@ -73,16 +84,22 @@
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
         return exp(d.A + d.shp*d.skw*xs*v - d.shp/d.skw*xs*(1-v))
     end
-
+    Distributions.cdf(d::BilinearExponential, x::Real) = first(quadgk(x->pdf(d,x), d.μ-200*d.σ/d.shp, x))
+    Distributions.ccdf(d::BilinearExponential, x::Real) = first(quadgk(x->pdf(d,x), x, d.μ+200*d.σ/d.shp))
     @inline function Distributions.logpdf(d::BilinearExponential, x::Real)
         xs = (x - d.μ)/d.σ # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
         return d.A + d.shp*d.skw*xs*v - d.shp/d.skw*xs*(1-v)
     end
 
+    ## Statistics
+    Distributions.mean(d::BilinearExponential) = first(quadgk(x->x*pdf(d,x), d.μ-100*d.σ/d.shp, d.μ+100*d.σ/d.shp, maxevals=1000))
+    Distributions.var(d::BilinearExponential; mean=mean(d)) = first(quadgk(x->(x-mean)^2*pdf(d,x), d.μ-100*d.σ/d.shp, d.μ+100*d.σ/d.shp, maxevals=1000))
+    Distributions.std(d::BilinearExponential; mean=mean(d)) = sqrt(var(d; mean))
+
     ## Affine transformations
     Base.:+(d::BilinearExponential{T}, c::Real) where {T} = BilinearExponential{T}(d.A, d.μ + c, d.σ, d.shp, d.skw)
-    Base.:*(d::BilinearExponential{T}, c::Real) where {T} = BilinearExponential{T}(d.A, d.μ * c, d.σ * abs(c), d.shp, d.skw)
+    Base.:*(d::BilinearExponential{T}, c::Real) where {T} = BilinearExponential{T}(d.A-log(abs(c)), d.μ * c, d.σ*abs(c), d.shp, d.skw)
 
 ## --- Radiocarbon distribution type
 
@@ -130,13 +147,13 @@
     @inline function Distributions.pdf(d::Radiocarbon{T}, x::Real) where {T}
         return linterp_at_index(d.dist, x, zero(T))
     end
-
     @inline function Distributions.logpdf(d::Radiocarbon{T}, x::Real) where {T}
         return linterp_at_index(d.ldist, x, -maxintfloat(T))
     end
 
     ## Statistics
     Distributions.mean(d::Radiocarbon) = d.μ
+    Distributions.var(d::Radiocarbon) = d.σ * d.σ
     Distributions.std(d::Radiocarbon) = d.σ
 
 ## --- 

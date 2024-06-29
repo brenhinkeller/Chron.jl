@@ -32,6 +32,7 @@ module Chron
     using KernelDensity: kde
     using DelimitedFiles
     using Distributions
+    using QuadGK
 
     include("Utilities.jl")
     # Functions for propagating systematic uncertainties
