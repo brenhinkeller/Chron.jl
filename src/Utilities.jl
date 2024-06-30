@@ -84,18 +84,64 @@
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
         return exp(d.A + d.shp*d.skw*xs*v - d.shp/d.skw*xs*(1-v))
     end
-    Distributions.cdf(d::BilinearExponential, x::Real) = first(quadgk(x->pdf(d,x), d.μ-200*d.σ/d.shp, x))
-    Distributions.ccdf(d::BilinearExponential, x::Real) = first(quadgk(x->pdf(d,x), x, d.μ+200*d.σ/d.shp))
+    function Distributions.cdf(d::BilinearExponential{T}, x::Real) where {T}
+        maxspan = 200*d.σ/d.shp
+        if d.μ + maxspan < x
+            one(float(T))
+        elseif x < d.μ - maxspan
+            zero(float(T))
+        else
+            l = min(d.μ, x)
+            return first(quadgk(x->pdf(d,x), l-maxspan, x))
+        end
+    end
+    function Distributions.ccdf(d::BilinearExponential{T}, x::Real) where {T}
+        maxspan =  200*d.σ/d.shp
+        if x < d.μ - maxspan
+            one(float(T))
+        elseif d.μ + maxspan < x
+            zero(float(T))
+        else
+            u = max(d.μ, x)
+            first(quadgk(x->pdf(d,x), x, u+maxspan))
+        end
+    end
+
     @inline function Distributions.logpdf(d::BilinearExponential, x::Real)
         xs = (x - d.μ)/d.σ # X scaled by mean and variance
         v = 1/2 - atan(xs)/3.141592653589793 # Sigmoid (positive on LHS)
         return d.A + d.shp*d.skw*xs*v - d.shp/d.skw*xs*(1-v)
     end
+    function Distributions.logcdf(d::BilinearExponential{T}, x::Real) where {T}
+        maxspan = 200*d.σ/d.shp
+        if x > d.μ + maxspan
+            zero(float(T))
+        else
+            l = min(d.μ, x)
+            c = logpdf(d, l)
+            area_shifted, e = quadgk(x->exp(logpdf(d,x)-c), l-maxspan, x)
+            log(area_shifted)+c
+        end
+    end
+    function Distributions.logccdf(d::BilinearExponential{T}, x::Real) where {T}
+        maxspan = 200*d.σ/d.shp
+        if x < d.μ - maxspan
+            zero(float(T))
+        else
+            u = max(d.μ, x)
+            c = logpdf(d, u)
+            area_shifted, e = quadgk(x->exp(logpdf(d,x)-c), x, u+maxspan)
+            log(area_shifted)+c
+        end
+    end
+
 
     ## Statistics
     Distributions.mean(d::BilinearExponential) = first(quadgk(x->x*pdf(d,x), d.μ-100*d.σ/d.shp, d.μ+100*d.σ/d.shp, maxevals=1000))
     Distributions.var(d::BilinearExponential; mean=mean(d)) = first(quadgk(x->(x-mean)^2*pdf(d,x), d.μ-100*d.σ/d.shp, d.μ+100*d.σ/d.shp, maxevals=1000))
     Distributions.std(d::BilinearExponential; mean=mean(d)) = sqrt(var(d; mean))
+    Distributions.skewness(d::BilinearExponential; mean=mean(d), std=std(d; mean)) = first(quadgk(x->(x-mean)^3*pdf(d,x), d.μ-100*d.σ/d.shp, d.μ+100*d.σ/d.shp, maxevals=1000))/std^3
+    Distributions.kurtosis(d::BilinearExponential; mean=mean(d), std=std(d; mean)) = first(quadgk(x->(x-mean)^4*pdf(d,x), d.μ-100*d.σ/d.shp, d.μ+100*d.σ/d.shp, maxevals=1000))/std^4
 
     ## Affine transformations
     Base.:+(d::BilinearExponential{T}, c::Real) where {T} = BilinearExponential{T}(d.A, d.μ + c, d.σ, d.shp, d.skw)
