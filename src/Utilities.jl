@@ -141,7 +141,7 @@
     Distributions.var(d::BilinearExponential; mean=mean(d)) = first(quadgk(x->(x-mean)^2*pdf(d,x), d.μ-100*d.σ/d.shp, d.μ+100*d.σ/d.shp, maxevals=1000))
     Distributions.std(d::BilinearExponential; mean=mean(d)) = sqrt(var(d; mean))
     Distributions.skewness(d::BilinearExponential; mean=mean(d), std=std(d; mean)) = first(quadgk(x->(x-mean)^3*pdf(d,x), d.μ-100*d.σ/d.shp, d.μ+100*d.σ/d.shp, maxevals=1000))/std^3
-    Distributions.kurtosis(d::BilinearExponential; mean=mean(d), std=std(d; mean)) = first(quadgk(x->(x-mean)^4*pdf(d,x), d.μ-100*d.σ/d.shp, d.μ+100*d.σ/d.shp, maxevals=1000))/std^4
+    Distributions.kurtosis(d::BilinearExponential; mean=mean(d), std=std(d; mean)) = first(quadgk(x->(x-mean)^4*pdf(d,x), d.μ-100*d.σ/d.shp, d.μ+100*d.σ/d.shp, maxevals=1000))/std^4 - 3
 
     ## Affine transformations
     Base.:+(d::BilinearExponential{T}, c::Real) where {T} = BilinearExponential{T}(d.A, d.μ + c, d.σ, d.shp, d.skw)
@@ -152,6 +152,7 @@
     struct Radiocarbon{T<:Real} <: ContinuousUnivariateDistribution
         μ::T
         σ::T
+        dist::Vector{T}
         ldist::Vector{T}
         lcdist::Vector{T}
         lccdist::Vector{T}
@@ -159,14 +160,16 @@
 
     function Radiocarbon(μ::T, σ::T, ldist::Vector{T}) where {T<:Real}
         # Ensure normalization
-        normconst = sum(exp.(ldist)) * one(T)
+        dist = exp.(ldist)
+        normconst = sum(dist) * one(T)
+        dist ./= normconst
         ldist .-= normconst
 
         # Cumulative distributions
         lcdist = nanlogcumsumexp(ldist)
         lccdist = nanlogcumsumexp(ldist, reverse=true)
     
-        return Radiocarbon{T}(μ, σ, ldist, lcdist, lccdist)
+        return Radiocarbon{T}(μ, σ, dist, ldist, lcdist, lccdist)
     end
 
     function Radiocarbon(Age_14C::Real, Age_14C_sigma::Real, calibration::NamedTuple=intcal13)
@@ -174,12 +177,13 @@
         @assert step(calibration.Age_Calendar) == calibration.dt == 1
 
         ldist = normlogproduct.(Age_14C, Age_14C_sigma, calibration.Age_14C, calibration.Age_sigma)
-        dist = exp.(ldist)
 
-        # Normalize
+        # Ensure normalization
+        dist = exp.(ldist)
         normconst = sum(dist) * calibration.dt
         dist ./= normconst
         ldist .-= normconst
+
         μ = histmean(dist, calibration.Age_Calendar)
         σ = histstd(dist, calibration.Age_Calendar, corrected=false)
 
@@ -187,7 +191,7 @@
         lcdist = nanlogcumsumexp(ldist)
         lccdist = nanlogcumsumexp(ldist, reverse=true)
 
-        return Radiocarbon(μ, σ, ldist, lcdist, lccdist)
+        return Radiocarbon(μ, σ, dist, ldist, lcdist, lccdist)
     end
 
     ## Conversions
@@ -205,6 +209,14 @@
 
     ## Evaluation
     @inline Distributions.pdf(d::Radiocarbon, x::Real) = exp(logpdf(d, x))
+    @inline function Distributions.pdf(d::Radiocarbon{T}, x::Real) where {T}
+        if firstindex(d.ldist) <= x <= lastindex(d.ldist)
+            linterp_at_index(d.dist, x, -maxintfloat(T))
+        else
+            # Treat as a single Normal distrbution if outside of the calibration range
+            pdf(Normal(d.μ, d.σ), x)
+        end
+    end
     @inline function Distributions.logpdf(d::Radiocarbon{T}, x::Real) where {T}
         if firstindex(d.ldist) <= x <= lastindex(d.ldist)
             linterp_at_index(d.ldist, x, -maxintfloat(T))
@@ -236,6 +248,8 @@
     Distributions.mean(d::Radiocarbon) = d.μ
     Distributions.var(d::Radiocarbon) = d.σ * d.σ
     Distributions.std(d::Radiocarbon) = d.σ
+    Distributions.skewness(d::Radiocarbon) = histskewness(d.dist, eachindex(d.dist), corrected=false)
+    Distributions.kurtosis(d::Radiocarbon) = histkurtosis(d.dist, eachindex(d.dist), corrected=false)
 
 ## --- 
 

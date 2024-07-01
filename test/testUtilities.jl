@@ -24,7 +24,7 @@
     @test var(d) ≈ 0.02080666596420308^2 atol = 1e-6
     @test std(d) ≈ 0.02080666596420308 atol = 1e-6
     @test skewness(d) ≈ -0.16449904171203025 atol = 1e-6
-    @test kurtosis(d) ≈ 3.0865922917156188 atol = 1e-6
+    @test kurtosis(d) ≈ 0.0865922917156188 atol = 1e-6
 
 ## --- Test Radiocarbon distribution
 
@@ -45,6 +45,8 @@
     @test mean(d) ≈ 927.2556461305643
     @test var(d) ≈ 7.5077650707247^2
     @test std(d) ≈ 7.5077650707247
+    @test skewness(d) ≈ -4.6327184250788696
+    @test kurtosis(d) ≈ 67.68860469654331
 
 ## --- Other utility functions for log likelihoods
 
