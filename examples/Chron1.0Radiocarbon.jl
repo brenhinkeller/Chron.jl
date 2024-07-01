@@ -54,7 +54,7 @@
         smpl.Age_975CI[i] = nanpctile(samples,97.5)
 
         # Populate smpl.Params with log likelihood for each sample
-        smpl.Params[:,i] = normproduct_ll.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], calibration.Age_14C, calibration.Age_sigma)
+        smpl.Params[:,i] = normlogproduct.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], calibration.Age_14C, calibration.Age_sigma)
 
         # Plot likelihood vector for each sample
         t = (calibration.Age_Calendar .> smpl.Age[i] - 5*smpl.Age_sigma[i]) .& (calibration.Age_Calendar .< smpl.Age[i] + 5*smpl.Age_sigma[i])
