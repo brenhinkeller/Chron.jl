@@ -152,28 +152,42 @@
     struct Radiocarbon{T<:Real} <: ContinuousUnivariateDistribution
         μ::T
         σ::T
-        dist::Vector{T}
         ldist::Vector{T}
+        lcdist::Vector{T}
+        lccdist::Vector{T}
     end
 
     function Radiocarbon(μ::T, σ::T, ldist::Vector{T}) where {T<:Real}
-        dist = exp.(ldist)
-        dist ./= sum(dist) * 1 # Normalize
-        return Radiocarbon{T}(μ, σ, dist, ldist)
+        # Ensure normalization
+        normconst = sum(exp.(ldist)) * one(T)
+        ldist .-= normconst
+
+        # Cumulative distributions
+        lcdist = nanlogcumsumexp(ldist)
+        lccdist = nanlogcumsumexp(ldist, reverse=true)
+    
+        return Radiocarbon{T}(μ, σ, ldist, lcdist, lccdist)
     end
 
     function Radiocarbon(Age_14C::Real, Age_14C_sigma::Real, calibration::NamedTuple=intcal13)
         @assert calibration.Age_Calendar == 1:1:length(calibration.Age_14C)
         @assert step(calibration.Age_Calendar) == calibration.dt == 1
 
-        ldist = normproduct_ll.(Age_14C, Age_14C_sigma, calibration.Age_14C, calibration.Age_sigma)
-
+        ldist = normlogproduct.(Age_14C, Age_14C_sigma, calibration.Age_14C, calibration.Age_sigma)
         dist = exp.(ldist)
-        dist ./= sum(dist) * calibration.dt # Normalize
+
+        # Normalize
+        normconst = sum(dist) * calibration.dt
+        dist ./= normconst
+        ldist .-= normconst
         μ = histmean(dist, calibration.Age_Calendar)
         σ = histstd(dist, calibration.Age_Calendar, corrected=false)
 
-        return Radiocarbon(μ, σ, dist, ldist)
+        # Cumulative distributions
+        lcdist = nanlogcumsumexp(ldist)
+        lccdist = nanlogcumsumexp(ldist, reverse=true)
+
+        return Radiocarbon(μ, σ, ldist, lcdist, lccdist)
     end
 
     ## Conversions
@@ -190,11 +204,32 @@
     Base.eltype(::Type{Radiocarbon{T}}) where {T} = T
 
     ## Evaluation
-    @inline function Distributions.pdf(d::Radiocarbon{T}, x::Real) where {T}
-        return linterp_at_index(d.dist, x, zero(T))
-    end
+    @inline Distributions.pdf(d::Radiocarbon, x::Real) = exp(logpdf(d, x))
     @inline function Distributions.logpdf(d::Radiocarbon{T}, x::Real) where {T}
-        return linterp_at_index(d.ldist, x, -maxintfloat(T))
+        if firstindex(d.ldist) <= x <= lastindex(d.ldist)
+            linterp_at_index(d.ldist, x, -maxintfloat(T))
+        else
+            # Treat as a single Normal distrbution if outside of the calibration range
+            logpdf(Normal(d.μ, d.σ), x)
+        end
+    end
+    @inline Distributions.cdf(d::Radiocarbon, x::Real) = exp(logcdf(d, x))
+    @inline function Distributions.logcdf(d::Radiocarbon{T}, x::Real) where {T}
+        if firstindex(d.lcdist) <= x <= lastindex(d.lcdist)
+            linterp_at_index(d.lcdist, x, -maxintfloat(T))
+        else
+            # Treat as a single Normal distrbution if outside of the calibration range
+            logcdf(Normal(d.μ, d.σ), x)
+        end
+    end
+    @inline Distributions.ccdf(d::Radiocarbon, x::Real) = exp(logccdf(d, x))
+    @inline function Distributions.logccdf(d::Radiocarbon{T}, x::Real) where {T}
+        if firstindex(d.lccdist) <= x <= lastindex(d.lccdist)
+            linterp_at_index(d.lccdist, x, -maxintfloat(T))
+        else
+            # Treat as a single Normal distrbution if outside of the calibration range
+            logccdf(Normal(d.μ, d.σ), x)
+        end
     end
 
     ## Statistics
