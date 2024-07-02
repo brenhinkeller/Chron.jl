@@ -433,33 +433,6 @@
 
 ## --- # Internals of the Markov chain
 
-    # Use dispatch to let us reduce duplication
-    strat_ll(x, ages::AbstractVector{<:Radiocarbon}) = interpolate_ll(x, ages)
-    strat_ll(x, ages::AbstractVector{<:Normal}) = normpdf_ll(x, ages)
-    strat_ll(x::Real, age::Distribution) = logpdf(age, x)
-    function strat_ll(x, ages)
-        ll = zero(float(eltype(x)))
-        @inbounds for i in eachindex(x, ages)
-            ll += logpdf(ages[i], x[i])
-        end
-        return ll
-    end
-
-    adjust!(ages, chronometer, systematic::Nothing) = ages
-    function adjust!(ages, chronometer, systematic::SystematicUncertainty)
-        systUPb = randn()*systematic.UPb
-        systArAr = randn()*systematic.ArAr
-        @assert eachindex(ages)==eachindex(chronometer)
-        @inbounds for i ∈ eachindex(ages)
-            if  chronometer[i] === :UPb 
-                ages[i] += systUPb
-            elseif chronometer[i] === :ArAr
-                ages[i] += systArAr
-            end
-        end
-        return ages
-    end
-
     function stratmetropolis(Height, Height_sigma, model_heights::AbstractRange, Age_Sidedness, ages, model_ages, proposal_sigma, burnin::Integer, nsteps::Integer, sieve::Integer, Chronometer=nothing, systematic=nothing)
         resolution = step(model_heights)
         npoints = length(model_heights)

@@ -1,6 +1,3 @@
-## --- Dealing with arbitrary distributions
-
-
 ## --- "bilinear exponential" distribution type
 
     """
@@ -276,6 +273,20 @@
             age = ages[i]
             μᵢ, σᵢ = age.μ, age.σ
             ll -= (x[i]-μᵢ)^2 / (2*σᵢ*σᵢ)
+        end
+        return ll
+    end
+
+## --- log likelihood functions allowing for arbitrary Distributions
+
+    # Use dispatch to let us reduce duplication
+    strat_ll(x, ages::AbstractVector{<:Radiocarbon}) = interpolate_ll(x, ages)
+    strat_ll(x, ages::AbstractVector{<:Normal}) = normpdf_ll(x, ages)
+    strat_ll(x::Real, age::Distribution) = logpdf(age, x)
+    function strat_ll(x, ages)
+        ll = zero(float(eltype(x)))
+        @inbounds for i in eachindex(x, ages)
+            ll += logpdf(ages[i], x[i])
         end
         return ll
     end

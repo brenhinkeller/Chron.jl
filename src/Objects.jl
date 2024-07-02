@@ -50,7 +50,7 @@
         Name::NTuple{N, String}
         Height::Vector{Float64}
         Height_sigma::Vector{Float64}
-        Age::Vector{Distribution{Univariate, Continuous}}
+        Age_Distribution::Vector{<:Union{<:Distribution{Univariate, Continuous}}}
         Age_Sidedness::Vector{Float64}
         Chronometer::NTuple{N, Symbol}
         Age_Unit::String

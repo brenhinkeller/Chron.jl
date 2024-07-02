@@ -34,11 +34,12 @@ module Chron
     using Distributions
     using QuadGK
 
+    # Custom objects for holding Chron age data
+    include("Objects.jl")
+    # General utility functions
     include("Utilities.jl")
     # Functions for propagating systematic uncertainties
     include("Systematic.jl")
-    # Custom objects for holding Chron age data
-    include("Objects.jl")
     # Intcal2013 calibration curve for radiocarbion
     include("Intcal.jl")
     # Functions for estimating extrema of a finite-range distribution

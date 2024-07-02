@@ -1,4 +1,21 @@
-## --- Dealing with systematic uncertainty
+## --- Adjust distributions for systematic uncertainty
+
+    adjust!(ages, chronometer, systematic::Nothing) = ages
+    function adjust!(ages, chronometer, systematic::SystematicUncertainty)
+        systUPb = randn()*systematic.UPb
+        systArAr = randn()*systematic.ArAr
+        @assert eachindex(ages)==eachindex(chronometer)
+        @inbounds for i ∈ eachindex(ages)
+            if  chronometer[i] === :UPb 
+                ages[i] += systUPb
+            elseif chronometer[i] === :ArAr
+                ages[i] += systArAr
+            end
+        end
+        return ages
+    end
+
+## --- Add systematic uncertainty when given an already-generated age or age-depth distribution
 
     function add_systematic_uncert_UPb(agedistmyr::Vector{<:AbstractFloat})
         λ238 = val(λ238U) # Jaffey decay constant, 1/Myr
