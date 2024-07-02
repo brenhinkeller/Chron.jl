@@ -248,24 +248,7 @@
     Distributions.skewness(d::Radiocarbon) = histskewness(d.dist, eachindex(d.dist), corrected=false)
     Distributions.kurtosis(d::Radiocarbon) = histkurtosis(d.dist, eachindex(d.dist), corrected=false)
 
-## --- 
-
-    # Interpolate log likelihood from an array
-    function interpolate_ll(x::AbstractVector,p::AbstractMatrix{T}) where {T<:Real}
-        ll = zero(T)
-        @inbounds for i ∈ eachindex(x)
-            ll += linterp_at_index(view(p,:,i), x[i], -maxintfloat(T))
-        end
-        return ll
-    end
-    function interpolate_ll(x::AbstractVector,ages::AbstractVector{Radiocarbon{T}}) where T
-        ll = zero(T)
-        @inbounds for i ∈ eachindex(x,ages)
-            ldist = ages[i].ldist
-            ll += linterp_at_index(ldist, x[i], -maxintfloat(T))
-        end
-        return ll
-    end
+## --- Extend `normpdf_ll` to deal with Distributions.Normal 
 
     function StatGeochemBase.normpdf_ll(x::AbstractVector, ages::AbstractVector{Normal{T}}) where T
         ll = zero(T)
@@ -280,7 +263,6 @@
 ## --- log likelihood functions allowing for arbitrary Distributions
 
     # Use dispatch to let us reduce duplication
-    strat_ll(x, ages::AbstractVector{<:Radiocarbon}) = interpolate_ll(x, ages)
     strat_ll(x, ages::AbstractVector{<:Normal}) = normpdf_ll(x, ages)
     strat_ll(x::Real, age::Distribution) = logpdf(age, x)
     function strat_ll(x, ages)
