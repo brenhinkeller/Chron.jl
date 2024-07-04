@@ -21,6 +21,7 @@
         inputSigmaLevel::Int
         Age_Unit::String
         Height_Unit::String
+        Sidedness_Method::Symbol
     end
 
     function ChronAgeData(nSamples::Integer)
@@ -43,6 +44,7 @@
             2, # i.e., are the data files 1-sigma or 2-sigma
             "Ma",
             "m",
+            :cdf,
         )
     end
 
@@ -55,6 +57,7 @@
         Chronometer::NTuple{N, Symbol}
         Age_Unit::String
         Height_Unit::String
+        Sidedness_Method::Symbol
     end
 
     function GeneralAgeData(nSamples::Integer)
@@ -67,8 +70,26 @@
             ntuple(i->:Chronometer, nSamples), # Age Types (e.g., :UPb or :ArAr)
             "Ma",
             "m",
+            :cdf,
         )
     end
+
+    # A set of types to allow dispatch to different age sidedness methods
+    abstract type Sidedness end
+    struct CDFSidedness{T<:Real} <: Sidedness
+        s::Vector{T}
+    end
+    struct FastSidedness{T<:Real} <: Sidedness
+        s::Vector{T}
+    end
+    Base.getindex(A::Sidedness, args...) = getindex(A.s, args...)
+    Base.setindex!(A::Sidedness, args...) = setindex!(A.s, args...)
+    Base.eachindex(A::Sidedness) = eachindex(A.s)
+    Base.size(A::Sidedness, args...) = size(A.s, args...)
+    Base.length(A::Sidedness) = length(A.s)
+    Base.ndims(A::Sidedness) = ndims(A.s)
+    Base.ndims(::Type{<:Sidedness}) = 1
+    Base.copyto!(A::Sidedness, args...) = copyto!(A.s, args...)
 
     # One-sigma systematic uncertainty
     mutable struct SystematicUncertainty

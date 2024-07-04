@@ -68,9 +68,16 @@
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         model_ages = a .+ b .* collect(model_heights)
 
+        # Select sidedness method
+        sidedness = if smpl.Sidedness_Method === :fast || all(iszero, smpl.Age_Sidedness)
+            FastSidedness(Age_Sidedness)
+        else
+            CDFSidedness(Age_Sidedness)
+        end
+
         # Run the Markov chain
         ages = Normal.(Age, Age_sigma)
-        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve, Chronometer, systematic)
+        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve, Chronometer, systematic)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -124,9 +131,16 @@
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         model_ages = a .+ b .* collect(model_heights)
 
+        # Select sidedness method
+        sidedness = if smpl.Sidedness_Method === :fast || all(iszero, smpl.Age_Sidedness)
+            FastSidedness(Age_Sidedness)
+        else
+            CDFSidedness(Age_Sidedness)
+        end
+        
         # Run the Markov chain
         ages = Normal.(Age, Age_sigma)
-        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve)
+        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -210,9 +224,16 @@
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         model_ages = a .+ b .* collect(model_heights)
 
+        # Select sidedness method
+        sidedness = if smpl.Sidedness_Method === :fast || all(iszero, smpl.Age_Sidedness)
+            FastSidedness(Age_Sidedness)
+        else
+            CDFSidedness(Age_Sidedness)
+        end
+
         # Run the Markov chain
         ages = BilinearExponential.(eachcol(p))
-        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve, Chronometer, systematic)
+        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve, Chronometer, systematic)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -270,9 +291,16 @@
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         model_ages = a .+ b .* collect(model_heights)
 
+        # Select sidedness method
+        sidedness = if smpl.Sidedness_Method === :fast || all(iszero, smpl.Age_Sidedness)
+            FastSidedness(Age_Sidedness)
+        else
+            CDFSidedness(Age_Sidedness)
+        end
+
         # Run the Markov chain
         ages = BilinearExponential.(eachcol(p))
-        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve)
+        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -355,9 +383,16 @@
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         model_ages = a .+ b .* collect(model_heights)
 
+        # Select sidedness method
+        sidedness = if smpl.Sidedness_Method === :fast || all(iszero, smpl.Age_Sidedness)
+            FastSidedness(Age_Sidedness)
+        else
+            CDFSidedness(Age_Sidedness)
+        end
+
         # Run the Markov chain
         ages = Radiocarbon.(Age, Age_sigma, (collect(c) for c in eachcol(p)))
-        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve)
+        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -419,9 +454,16 @@
         (a,b) = hcat(fill!(similar(Height), 1), Height) \ Age
         model_ages = a .+ b .* collect(model_heights)
 
+        # Select sidedness method
+        sidedness = if smpl.Sidedness_Method === :fast || all(iszero, smpl.Age_Sidedness)
+            FastSidedness(Age_Sidedness)
+        else
+            CDFSidedness(Age_Sidedness)
+        end
+
         # Run the Markov chain
         ages = Radiocarbon.(Age, Age_sigma, (collect(c) for c in eachcol(p)))
-        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, Age_Sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve)
+        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
