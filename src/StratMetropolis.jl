@@ -438,17 +438,11 @@
         npoints = length(model_heights)
 
         # Calculate log likelihood of initial proposal
-        # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-        # proposals older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
+
         sample_height = copy(Height)
         closest = findclosest(sample_height, model_heights)
         closest_model_ages = model_ages[closest]
-        @inbounds for i ∈ eachindex(ages,closest_model_ages)
-            if Age_Sidedness[i] == sign(closest_model_ages[i] - ages[i].μ)
-                closest_model_ages[i] = ages[i].μ
-            end
-        end
-        ll = strat_ll(closest_model_ages, ages)
+        ll = strat_ll(closest_model_ages, ages, Age_Sidedness)
         ll += normpdf_ll(Height, Height_sigma, sample_height)
 
         # Preallocate variables for MCMC proposals
@@ -473,14 +467,10 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i ∈ eachindex(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ, closestₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
-                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
-                    if closestₚ[i] < 1 # Check we're still within bounds
-                        closestₚ[i] = 1
-                    elseif closestₚ[i] > npoints
-                        closestₚ[i] = npoints
-                    end
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - first(model_heights))/resolution)+1
+                    closestₚ[i] = max(min(closestₚ[i], lastindex(model_agesₚ)), firstindex(model_agesₚ))
                 end
             else
                 # Adjust one point at a time then resolve conflicts
@@ -505,16 +495,11 @@
 
 
             # Calculate log likelihood of proposal
-            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i ∈ eachindex(ages, closest_model_agesₚ)
-                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
-                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - ages[i].μ)
-                    closest_model_agesₚ[i] = ages[i].μ
-                end
-            end
             adjust!(agesₚ, Chronometer, systematic)
-            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
+            @inbounds for i ∈ eachindex(closest_model_agesₚ, closestₚ)
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+            end
+            llₚ = strat_ll(closest_model_agesₚ, agesₚ, Age_Sidedness)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Accept or reject proposal based on likelihood
@@ -549,14 +534,10 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i ∈ eachindex(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ, closestₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
-                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
-                    if closestₚ[i] < 1 # Check we're still within bounds
-                        closestₚ[i] = 1
-                    elseif closestₚ[i] > npoints
-                        closestₚ[i] = npoints
-                    end
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - first(model_heights))/resolution)+1
+                    closestₚ[i] = max(min(closestₚ[i], lastindex(model_agesₚ)), firstindex(model_agesₚ))
                 end
             else
                 # Adjust one point at a time then resolve conflicts
@@ -580,16 +561,11 @@
             end
 
             # Calculate log likelihood of proposal
-            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i ∈ eachindex(ages, closest_model_agesₚ)
-                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
-                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - ages[i].μ)
-                    closest_model_agesₚ[i] = ages[i].μ
-                end
-            end
             adjust!(agesₚ, Chronometer, systematic)
-            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
+            @inbounds for i ∈ eachindex(closest_model_agesₚ, closestₚ)
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+            end
+            llₚ = strat_ll(closest_model_agesₚ, agesₚ, Age_Sidedness)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Accept or reject proposal based on likelihood
@@ -619,17 +595,10 @@
         npoints = length(model_heights)
 
         # Calculate log likelihood of initial proposal
-        # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-        # proposals older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
         sample_height = copy(Height)
         closest = findclosest(sample_height, model_heights)
         closest_model_ages = model_ages[closest]
-        @inbounds for i ∈ eachindex(ages)
-            if Age_Sidedness[i] == sign(closest_model_ages[i] - ages[i].μ)
-                closest_model_ages[i] = ages[i].μ
-            end
-        end
-        ll = strat_ll(closest_model_ages, ages)
+        ll = strat_ll(closest_model_ages, ages, Age_Sidedness)
         ll += normpdf_ll(Height, Height_sigma, sample_height)
 
         # Ensure there is only one effective hiatus at most for each height node
@@ -673,14 +642,10 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i ∈ eachindex(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ, closestₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
-                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
-                    if closestₚ[i] < 1 # Check we're still within bounds
-                        closestₚ[i] = 1
-                    elseif closestₚ[i] > npoints
-                        closestₚ[i] = npoints
-                    end
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - first(model_heights))/resolution)+1
+                    closestₚ[i] = max(min(closestₚ[i], lastindex(model_agesₚ)), firstindex(model_agesₚ))
                 end
             else
                 # Adjust one point at a time then resolve conflicts
@@ -718,16 +683,11 @@
 
 
             # Calculate log likelihood of proposal
-            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i ∈ eachindex(ages)
-                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
-                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - ages[i].μ)
-                    closest_model_agesₚ[i] = ages[i].μ
-                end
-            end
             adjust!(agesₚ, Chronometer, systematic)
-            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
+            @inbounds for i ∈ eachindex(closest_model_agesₚ, closestₚ)
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+            end
+            llₚ = strat_ll(closest_model_agesₚ, agesₚ, Age_Sidedness)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration
@@ -767,14 +727,10 @@
 
             if rand() < 0.1
                 # Adjust heights
-                @inbounds for i ∈ eachindex(sample_heightₚ)
+                @inbounds for i ∈ eachindex(sample_heightₚ, closestₚ)
                     sample_heightₚ[i] += randn() * Height_sigma[i]
-                    closestₚ[i] = round(Int,(sample_heightₚ[i] - model_heights[1])/resolution)+1
-                    if closestₚ[i] < 1 # Check we're still within bounds
-                        closestₚ[i] = 1
-                    elseif closestₚ[i] > npoints
-                        closestₚ[i] = npoints
-                    end
+                    closestₚ[i] = round(Int,(sample_heightₚ[i] - first(model_heights))/resolution)+1
+                    closestₚ[i] = max(min(closestₚ[i], lastindex(model_agesₚ)), firstindex(model_agesₚ))
                 end
             else
                 # Adjust one point at a time then resolve conflicts
@@ -811,16 +767,11 @@
             end
 
             # Calculate log likelihood of proposal
-            # Proposals younger than age constraint are given a pass if Age_Sidedness is -1 (maximum age)
-            # proposal older than age constraint are given a pass if Age_Sidedness is +1 (minimum age)
-            @inbounds for i ∈ eachindex(ages)
-                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
-                if Age_Sidedness[i] == sign(closest_model_agesₚ[i] - ages[i].μ)
-                    closest_model_agesₚ[i] = ages[i].μ
-                end
-            end
             adjust!(agesₚ, Chronometer, systematic)
-            llₚ = strat_ll(closest_model_agesₚ, agesₚ)
+            @inbounds for i ∈ eachindex(closest_model_agesₚ, closestₚ)
+                closest_model_agesₚ[i] = model_agesₚ[closestₚ[i]]
+            end
+            llₚ = strat_ll(closest_model_agesₚ, agesₚ, Age_Sidedness)
             llₚ += normpdf_ll(Height, Height_sigma, sample_heightₚ)
 
             # Add log likelihood for hiatus duration

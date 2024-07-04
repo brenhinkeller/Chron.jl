@@ -263,14 +263,44 @@
 ## --- log likelihood functions allowing for arbitrary Distributions
 
     # Use dispatch to let us reduce duplication
-    strat_ll(x, ages::AbstractVector{<:Normal}) = normpdf_ll(x, ages)
-    strat_ll(x::Real, age::Distribution) = logpdf(age, x)
     function strat_ll(x, ages)
         ll = zero(float(eltype(x)))
         @inbounds for i in eachindex(x, ages)
-            ll += logpdf(ages[i], x[i])
+            ll += fastlogpdf(ages[i], x[i])
         end
         return ll
     end
+    function strat_ll(x, ages, sidedness)
+        ll = zero(float(eltype(x)))
+        @inbounds for i in eachindex(x, ages, sidedness)
+            ll += if sidedness[i] > 0 # Minimum age
+                logcdf(ages[i], x[i])
+            elseif sidedness[i] < 0  # Maximum age
+                logccdf(ages[i], x[i])
+            else
+                fastlogpdf(ages[i], x[i])
+            end
+        end
+        return ll
+    end
+
+    # function strat_ll(x, ages, sidedness)
+    #     ll = zero(float(eltype(x)))
+    #     @inbounds for i in eachindex(x, ages, sidedness)
+    #         ll += if sidedness[i] == sign(x[i] - mean(ages[i]))
+    #             fastlogpdf(ages[i], mean(ages[i])))
+    #         else
+    #             fastlogpdf(ages[i], x[i]))
+    #         end
+    #     end
+    #     return ll
+    # end
+
+    fastlogpdf(d, x::Real) = logpdf(d, x)
+    function fastlogpdf(d::Normal, x::Real)
+        δ, σ = (x - d.μ), d.σ
+        - δ*δ/(2*σ*σ)
+    end
+
 
 ## --- End of File
