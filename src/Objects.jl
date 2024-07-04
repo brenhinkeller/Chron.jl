@@ -1,4 +1,4 @@
-## --- Custom objects for holding Chron age data
+## --- Types to hold age constraints for age-depth modelling, before or after eruption age modelling
 
     # Define a type of struct object to hold data about geochron samples from
     # a region or stratigraphic section of interest
@@ -74,31 +74,8 @@
         )
     end
 
-    # A set of types to allow dispatch to different age sidedness methods
-    abstract type Sidedness end
-    struct CDFSidedness{T<:Real} <: Sidedness
-        s::Vector{T}
-    end
-    struct FastSidedness{T<:Real} <: Sidedness
-        s::Vector{T}
-    end
-    Base.getindex(A::Sidedness, args...) = getindex(A.s, args...)
-    Base.setindex!(A::Sidedness, args...) = setindex!(A.s, args...)
-    Base.eachindex(A::Sidedness) = eachindex(A.s)
-    Base.size(A::Sidedness, args...) = size(A.s, args...)
-    Base.length(A::Sidedness) = length(A.s)
-    Base.ndims(A::Sidedness) = ndims(A.s)
-    Base.ndims(::Type{<:Sidedness}) = 1
-    Base.copyto!(A::Sidedness, args...) = copyto!(A.s, args...)
+## --- `HiatusData` type to hold data about hiatuses
 
-    # One-sigma systematic uncertainty
-    mutable struct SystematicUncertainty
-        UPb::Float64
-        ArAr::Float64
-    end
-    SystematicUncertainty() = SystematicUncertainty(NaN, NaN)
-
-    # A type of object to hold data about hiatuses
     mutable struct HiatusData
         Height::Vector{Float64}
         Height_sigma::Vector{Float64}
@@ -119,7 +96,8 @@
         )
     end
 
-    # A type of object to specify the configuration of the stratigraphic model
+## --- Types type to specify the configuration of and hold results from the stratigraphic age-depth model
+
     mutable struct StratAgeModelConfiguration
         resolution::Float64
         burnin::Int
@@ -127,10 +105,8 @@
         sieve::Int
         bounding::Float64
     end
+    StratAgeModelConfiguration() = StratAgeModelConfiguration(NaN, 0, 0, 0, NaN)
 
-    function StratAgeModelConfiguration()
-        StratAgeModelConfiguration(NaN, 0, 0, 0, NaN)
-    end
     const NewStratAgeModelConfiguration = StratAgeModelConfiguration
     export NewStratAgeModelConfiguration
 
@@ -157,3 +133,29 @@
     end
 
     Base.NamedTuple(mdl::StratAgeModel) = NamedTuple{fieldnames(typeof(mdl))}(ntuple(i->getfield(mdl, i), nfields(mdl)))
+
+## --- Types to allow dispatch to different age sidedness methods
+    abstract type Sidedness end
+    struct CDFSidedness{T<:Real} <: Sidedness
+        s::Vector{T}
+    end
+    struct FastSidedness{T<:Real} <: Sidedness
+        s::Vector{T}
+    end
+    # Forward all array-like methods to the wrapped vector
+    Base.getindex(A::Sidedness, args...) = getindex(A.s, args...)
+    Base.setindex!(A::Sidedness, args...) = setindex!(A.s, args...)
+    Base.eachindex(A::Sidedness) = eachindex(A.s)
+    Base.size(A::Sidedness, args...) = size(A.s, args...)
+    Base.length(A::Sidedness) = length(A.s)
+    Base.ndims(A::Sidedness) = ndims(A.s)
+    Base.ndims(::Type{<:Sidedness}) = 1
+    Base.copyto!(A::Sidedness, args...) = copyto!(A.s, args...)
+
+## --- Types to allow specification of systematic uncertainties
+
+    mutable struct SystematicUncertainty
+        UPb::Float64
+        ArAr::Float64
+    end
+    SystematicUncertainty() = SystematicUncertainty(NaN, NaN)
