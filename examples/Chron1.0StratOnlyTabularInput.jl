@@ -1,8 +1,9 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#                            Chron1.0StratOnly.jl                               #
+#                        Chron1.0StratOnlyTabularInput.jl                       #
 #                                                                               #
 #     Illustrates the use of the Chron.jl package for the production of a       #
 #  stratigraphic age-depth model based on any Gaussian age constraints          #
+#  wherein age constraints are loaded from a .csv file in the same directory    #
 #                                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 ## --- Load required pacages  - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -130,8 +131,8 @@
 ## --- Optional: Stratigraphic model including hiatuses - - - - - - - - - - - -
 
     # Data about hiatuses
-    nHiatuses = 2 # The number of hiatuses you have data for
-    hiatus = HiatusData(nHiatuses) # Struct to hold data
+    nhiatuses = 2 # The number of hiatuses you have data for
+    hiatus = HiatusData(nhiatuses) # Struct to hold data
     hiatus.Height         = [-371.5, -405.0 ]
     hiatus.Height_sigma   = [   0.0,    0.0 ]
     hiatus.Duration       = [ 100.0,   123.0]

@@ -20,12 +20,12 @@
     # Paleocene astronomical timescales" EPSL 452, 272–280.
     # doi: 10.1016/j.epsl.2016.07.041
 
-    nSamples = 5 # The number of samples you have data for
-    smpl = ChronAgeData(nSamples)
+    nsamples = 5 # The number of samples you have data for
+    smpl = ChronAgeData(nsamples)
     smpl.Name      =  ("KJ08-157", "KJ04-75", "KJ09-66", "KJ04-72", "KJ04-70",)
     smpl.Height   .=  [     -52.0,      44.0,      54.0,      82.0,      93.0,]
     smpl.Height_sigma .= [    3.0,       1.0,       3.0,       3.0,       3.0,]
-    smpl.Age_Sidedness .= zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+    smpl.Age_Sidedness .= zeros(nsamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
     smpl.Path = joinpath(@__DIR__, "DenverUPbExampleData") # Where are the data files?
     smpl.inputSigmaLevel = 2 # i.e., are the data files 1-sigma or 2-sigma. Integer.
     smpl.Age_Unit = "Ma" # Unit of measurement for ages and errors in the data files
@@ -246,8 +246,8 @@
 ## --- (Optional) If your section has hiata / exposure surfaces of known duration, try this:
 
     # Data about hiatuses
-    nHiatuses = 2 # The number of hiatuses you have data for
-    hiatus = HiatusData(nHiatuses) # Struct to hold data
+    nhiatuses = 2 # The number of hiatuses you have data for
+    hiatus = HiatusData(nhiatuses) # Struct to hold data
     hiatus.Height         = [-7.0, 35.0 ]
     hiatus.Height_sigma   = [ 0.0,  0.0 ]
     hiatus.Duration       = [ 0.3,  0.3 ]

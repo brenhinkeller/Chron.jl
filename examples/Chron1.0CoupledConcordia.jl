@@ -19,11 +19,11 @@
     # This example data is from MacLennan et al. 2020, 10.1126/sciadv.aay6647
     # This is all _exactly the same_ as for normal eruption/deposition ages,
     # except the CSV files in `smpl.Path` contain five columns of raw isotopic data
-    nSamples = 3 # The number of samples you have data for
-    smpl = ChronAgeData(nSamples)
+    nsamples = 3 # The number of samples you have data for
+    smpl = ChronAgeData(nsamples)
     smpl.Name      =  ("KR18-04", "KR18-01", "KR18-05")
     smpl.Height   .=  [      0.0,     100.0,     200.0] # Arbitrary example heights
-    smpl.Age_Sidedness .= zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+    smpl.Age_Sidedness .= zeros(nsamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
     smpl.Path = joinpath(@__DIR__, "ConcordiaExampleData") # Where are the data files?
     smpl.inputSigmaLevel = 1 # i.e., are the data files 1-sigma or 2-sigma. Integer.
     smpl.Age_Unit = "Ma" # Unit of measurement for ages and errors in the data files

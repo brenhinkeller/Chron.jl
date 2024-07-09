@@ -207,8 +207,8 @@
 ## --- (Optional) If your section has hiata / exposure surfaces of known duration, try this:
 
     # Data about hiatuses
-    nHiatuses = 2 # The number of hiatuses you have data for
-    hiatus = HiatusData(nHiatuses) # Struct to hold data
+    nhiatuses = 2 # The number of hiatuses you have data for
+    hiatus = HiatusData(nhiatuses) # Struct to hold data
     hiatus.Height         = [-7.0, 35.0 ]
     hiatus.Height_sigma   = [ 0.0,  0.0 ]
     hiatus.Duration       = [ 0.3,  0.3 ]

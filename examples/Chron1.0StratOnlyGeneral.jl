@@ -1,29 +1,28 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#                            Chron1.0StratOnly.jl                               #
+#                         Chron1.0StratOnlyGeneral.jl                           #
 #                                                                               #
 #     Illustrates the use of the Chron.jl package for the production of a       #
-#  stratigraphic age-depth model based on any Gaussian age constraints          #
+#  stratigraphic age-depth model based on age constraints which may take the    #
+#  form of any Distributions.jl Distribution, including Gaussian, Uniform, etc. #
 #                                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 ## --- Load required pacages  - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    using Chron
+    using Chron, Distributions
     using Plots
 
 ## --- Define sample properties - - - - - - - - - - - - - - - - - - - - - - - -
 
     # # # # # # # # # # # Enter sample information here! # # # # # # # # # # # #
     # Input the number of samples we wish to model (must match below)
-    nsamples = 4
-    # Make an instance of a ChronAgeData object for n samples
-    smpl = ChronAgeData(nsamples)
-    smpl.Name          = ("Sample 1", "Sample 2", "Sample 3", "Sample 4") # Et cetera
-    smpl.Age          .= [ 6991,  7088,  7230,  7540,] # Measured ages
-    smpl.Age_sigma    .= [   30,    70,    50,    50,] # Measured 1-σ uncertainties
-    smpl.Height       .= [ -355,  -380,-397.0,-411.5,] # Depths below surface should be negative
-    smpl.Height_sigma .= fill(0.01, nsamples) # Usually assume little or no sample height uncertainty
-    smpl.Age_Sidedness .= zeros(nsamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
-    smpl.Age_Unit = "Years BP" # Unit of measurement for ages
+    nsamples = 5
+    # Make an instance of a GeneralAgeData object for n samples
+    smpl = GeneralAgeData(nsamples)
+    smpl.Name             = (      "Sample 1",      "Sample 2",         "Sample 3",       "Sample 4",        "Sample 5",) # Et cetera
+    smpl.Age_Distribution = [Normal(39.5,0.1), Uniform(37, 38),  Normal(36.3, 0.1), Uniform(33.5,34), Normal(32.1, 0.1),] # Measured ages
+    smpl.Height           = [             100,             200,                300,              400,               500,] # Depths below surface should be negative
+    smpl.Age_Sidedness    = zeros(nsamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+    smpl.Age_Unit = "Ma" # Unit of measurement for ages
     smpl.Height_Unit = "m" # Unit of measurement for Height and Height_sigma
 
     # IMPORTANT: smpl.Height must increase with increasing stratigraphic height
@@ -39,7 +38,7 @@
     # Configure the stratigraphic Monte Carlo model
     config = StratAgeModelConfiguration()
     # If you in doubt, you can probably leave these parameters as-is
-    config.resolution = 0.2 # Same units as sample height. Smaller is slower!
+    config.resolution = 1.0 # Same units as sample height. Smaller is slower!
     config.bounding = 0.5 # how far away do we place runaway bounds, as a fraction of total section height. Larger is slower.
     (bottom, top) = extrema(smpl.Height)
     npoints_approx = round(Int,length(bottom:config.resolution:top) * (1 + 2*config.bounding))
@@ -61,20 +60,20 @@
     plot!(hdl, [mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(round(Int,minimum(mdl.Height)),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="") # Center line
     t = smpl.Age_Sidedness .== 0 # Two-sided constraints (plot in black)
-    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=2*smpl.Age_sigma[t],label="data",seriestype=:scatter,color=:black)
+    any(t) && plot!(hdl, mean.(smpl.Age_Distribution[t]), smpl.Height[t], xerror=2*std.(smpl.Age_Distribution[t]),label="data",seriestype=:scatter,color=:black)
     t = smpl.Age_Sidedness .== 1 # Minimum ages (plot in cyan)
-    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(2*smpl.Age_sigma[t],zeros(count(t))),label="",seriestype=:scatter,color=:cyan,msc=:cyan)
-    any(t) && zip(smpl.Age[t], smpl.Age[t].+nanmean(smpl.Age_sigma[t])*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:cyan)
+    any(t) && plot!(hdl, mean.(smpl.Age_Distribution[t]), smpl.Height[t], xerror=(2*std.(smpl.Age_Distribution[t]),zeros(count(t))),label="",seriestype=:scatter,color=:cyan,msc=:cyan)
+    any(t) && zip(mean.(smpl.Age_Distribution[t]), mean.(smpl.Age_Distribution[t]).+nanmean(std.(smpl.Age_Distribution[t]))*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:cyan)
     t = smpl.Age_Sidedness .== -1 # Maximum ages (plot in orange)
-    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(zeros(count(t)),2*smpl.Age_sigma[t]),label="",seriestype=:scatter,color=:orange,msc=:orange)
-    any(t) && zip(smpl.Age[t], smpl.Age[t].-nanmean(smpl.Age_sigma[t])*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:orange)
+    any(t) && plot!(hdl, mean.(smpl.Age_Distribution[t]), smpl.Height[t], xerror=(zeros(count(t)),2*std.(smpl.Age_Distribution[t])),label="",seriestype=:scatter,color=:orange,msc=:orange)
+    any(t) && zip(mean.(smpl.Age_Distribution[t]), mean.(smpl.Age_Distribution[t]).-nanmean(std.(smpl.Age_Distribution[t]))*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:orange)
     savefig(hdl,"AgeDepthModel.pdf")
     display(hdl)
 
 ## --- Interpolate results at a specific height - - - - - - - - - - - - - - - -
 
     # Stratigraphic height at which to interpolate
-    height = -404
+    height = 450
 
     age_at_height = linterp1s(mdl.Height,mdl.Age,height)
     age_at_height_min = linterp1s(mdl.Height,mdl.Age_025CI,height)
@@ -136,10 +135,10 @@
     # Data about hiatuses
     nhiatuses = 2 # The number of hiatuses you have data for
     hiatus = HiatusData(nhiatuses) # Struct to hold data
-    hiatus.Height         = [-371.5, -405.0 ]
+    hiatus.Height         = [ 150.0,  350.0 ]
     hiatus.Height_sigma   = [   0.0,    0.0 ]
-    hiatus.Duration       = [ 100.0,   123.0]
-    hiatus.Duration_sigma = [  30.5,    20.0]
+    hiatus.Duration       = [   1.0,    2.3 ]
+    hiatus.Duration_sigma = [   1.0,    0.5 ]
 
     # Run the model. Note the additional `hiatus` arguments
     @time (mdl, agedist, hiatusdist, lldist) = StratMetropolis(smpl, hiatus, config); sleep(0.5)
@@ -148,7 +147,7 @@
     # Plot results (mean and 95% confidence interval for both model and data)
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white)
-    plot!(hdl, smpl.Age, smpl.Height, xerror=smpl.Age_sigma*2,label="data",seriestype=:scatter,color=:black)
+    plot!(hdl, mean.(smpl.Age_Distribution), smpl.Height, xerror=std.(smpl.Age_Distribution)*2,label="data",seriestype=:scatter,color=:black)
     plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
     savefig(hdl, "Interpolated age distribution.pdf")
     display(hdl)
