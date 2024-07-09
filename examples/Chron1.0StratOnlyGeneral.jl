@@ -18,10 +18,10 @@
     nsamples = 5
     # Make an instance of a GeneralAgeData object for n samples
     smpl = GeneralAgeData(nsamples)
-    smpl.Name             = (      "Sample 1",      "Sample 2",         "Sample 3",       "Sample 4",        "Sample 5",) # Et cetera
-    smpl.Age_Distribution = [Normal(39.5,0.1), Uniform(37, 38),  Normal(36.3, 0.1), Uniform(33.5,34), Normal(32.1, 0.1),] # Measured ages
-    smpl.Height           = [             100,             200,                300,              400,               500,] # Depths below surface should be negative
-    smpl.Age_Sidedness    = zeros(nsamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+    smpl.Name           = (      "Sample 1",      "Sample 2",         "Sample 3",       "Sample 4",        "Sample 5",) # Et cetera
+    smpl.Age            = [Normal(39.5,0.1), Uniform(37, 38),  Normal(36.3, 0.1), Uniform(33.5,34), Normal(32.1, 0.1),] # Measured ages
+    smpl.Height         = [             100,             200,                300,              400,               500,] # Depths below surface should be negative
+    smpl.Age_Sidedness  = zeros(nsamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
     smpl.Age_Unit = "Ma" # Unit of measurement for ages
     smpl.Height_Unit = "m" # Unit of measurement for Height and Height_sigma
 
@@ -60,13 +60,13 @@
     plot!(hdl, [mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(round(Int,minimum(mdl.Height)),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="") # Center line
     t = smpl.Age_Sidedness .== 0 # Two-sided constraints (plot in black)
-    any(t) && plot!(hdl, mean.(smpl.Age_Distribution[t]), smpl.Height[t], xerror=2*std.(smpl.Age_Distribution[t]),label="data",seriestype=:scatter,color=:black)
+    any(t) && plot!(hdl, mean.(smpl.Age[t]), smpl.Height[t], xerror=2*std.(smpl.Age[t]),label="data",seriestype=:scatter,color=:black)
     t = smpl.Age_Sidedness .== 1 # Minimum ages (plot in cyan)
-    any(t) && plot!(hdl, mean.(smpl.Age_Distribution[t]), smpl.Height[t], xerror=(2*std.(smpl.Age_Distribution[t]),zeros(count(t))),label="",seriestype=:scatter,color=:cyan,msc=:cyan)
-    any(t) && zip(mean.(smpl.Age_Distribution[t]), mean.(smpl.Age_Distribution[t]).+nanmean(std.(smpl.Age_Distribution[t]))*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:cyan)
+    any(t) && plot!(hdl, mean.(smpl.Age[t]), smpl.Height[t], xerror=(2*std.(smpl.Age[t]),zeros(count(t))),label="",seriestype=:scatter,color=:cyan,msc=:cyan)
+    any(t) && zip(mean.(smpl.Age[t]), mean.(smpl.Age[t]).+nanmean(std.(smpl.Age[t]))*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:cyan)
     t = smpl.Age_Sidedness .== -1 # Maximum ages (plot in orange)
-    any(t) && plot!(hdl, mean.(smpl.Age_Distribution[t]), smpl.Height[t], xerror=(zeros(count(t)),2*std.(smpl.Age_Distribution[t])),label="",seriestype=:scatter,color=:orange,msc=:orange)
-    any(t) && zip(mean.(smpl.Age_Distribution[t]), mean.(smpl.Age_Distribution[t]).-nanmean(std.(smpl.Age_Distribution[t]))*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:orange)
+    any(t) && plot!(hdl, mean.(smpl.Age[t]), smpl.Height[t], xerror=(zeros(count(t)),2*std.(smpl.Age[t])),label="",seriestype=:scatter,color=:orange,msc=:orange)
+    any(t) && zip(mean.(smpl.Age[t]), mean.(smpl.Age[t]).-nanmean(std.(smpl.Age[t]))*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:orange)
     savefig(hdl,"AgeDepthModel.pdf")
     display(hdl)
 
@@ -147,7 +147,7 @@
     # Plot results (mean and 95% confidence interval for both model and data)
     hdl = plot([mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
     plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="", fg_color_legend=:white)
-    plot!(hdl, mean.(smpl.Age_Distribution), smpl.Height, xerror=std.(smpl.Age_Distribution)*2,label="data",seriestype=:scatter,color=:black)
+    plot!(hdl, mean.(smpl.Age), smpl.Height, xerror=std.(smpl.Age)*2,label="data",seriestype=:scatter,color=:black)
     plot!(hdl, xlabel="Age ($(smpl.Age_Unit))", ylabel="Height ($(smpl.Height_Unit))")
     savefig(hdl, "Interpolated age distribution.pdf")
     display(hdl)

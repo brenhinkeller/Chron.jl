@@ -24,22 +24,22 @@
         Sidedness_Method::Symbol
     end
 
-    function ChronAgeData(nSamples::Integer)
-        ChronAgeData{nSamples}(
-            ntuple(i->"Sample name", nSamples),
-            collect(1.0:nSamples),  # Sample Height
-            zeros(nSamples),     # Sample Height_sigma
-            fill(NaN,nSamples),  # Sample ages
-            fill(NaN,nSamples),  # Sample age uncertainty
-            fill(NaN,nSamples),  # Sample age 2.5% CI
-            fill(NaN,nSamples),  # Sample age 97.5% CI
-            fill(NaN,nSamples),  # Sample 14C ages
-            fill(NaN,nSamples),  # Sample 14C uncertainties
-            zeros(nSamples), # Sidedness (zeros by default, geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
-            zeros(nSamples), # DistType (for Distribution-fitting only: 0=distribution to be fit, 1=single Gaussian)
-            Vector{Vector{Float64}}(undef,nSamples), # Stationary distribution of eruption age
-            ntuple(i->:Chronometer, nSamples), # Age Types (e.g., :UPb or :ArAr)
-            fill(NaN,5,nSamples), # Sample age distribution parameters
+    function ChronAgeData(nsamples::Integer)
+        ChronAgeData{nsamples}(
+            ntuple(i->"Sample name", nsamples),
+            collect(1.0:nsamples),  # Sample Height
+            zeros(nsamples),     # Sample Height_sigma
+            fill(NaN,nsamples),  # Sample ages
+            fill(NaN,nsamples),  # Sample age uncertainty
+            fill(NaN,nsamples),  # Sample age 2.5% CI
+            fill(NaN,nsamples),  # Sample age 97.5% CI
+            fill(NaN,nsamples),  # Sample 14C ages
+            fill(NaN,nsamples),  # Sample 14C uncertainties
+            zeros(nsamples), # Sidedness (zeros by default, geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+            zeros(nsamples), # DistType (for Distribution-fitting only: 0=distribution to be fit, 1=single Gaussian)
+            Vector{Vector{Float64}}(undef,nsamples), # Stationary distribution of eruption age
+            ntuple(i->:Chronometer, nsamples), # Age Types (e.g., :UPb or :ArAr)
+            fill(NaN,5,nsamples), # Sample age distribution parameters
             "./", # Relative path where we can find .csv data files
             2, # i.e., are the data files 1-sigma or 2-sigma
             "Ma",
@@ -52,7 +52,7 @@
         Name::NTuple{N, String}
         Height::Vector{Float64}
         Height_sigma::Vector{Float64}
-        Age_Distribution::Vector{<:Union{<:Distribution{Univariate, Continuous}}}
+        Age::Vector{<:Union{<:Distribution{Univariate, Continuous}}}
         Age_Sidedness::Vector{Float64}
         Chronometer::NTuple{N, Symbol}
         Age_Unit::String
@@ -60,14 +60,14 @@
         Sidedness_Method::Symbol
     end
 
-    function GeneralAgeData(nSamples::Integer)
-        GeneralAgeData{nSamples}(
-            ntuple(i->"Sample name", nSamples),
-            collect(1.0:nSamples),  # Sample Height
-            zeros(nSamples),     # Sample Height_sigma
-            fill(Uniform(0,4567),nSamples),  # Sample ages
-            zeros(nSamples), # Sidedness (zeros by default, geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
-            ntuple(i->:Chronometer, nSamples), # Age Types (e.g., :UPb or :ArAr)
+    function GeneralAgeData(nsamples::Integer)
+        GeneralAgeData{nsamples}(
+            ntuple(i->"Sample name", nsamples),
+            collect(1.0:nsamples),  # Sample Height
+            zeros(nsamples),     # Sample Height_sigma
+            fill(Uniform(0,4567), nsamples),  # Sample ages
+            zeros(nsamples), # Sidedness (zeros by default, geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+            ntuple(i->:Chronometer, nsamples), # Age Types (e.g., :UPb or :ArAr)
             "Ma",
             "m",
             :cdf,
@@ -85,12 +85,12 @@
         Height_Unit::String
     end
 
-    function HiatusData(nHiatuses::Integer)
+    function HiatusData(nhiatuses::Integer)
         HiatusData(
-            fill(NaN,nHiatuses),  # Height
-            fill(NaN,nHiatuses),  # Height_sigma
-            fill(NaN,nHiatuses),  # Duration
-            fill(NaN,nHiatuses),  # Duration_sigma
+            fill(NaN, nhiatuses),  # Height
+            fill(NaN, nhiatuses),  # Height_sigma
+            fill(NaN, nhiatuses),  # Duration
+            fill(NaN, nhiatuses),  # Duration_sigma
             "Ma",
             "m",
         )

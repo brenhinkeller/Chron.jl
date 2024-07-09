@@ -164,7 +164,7 @@
         bounding = config.bounding
 
         # Stratigraphic age constraints
-        ages = unionize(smpl.Age_Distribution)::Vector{<:Union{<:Distribution{Univariate, Continuous}}}
+        ages = unionize(smpl.Age)::Vector{<:Union{<:Distribution{Univariate, Continuous}}}
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
@@ -227,7 +227,7 @@
         bounding = config.bounding
 
         # Stratigraphic age constraints
-        ages = unionize(smpl.Age_Distribution)::Vector{<:Union{<:Distribution{Univariate, Continuous}}}
+        ages = unionize(smpl.Age)::Vector{<:Union{<:Distribution{Univariate, Continuous}}}
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age

@@ -2,10 +2,10 @@
 nsamples = 5
 # Make an instance of a GeneralAgeData object for n samples
 smpl = GeneralAgeData(nsamples)
-smpl.Name             = (      "Sample 1",      "Sample 2",         "Sample 3",       "Sample 4",        "Sample 5",) # Et cetera
-smpl.Age_Distribution = [Normal(39.5,0.1), Uniform(37, 38),  Normal(36.3, 0.1), Uniform(33.5,34), Normal(32.1, 0.1),] # Measured ages
-smpl.Height           = [             100,             200,                300,              400,               500,] # Depths below surface should be negative
-smpl.Age_Sidedness    = zeros(nsamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+smpl.Name           = (      "Sample 1",      "Sample 2",         "Sample 3",       "Sample 4",        "Sample 5",) # Et cetera
+smpl.Age            = [Normal(39.5,0.1), Uniform(37, 38),  Normal(36.3, 0.1), Uniform(33.5,34), Normal(32.1, 0.1),] # Measured ages
+smpl.Height         = [             100,             200,                300,              400,               500,] # Depths below surface should be negative
+smpl.Age_Sidedness  = zeros(nsamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
 smpl.Age_Unit = "Ma" # Unit of measurement for ages
 smpl.Height_Unit = "m" # Unit of measurement for Height and Height_sigma
 @test smpl isa GeneralAgeData
