@@ -122,9 +122,9 @@ weakdeps = ["SparseArrays"]
 
 [[deps.Chron]]
 deps = ["DelimitedFiles", "Distributions", "Isoplot", "KernelDensity", "LsqFit", "NaNStatistics", "Plots", "ProgressMeter", "QuadGK", "Reexport", "SpecialFunctions", "StatGeochemBase"]
-git-tree-sha1 = "fac9e7ee175ecbcdf02c75cec21f283c47526bde"
+git-tree-sha1 = "3db28e7fcee065ff6a0f21c0c86ff364e11481dc"
 uuid = "68885b1f-77b5-52a7-b2e7-6a8014c56b98"
-version = "0.6.1"
+version = "0.6.2"
 
 [[deps.CloseOpenIntervals]]
 deps = ["Static", "StaticArrayInterface"]
