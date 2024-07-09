@@ -7,15 +7,15 @@
 ## --- Test age-depth model
 
 # Input the number of samples we wish to model (must match below)
-nSamples = 4
-# Make an instance of a ChronSection object for nSamples
-smpl = ChronAgeData(nSamples)
+nsamples = 4
+# Make an instance of a ChronSection object for nsamples
+smpl = ChronAgeData(nsamples)
 smpl.Name           = ("Sample 1", "Sample 2", "Sample 3", "Sample 4") # Et cetera
 smpl.Age_14C       .= [ 6991,  7088,  7230,  7540,] # Measured ages
 smpl.Age_14C_sigma .= [   30,    70,    50,    50,] # Measured 1-σ uncertainties
 smpl.Height        .= [ -355,  -380,-397.0,-411.5,] # Depths below surface should be negative
-smpl.Height_sigma  .= fill(0.01, nSamples) # Usually assume little or no sample height uncertainty
-smpl.Age_Sidedness .= zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+smpl.Height_sigma  .= fill(0.01, nsamples) # Usually assume little or no sample height uncertainty
+smpl.Age_Sidedness .= zeros(nsamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
 smpl.Age_Unit = "Years BP" # Unit of measurement for ages
 smpl.Height_Unit = "m" # Unit of measurement for Height and Height_sigma
 
@@ -24,8 +24,8 @@ smpl.Height_Unit = "m" # Unit of measurement for Height and Height_sigma
 calibration = intcal13
 
 # Calculate calendar age PDFs for each sample
-smpl.Params = fill(NaN, length(calibration.Age_Calendar), nSamples)
-for i = 1:nSamples
+smpl.Params = fill(NaN, length(calibration.Age_Calendar), nsamples)
+for i = 1:nsamples
     # The likelihood that a measured 14C age could result from a sample of
     # a given calendar age is proportional to the intergral of the product
     # of the two respective distributions
@@ -98,8 +98,8 @@ hiatus.Duration_sigma = [  30.5,   20.0 ]
 calibration = intcal20
 
 # Calculate calendar age PDFs for each sample
-smpl.Params = fill(NaN, length(calibration.Age_Calendar), nSamples)
-for i = 1:nSamples
+smpl.Params = fill(NaN, length(calibration.Age_Calendar), nsamples)
+for i = 1:nsamples
     # The likelihood that a measured 14C age could result from a sample of
     # a given calendar age is proportional to the intergral of the product
     # of the two respective distributions

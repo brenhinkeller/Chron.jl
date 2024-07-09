@@ -4,6 +4,7 @@
     """
     ```julia
     StratMetropolis(smpl::ChronAgeData, [hiatus::HiatusData,] config::StratAgeModelConfiguration)
+    StratMetropolis(smpl::GeneralAgeData, [hiatus::HiatusData,] config::StratAgeModelConfiguration)
     ```
     Runs the main Chron.jl age-depth model routine for a stratigraphic set of
     samples defined by sample heights and simple Gaussian age constraints in the
@@ -39,7 +40,7 @@
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
-        Chronometer = smpl.Chronometer
+        chronometer = smpl.Chronometer
         (bottom, top) = extrema(Height)
         model_heights = bottom:resolution:top
 
@@ -60,7 +61,7 @@
             Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
-            Chronometer = (:None, Chronometer..., :None)
+            chronometer = (:None, chronometer..., :None)
         end
         active_height_t = bottom .<= model_heights .<= top
 
@@ -77,7 +78,7 @@
 
         # Run the Markov chain
         ages = Normal.(Age, Age_sigma)
-        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve, Chronometer, systematic)
+        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve, chronometer, systematic)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -86,7 +87,7 @@
 
         return mdl, agedist, lldist
     end
-    function StratMetropolis(smpl::ChronAgeData, hiatus::HiatusData, config::StratAgeModelConfiguration)
+    function StratMetropolis(smpl::ChronAgeData, hiatus::HiatusData, config::StratAgeModelConfiguration, systematic=nothing)
         # Run stratigraphic MCMC model, with hiata
         @info "Generating stratigraphic age-depth model..."
 
@@ -103,6 +104,7 @@
         Height = copy(smpl.Height)::Vector{Float64}
         Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
         Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
+        chronometer = smpl.Chronometer
         (bottom, top) = extrema(Height)
         model_heights = bottom:resolution:top
 
@@ -123,6 +125,7 @@
             Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
             Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
             model_heights = (bottom-offset):resolution:(top+offset)
+            chronometer = (:None, chronometer..., :None)
         end
         active_height_t = bottom .<= model_heights .<= top
         npoints = length(model_heights)
@@ -140,7 +143,133 @@
         
         # Run the Markov chain
         ages = Normal.(Age, Age_sigma)
-        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve)
+        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve, chronometer, systematic)
+
+        # Crop the result
+        agedist = agedist[active_height_t,:]
+        model_heights = model_heights[active_height_t]
+        mdl = StratAgeModel(model_heights, agedist)
+
+        return mdl, agedist, hiatusdist, lldist
+    end
+    function StratMetropolis(smpl::GeneralAgeData, config::StratAgeModelConfiguration, systematic=nothing)
+        # Run stratigraphic MCMC model
+        @info "Generating stratigraphic age-depth model..."
+
+        # Model configuration -- read from struct
+        resolution = config.resolution
+        burnin = config.burnin
+        nsteps = config.nsteps
+        sieve = config.sieve
+        bounding = config.bounding
+
+        # Stratigraphic age constraints
+        ages = unionize(smpl.Age_Distribution)::Vector{<:Union{<:Distribution{Univariate, Continuous}}}
+        Height = copy(smpl.Height)::Vector{Float64}
+        Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
+        Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
+        chronometer = smpl.Chronometer
+        (bottom, top) = extrema(Height)
+        model_heights = bottom:resolution:top
+
+        aveuncert = nanmean(std.(ages))
+        absdiff = diff(sort!(mean.(ages[Age_Sidedness.==0])))
+        maxdiff = isempty(absdiff) ? 0.0 : nanmaximum(absdiff)
+        proposal_sigma = sqrt(aveuncert^2 + (maxdiff/10)^2)
+
+        if bounding>0
+            # If bounding is requested, add extrapolated top and bottom bounds to avoid
+            # issues with the stratigraphic markov chain wandering off to +/- infinity
+            (youngest, oldest) = extrema(mean.(ages))
+            dt_dH = (oldest-youngest)/(top-bottom)
+            offset = round((top-bottom)*bounding/resolution)*resolution
+            ages = unionize([Normal(oldest+offset*dt_dH, aveuncert/10); 
+                             ages; 
+                             Normal(youngest-offset*dt_dH, aveuncert/10)])
+            Height = [bottom-offset; Height; top+offset]
+            Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
+            model_heights = (bottom-offset):resolution:(top+offset)
+            chronometer = (:None, chronometer..., :None)
+        end
+        active_height_t = bottom .<= model_heights .<= top
+
+        # Start with a linear fit as an initial proposal
+        (a,b) = hcat(fill!(similar(Height), 1), Height) \ mean.(ages)
+        model_ages = a .+ b .* collect(model_heights)
+
+        # Select sidedness method
+        sidedness = if smpl.Sidedness_Method === :fast || all(iszero, smpl.Age_Sidedness)
+            FastSidedness(Age_Sidedness)
+        else
+            CDFSidedness(Age_Sidedness)
+        end
+
+        # Run the Markov chain
+        agedist, lldist = stratmetropolis(Height, Height_sigma, model_heights, sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve, chronometer, systematic)
+
+        # Crop the result
+        agedist = agedist[active_height_t,:]
+        model_heights = model_heights[active_height_t]
+        mdl = StratAgeModel(model_heights, agedist)
+
+        return mdl, agedist, lldist
+    end
+    function StratMetropolis(smpl::GeneralAgeData, hiatus::HiatusData, config::StratAgeModelConfiguration, systematic=nothing)
+        # Run stratigraphic MCMC model
+        @info "Generating stratigraphic age-depth model..."
+
+        # Model configuration -- read from struct
+        resolution = config.resolution
+        burnin = config.burnin
+        nsteps = config.nsteps
+        sieve = config.sieve
+        bounding = config.bounding
+
+        # Stratigraphic age constraints
+        ages = unionize(smpl.Age_Distribution)::Vector{<:Union{<:Distribution{Univariate, Continuous}}}
+        Height = copy(smpl.Height)::Vector{Float64}
+        Height_sigma = smpl.Height_sigma::Vector{Float64} .+ 1E-9 # Avoid divide-by-zero issues
+        Age_Sidedness = copy(smpl.Age_Sidedness)::Vector{Float64} # Bottom is a maximum age and top is a minimum age
+        chronometer = smpl.Chronometer
+        (bottom, top) = extrema(Height)
+        model_heights = bottom:resolution:top
+
+        aveuncert = nanmean(std.(ages))
+        absdiff = diff(sort!(mean.(ages[Age_Sidedness.==0])))
+        maxdiff = isempty(absdiff) ? 0.0 : nanmaximum(absdiff)
+        proposal_sigma = sqrt(aveuncert^2 + (maxdiff/10)^2)
+
+        if bounding>0
+            # If bounding is requested, add extrapolated top and bottom bounds to avoid
+            # issues with the stratigraphic markov chain wandering off to +/- infinity
+            (youngest, oldest) = extrema(mean.(ages))
+            dt_dH = (oldest-youngest)/(top-bottom)
+            offset = round((top-bottom)*bounding/resolution)*resolution
+            ages = unionize([Normal(oldest+offset*dt_dH, aveuncert/10); 
+                             ages; 
+                             Normal(youngest-offset*dt_dH, aveuncert/10)])
+            Height = [bottom-offset; Height; top+offset]
+            Height_sigma = [0; Height_sigma; 0] .+ 1E-9 # Avoid divide-by-zero issues
+            Age_Sidedness = [-1.0; Age_Sidedness; 1.0;] # Bottom is a maximum age and top is a minimum age
+            model_heights = (bottom-offset):resolution:(top+offset)
+            chronometer = (:None, chronometer..., :None)
+        end
+        active_height_t = bottom .<= model_heights .<= top
+
+        # Start with a linear fit as an initial proposal
+        (a,b) = hcat(fill!(similar(Height), 1), Height) \ mean.(ages)
+        model_ages = a .+ b .* collect(model_heights)
+
+        # Select sidedness method
+        sidedness = if smpl.Sidedness_Method === :fast || all(iszero, smpl.Age_Sidedness)
+            FastSidedness(Age_Sidedness)
+        else
+            CDFSidedness(Age_Sidedness)
+        end
+
+        # Run the Markov chain
+        agedist, lldist, hiatusdist = stratmetropolis(hiatus, Height, Height_sigma, model_heights, sidedness, ages, model_ages, proposal_sigma, burnin, nsteps, sieve, chronometer, systematic)
 
         # Crop the result
         agedist = agedist[active_height_t,:]
@@ -401,9 +530,6 @@
 
         return mdl, agedist, lldist
     end
-
-## --- Stratigraphic MCMC model with hiatus, for radiocarbon ages # # # # # #
-
     function StratMetropolis14C(smpl::ChronAgeData, hiatus::HiatusData, config::StratAgeModelConfiguration)
         # Run stratigraphic MCMC model, with hiata
         @info "Generating stratigraphic age-depth model..."

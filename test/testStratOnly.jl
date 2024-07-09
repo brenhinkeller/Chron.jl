@@ -1,13 +1,13 @@
-# Make an instance of a ChronAgeData object for nSamples
-nSamples = 6
-smpl = ChronAgeData(nSamples)
+# Make an instance of a ChronAgeData object for nsamples
+nsamples = 6
+smpl = ChronAgeData(nsamples)
 @test smpl isa ChronAgeData
 smpl.Name          = ("minimum age", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "maximum age") # Et cetera
 smpl.Age          .= [ 690.0,  699.1,  708.8,  723.0,  754.0,  812.0] # Measured ages
 smpl.Age_sigma    .= [   7.0,    3.0,    7.0,    5.0,    5.0,    6.0] # Measured 1-σ uncertainties
 smpl.Height       .= [-350.0, -355.0, -380.0, -397.0, -411.5, -420.0] # Depths below surface should be negative
-smpl.Height_sigma .= fill(0.01, nSamples) # Usually assume little or no sample height uncertainty
-smpl.Age_Sidedness .= zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+smpl.Height_sigma .= fill(0.01, nsamples) # Usually assume little or no sample height uncertainty
+smpl.Age_Sidedness .= zeros(nsamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
 smpl.Age_Sidedness[1] = 1. # Minimum age
 smpl.Age_Sidedness[end] = -1. # Maximum age
 smpl.Age_Unit = "Years BP" # Unit of measurement for ages
@@ -60,10 +60,3 @@ hiatus.Duration_sigma = [   3.1,    2.0 ]
 @test size(hiatusdist) == (nHiatuses, config.nsteps)
 @test mean(hiatusdist, dims=2) ≈ [10.580012942504894; 18.96167245288326;;] atol=2
 @test -Inf < mean(lldist) < 0
-
-## --- Strat only, general Distributions-based case
-
-# Make an instance of a ChronAgeData object for nSamples
-nSamples = 4
-smpl = GeneralAgeData(nSamples)
-@test smpl isa GeneralAgeData

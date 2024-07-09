@@ -1,11 +1,11 @@
 ## --- Standard coupled eruption-deposition modelling
 
-nSamples = 5 # The number of samples you have data for
-smpl = ChronAgeData(nSamples)
+nsamples = 5 # The number of samples you have data for
+smpl = ChronAgeData(nsamples)
 smpl.Name      =  ("KJ08-157", "KJ04-75", "KJ09-66",  "KJ04-72", "KJ04-70",)
 smpl.Height   .=  [     -52.0,      44.0,      54.0,      82.0,      93.0,]
 smpl.Height_sigma .= [    3.0,       1.0,       3.0,       3.0,       3.0,]
-smpl.Age_Sidedness .= zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+smpl.Age_Sidedness .= zeros(nsamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
 smpl.Path = abspath("../examples/DenverUPbExampleData/") # Where are the data files?
 smpl.inputSigmaLevel = 2 # i.e., are the data files 1-sigma or 2-sigma. Integer.
 smpl.Age_Unit = "Ma" # Unit of measurement for ages and errors in the data files
@@ -124,11 +124,11 @@ println("StratMetropolisDist with fitted Gaussians:")
 
 ## -- Test coupled with Isoplot.jl Pb-loss-aware eruption ages
 
-nSamples = 3 # The number of samples you have data for
-smpl = ChronAgeData(nSamples)
+nsamples = 3 # The number of samples you have data for
+smpl = ChronAgeData(nsamples)
 smpl.Name      =  ("KR18-04", "KR18-01", "KR18-05")
 smpl.Height   .=  [      0.0,     100.0,     200.0] # Arbitrary heights
-smpl.Age_Sidedness .= zeros(nSamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
+smpl.Age_Sidedness .= zeros(nsamples) # Sidedness (zeros by default: geochron constraints are two-sided). Use -1 for a maximum age and +1 for a minimum age, 0 for two-sided
 smpl.Path = abspath("../examples/ConcordiaExampleData/") # Where are the data files?
 smpl.inputSigmaLevel = 1 # i.e., are the data files 1-sigma or 2-sigma. Integer.
 smpl.Age_Unit = "Ma" # Unit of measurement for ages and errors in the data files
