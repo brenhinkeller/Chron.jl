@@ -76,8 +76,8 @@ println("StratMetropolisDist with systematic uncertainties:")
 
 ## --- As above, but with hiata
 
-nHiatuses = 2 # The number of hiatuses you have data for
-hiatus = HiatusData(nHiatuses) # Struct to hold data
+nhiatuses = 2 # The number of hiatuses you have data for
+hiatus = HiatusData(nhiatuses) # Struct to hold data
 hiatus.Height         = [-7.0, 35.0 ]
 hiatus.Height_sigma   = [ 0.0,  0.0 ]
 hiatus.Duration       = [ 0.3,  0.3 ]
@@ -95,7 +95,7 @@ println("StratMetropolisDist with hiata:")
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 @test all(!isnan, agedist)
-@test size(hiatusdist) == (nHiatuses, config.nsteps)
+@test size(hiatusdist) == (nhiatuses, config.nsteps)
 @test mean(hiatusdist, dims=2) ≈ [0.064; 0.061;;] atol=0.3
 @test size(lldist) == (config.nsteps,)
 @test !isnan(mean(lldist))

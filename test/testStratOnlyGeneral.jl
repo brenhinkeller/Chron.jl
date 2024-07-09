@@ -36,8 +36,8 @@ config.sieve = round(Int,npoints_approx) # Record one out of every nsieve steps
 @test NamedTuple(mdl) isa NamedTuple
 
 # Data about hiatuses
-nHiatuses = 2 # The number of hiatuses you have data for
-hiatus = HiatusData(nHiatuses) # Struct to hold data
+nhiatuses = 2 # The number of hiatuses you have data for
+hiatus = HiatusData(nhiatuses) # Struct to hold data
 hiatus.Height         = [ 150.0,  350.0 ]
 hiatus.Height_sigma   = [   0.0,    0.0 ]
 hiatus.Duration       = [   1.0,    2.3 ]
@@ -54,6 +54,6 @@ hiatus.Duration_sigma = [   1.0,    0.5 ]
 # Test that all age-depth models are in stratigraphic order
 @test all([issorted(x, rev=true) for x in eachcol(agedist)])
 @test all(!isnan, agedist)
-@test size(hiatusdist) == (nHiatuses, config.nsteps)
+@test size(hiatusdist) == (nhiatuses, config.nsteps)
 @test mean(hiatusdist, dims=2) ≈ [0.9662452348821302; 1.9517040131111487;;] atol=2
 @test -Inf < mean(lldist) < 0
