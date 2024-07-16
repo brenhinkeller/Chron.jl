@@ -783,8 +783,8 @@
         end
 
         # Add log likelihood for hiatus duration
-        duration = @. min(model_ages[closest_hiatus_unique - 1] - model_ages[closest_hiatus_unique], Hiatus_duration)
-        ll += normpdf_ll(Hiatus_duration, Hiatus_duration_sigma, duration)
+        duration = @. model_ages[closest_hiatus_unique - 1] - model_ages[closest_hiatus_unique]
+        ll += normcdf_ll(Hiatus_duration, Hiatus_duration_sigma, duration)
 
         # Preallocate variables for MCMC proposals
         llₚ=ll
