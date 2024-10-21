@@ -1,3 +1,10 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                     EruptionDepositionAgeDemonstration.jl                     #
+#                                                                               #
+#    Demonstrates the eruption (/deposition) age estimation algorithm of        #
+#  Keller, Schoene, and Samperton (2018) as implemented in Chron.jl             #
+#                                                                               #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 ## --- Load (and install if necessary) the Chron.jl package
 
     using Chron
