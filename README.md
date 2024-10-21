@@ -44,6 +44,8 @@ If you are trying to use Chron with a published script written prior to ~2021, y
 pkg> add Chron@v0.1
 ```
 
+## Usage
+Many example scripts and notebooks are provided in the [examples](examples/) folder. 
 ## Online / Notebook Usage
 ### Coupled eruption/deposition age and age-depth modelling
 For a quick test (without having to install anything), try the [interactive online Jupyter notebook](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0Coupled.ipynb) (note: it'll take a few minutes for the notebook to launch). [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0Coupled.ipynb)
@@ -67,24 +69,18 @@ with or without hiatuses.
 
 ### Standalone eruption/deposition age modelling
 
-To run an eruption/deposition age estimate, without any age-depth modelling, try the notebook for
+To run an eruption/deposition age estimate, without any age-depth modelling, try the notebooks for
 * [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0DistOnly.ipynb) [Standalone eruption/deposition age modelling](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/Chron1.0DistOnly.ipynb)
 * [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/EruptionDepositionAgeDemonstration.ipynb) [Eruption/deposition age demo](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/EruptionDepositionAgeDemonstration.ipynb)
+* [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/ArClosureDistributionDemonstration.ipynb) [Ar-Ar closure distribution demo](https://mybinder.org/v2/gh/brenhinkeller/Chron.jl/main?filepath=examples/ArClosureDistributionDemonstration.ipynb)
 
 ## Standard Usage
 After installing [Julia](https://julialang.org/downloads/) with or without an [editor plugin](https://www.julia-vscode.org), and Chron.jl (above), run [examples/Chron1.0Coupled.jl](examples/Chron1.0Coupled.jl) to see how the code works. It should look something like this:
 
 #### Load necessary Julia packages
 ```julia
-if VERSION>=v"0.7"
-    using Statistics, StatsBase, DelimitedFiles, SpecialFunctions
-else
-    using Compat
-end
-
 using Chron
-
-using Plots; gr();
+using Plots
 ```
 
 #### Enter sample information
