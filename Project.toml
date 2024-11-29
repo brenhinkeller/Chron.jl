@@ -1,7 +1,7 @@
 name = "Chron"
 uuid = "68885b1f-77b5-52a7-b2e7-6a8014c56b98"
 authors = ["C. Brenhin Keller <cbkeller@dartmouth.edu>"]
-version = "0.6.3"
+version = "0.6.4"
 
 [deps]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
@@ -22,7 +22,7 @@ DelimitedFiles = "1"
 Distributions = "0.15 - 0.25"
 Isoplot = "0.3"
 KernelDensity = "0.4 - 0.6"
-LsqFit = "0.7 - 0.13"
+LsqFit = "0.7 - 0.15"
 NaNStatistics = "0.6.40"
 Plots = "1"
 ProgressMeter = "1"
