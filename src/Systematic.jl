@@ -18,15 +18,15 @@
 ## --- Add systematic uncertainty when given an already-generated age or age-depth distribution
 
     function add_systematic_uncert_UPb(agedistmyr::Vector{<:AbstractFloat})
-        λ238 = val(λ238U) # Jaffey decay constant, 1/Myr
-        λ238_ = val(λ238U) .+ err(λ238U).*randn(size(agedistmyr))# Jaffey decay with uncertainty 1/Myr
+        λ238 = value(λ238U) # Jaffey decay constant, 1/Myr
+        λ238_ = value(λ238U) .+ stdev(λ238U).*randn(size(agedistmyr))# Jaffey decay with uncertainty 1/Myr
         σtracer = 1 .+ (0.03/2/100) .* randn(size(agedistmyr)) # Earthtime tracer uncertainty
         r = exp.(agedistmyr .* λ238) .- 1
         return log.(r .* σtracer .+ 1) ./ λ238_
     end
     function add_systematic_uncert_UPb(agedistmyr::Matrix{<:AbstractFloat})
-        λ238 = val(λ238U) # Jaffey decay constant, 1/Myr
-        λ238_ = val(λ238U) .+ err(λ238U).*randn(1, size(agedistmyr,2)) # Jaffey decay with uncertainty 1/Myr
+        λ238 = value(λ238U) # Jaffey decay constant, 1/Myr
+        λ238_ = value(λ238U) .+ stdev(λ238U).*randn(1, size(agedistmyr,2)) # Jaffey decay with uncertainty 1/Myr
         σtracer = 1 .+ (0.03/2/100) .* randn(1, size(agedistmyr,2)) # Earthtime tracer uncertainty
         r = exp.(agedistmyr .* λ238) .- 1
         return log.(r .* σtracer .+ 1) ./ λ238_
@@ -138,11 +138,11 @@
         # Th230ₐ/U238ₐ = 1-exp(-Age*λ230Th)
         # Th230/U238 = (1-exp(-Age*λ230Th)) * λ238U/λ230Th
 
-        λ238 = val(λ238U)
-        λ238_ = val(λ238U) .+ err(λ238U).*randn(size(agedistmyr))
+        λ238 = value(λ238U)
+        λ238_ = value(λ238U) .+ stdev(λ238U).*randn(size(agedistmyr))
 
-        λ230 = val(λ230Th)
-        λ230_ = val(λ230Th) .+ err(λ230Th).*randn(size(agedistmyr))
+        λ230 = value(λ230Th)
+        λ230_ = value(λ230Th) .+ stdev(λ230Th).*randn(size(agedistmyr))
 
         # Convert age distribution to ratio distribution
         # (i.e., distribution of slope of two-point isochron)
@@ -157,11 +157,11 @@
         # Th230ₐ/U238ₐ = 1-exp(-Age*λ230Th)
         # Th230/U238 = (1-exp(-Age*λ230Th)) * λ238U/λ230Th
 
-        λ238 = val(λ238U)
-        λ238_ = val(λ238U) .+ err(λ238U).*randn(1, size(agedistmyr,2))
+        λ238 = value(λ238U)
+        λ238_ = value(λ238U) .+ stdev(λ238U).*randn(1, size(agedistmyr,2))
 
-        λ230 = val(λ230Th)
-        λ230_ = val(λ230Th) .+ err(λ230Th).*randn(1, size(agedistmyr,2))
+        λ230 = value(λ230Th)
+        λ230_ = value(λ230Th) .+ stdev(λ230Th).*randn(1, size(agedistmyr,2))
 
         # Convert age distribution to ratio distribution
         # (i.e., distribution of slope of two-point isochron)

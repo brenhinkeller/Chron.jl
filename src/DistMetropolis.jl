@@ -41,7 +41,7 @@
                     data[:,4]./=smpl.inputSigmaLevel
                     analyses = UPbAnalysis.(eachcol(data)...,)
                     uis = upperintercept.(tpbloss, analyses)
-                    μ, σ = val.(uis), err.(uis)
+                    μ, σ = value.(uis), stdev.(uis)
                 else
                     @info "Interpreting first two columns of $(Name[i]).csv as \n | Age | Age $σstr |"
                     data[:,2]./=smpl.inputSigmaLevel

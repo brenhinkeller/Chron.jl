@@ -65,7 +65,7 @@
                 # @info "$i: $(Name[i])\nInterpreting the five columns of $(Name[i]).csv as:\n | ²⁰⁷Pb/²³⁵U | $σstr | ²⁰⁶Pb/²³⁸U | $σstr | correlation coefficient |"
                 analyses = UPbAnalysis.(eachcol(data)...,)
                 dates = age68.(analyses)
-                val.(dates), err.(dates) ./ smpl.inputSigmaLevel
+                value.(dates), stdev.(dates) ./ smpl.inputSigmaLevel
             else
                 # @info "$i: $(Name[i])\nInterpreting first two columns of $(Name[i]).csv as \n | Age | Age $σstr |"
                 data[:,1], data[:,2] ./ smpl.inputSigmaLevel
