@@ -206,8 +206,8 @@
     end
 
     ## Conversions
-    Base.convert(::Type{Radiocarbon{T}}, d::Normal) where {T<:Real} = Radiocarbon{T}(T(d.μ), T(d.σ), T.(d.ldist))
-    Base.convert(::Type{Radiocarbon{T}}, d::Normal{T}) where {T<:Real} = d
+    Base.convert(::Type{Radiocarbon{T}}, d::Radiocarbon) where {T<:Real} = Radiocarbon{T}(T(d.μ), T(d.σ), T.(d.ldist))
+    Base.convert(::Type{Radiocarbon{T}}, d::Radiocarbon{T}) where {T<:Real} = d
 
     ## Parameters
     Distributions.params(d::Radiocarbon) = (d.dist, d.ldist)
