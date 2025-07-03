@@ -17,7 +17,7 @@ smpl = screen_outliers(smpl, maxgap=50; make_plots)
 # Distribution boostrapping from chron strat object
 BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl)
 @test BootstrappedDistribution isa Vector{Float64}
-@test BootstrappedDistribution[1] ≈ 1.0511396290122654
+@test BootstrappedDistribution[1] ≈ 1.2986370127270708
 
 # Estimate the eruption age distributions for each sample  - - - - - - - -
 
@@ -138,7 +138,7 @@ smpl = screen_outliers(smpl, maxgap=100; make_plots, discordancemin=-5)
 
 BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl, tpbloss=0)
 @test BootstrappedDistribution isa Vector{Float64}
-@test BootstrappedDistribution[1] ≈ 0.3697041339884247
+@test BootstrappedDistribution[1] ≈ 0.45349905011835107
 
 # Configure distribution model here
 distSteps = 2*10^5 # Number of steps to run in distribution MCMC

@@ -2,7 +2,7 @@
 
     """
     ```julia
-    BootstrapCrystDistributionKDE(smpl::ChronAgeData; cutoff=-0.05, [tpbloss=0])
+    BootstrapCrystDistributionKDE(smpl::ChronAgeData; cutoff=0.02, [tpbloss=0])
     ```
     Bootstrap an estimate of the pre-eruptive (or pre-depositional) mineral
     crystallization distribution shape from a Chron.ChronAgeData object containing
@@ -20,7 +20,7 @@
     BootstrappedDistribution = BootstrapCrystDistributionKDE(smpl)
     ```
     """
-    function BootstrapCrystDistributionKDE(smpl::ChronAgeData; cutoff::Number=-0.05, tpbloss::Number=0)
+    function BootstrapCrystDistributionKDE(smpl::ChronAgeData; cutoff::Number=0.02, tpbloss::Number=0)
         # Extact variables froms struct
         Name = collect(smpl.Name)::Vector{String}
         Path = smpl.Path::String
@@ -66,7 +66,7 @@
             end
         end
 
-        # Calculate kernel density estimate, truncated at 0
+        # Calculate kernel density estimate, truncated at `cutoff`
         kd = kde(allscaled,npoints=2^7)
         t = kd.x .> cutoff # Ensure sharp cutoff at eruption / deposition
         return kd.density[t]
@@ -75,7 +75,7 @@
 
     """
     ```julia
-    BootstrapCrystDistributionKDE(data::AbstractArray, [sigma::AbstractArray]; cutoff=-0.05)
+    BootstrapCrystDistributionKDE(data::AbstractArray, [sigma::AbstractArray]; cutoff=0.02)
     ```
     Bootstrap an estimate of the pre-eruptive (or pre-depositional) mineral
     crystallization distribution shape from a 1- or 2-d array of sample ages
@@ -90,7 +90,7 @@
     BootstrappedDistribution = BootstrapCrystDistributionKDE(1:10, ones(10))
     ```
     """
-    function BootstrapCrystDistributionKDE(data::AbstractArray{T}; cutoff::Number=-0.05) where {T<:Number}
+    function BootstrapCrystDistributionKDE(data::AbstractArray{T}; cutoff::Number=0.02) where {T<:Number}
         # Load all data points and scale from 0 to 1
         allscaled = Vector{float(T)}()
         for i=1:size(data,2)
@@ -101,13 +101,13 @@
             append!(allscaled, scaled)
         end
 
-        # Calculate kernel density estimate, truncated at 0
+        # Calculate kernel density estimate, truncated at `cutoff`
         kd = kde(allscaled,npoints=2^7)
         t = kd.x .> cutoff
         return kd.density[t]
     end
 
-    function BootstrapCrystDistributionKDE(data::AbstractArray{T}, sigma::AbstractArray{<:Number}; cutoff::Number=-0.05) where {T<:Number}
+    function BootstrapCrystDistributionKDE(data::AbstractArray{T}, sigma::AbstractArray{<:Number}; cutoff::Number=0.02) where {T<:Number}
         # Array to hold stacked, scaled data
         allscaled = Vector{float(T)}()
 
@@ -131,7 +131,7 @@
             end
         end
 
-        # Calculate kernel density estimate, truncated at 0
+        # Calculate kernel density estimate, truncated at `cutoff`
         kd = kde(allscaled,npoints=2^7)
         t = kd.x .> cutoff
         return kd.density[t]
