@@ -371,6 +371,11 @@ plot!(hdl, xlabel="Age (Ma)", ylabel="Height (cm)")
 ![png](readme_figures/output_19_4.png)
 
 
+## Citation
+Chron.jl may be cited as:
+> Keller, C.B. (2018). *Chron.jl: A Bayesian framework for integrated eruption age and age-depth modelling.* [10.17605/osf.io/TQX3F](https://doi.org/10.17605/osf.io/TQX3F)
+
+
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://brenhinkeller.github.io/Chron.jl/dev/
 [ci-img]: https://github.com/brenhinkeller/Chron.jl/workflows/CI/badge.svg
