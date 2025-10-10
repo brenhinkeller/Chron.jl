@@ -53,6 +53,8 @@
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             (youngest, oldest) = nanextrema([nanminimum(Age[Age_Sidedness .== -1]); Age[Age_Sidedness .== 0]; nanmaximum(Age[Age_Sidedness .== 1])])
+            oldest += aveuncert*1.1284/2
+            youngest -= aveuncert*1.1284/2
             dt_dH = (oldest-youngest)/(top-bottom)
             offset = round((top-bottom)*bounding/resolution)*resolution
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
@@ -117,6 +119,8 @@
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             (youngest, oldest) = nanextrema([nanminimum(Age[Age_Sidedness .== -1]); Age[Age_Sidedness .== 0]; nanmaximum(Age[Age_Sidedness .== 1])])
+            oldest += aveuncert*1.1284/2
+            youngest -= aveuncert*1.1284/2
             dt_dH = (oldest-youngest)/(top-bottom)
             offset = round((top-bottom)*bounding/resolution)*resolution
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
@@ -180,7 +184,9 @@
         if bounding>0
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
-            (youngest, oldest) = extrema(mean.(ages))
+            (youngest, oldest) = nanextrema([nanminimum(mean.(ages[Age_Sidedness .== -1])); mean.(ages[Age_Sidedness .== 0]); nanmaximum(mean.(ages[Age_Sidedness .== 1]))])
+            oldest += aveuncert*1.1284/2
+            youngest -= aveuncert*1.1284/2
             dt_dH = (oldest-youngest)/(top-bottom)
             offset = round((top-bottom)*bounding/resolution)*resolution
             ages = unionize([Normal(oldest+offset*dt_dH, aveuncert/10); 
@@ -244,6 +250,8 @@
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             (youngest, oldest) = extrema(mean.(ages))
+            oldest += aveuncert*1.1284/2
+            youngest -= aveuncert*1.1284/2
             dt_dH = (oldest-youngest)/(top-bottom)
             offset = round((top-bottom)*bounding/resolution)*resolution
             ages = unionize([Normal(oldest+offset*dt_dH, aveuncert/10); 
@@ -333,6 +341,8 @@
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             (youngest, oldest) = nanextrema([nanminimum(Age[Age_Sidedness .== -1]); Age[Age_Sidedness .== 0]; nanmaximum(Age[Age_Sidedness .== 1])])
+            oldest += aveuncert*1.1284/2
+            youngest -= aveuncert*1.1284/2
             dt_dH = (oldest-youngest)/(top-bottom)
             offset = round((top-bottom)*bounding/resolution)*resolution
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
@@ -401,6 +411,8 @@
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             (youngest, oldest) = nanextrema([nanminimum(Age[Age_Sidedness .== -1]); Age[Age_Sidedness .== 0]; nanmaximum(Age[Age_Sidedness .== 1])])
+            oldest += aveuncert*1.1284/2
+            youngest -= aveuncert*1.1284/2
             dt_dH = (oldest-youngest)/(top-bottom)
             offset = round((top-bottom)*bounding/resolution)*resolution
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
@@ -492,6 +504,8 @@
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             (youngest, oldest) = nanextrema([nanminimum(Age[Age_Sidedness .== -1]); Age[Age_Sidedness .== 0]; nanmaximum(Age[Age_Sidedness .== 1])])
+            oldest += aveuncert*1.1284/2
+            youngest -= aveuncert*1.1284/2
             dt_dH = (oldest-youngest)/(top-bottom)
             offset = round((top-bottom)*bounding/resolution)*resolution
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
@@ -560,6 +574,8 @@
             # If bounding is requested, add extrapolated top and bottom bounds to avoid
             # issues with the stratigraphic markov chain wandering off to +/- infinity
             (youngest, oldest) = nanextrema([nanminimum(Age[Age_Sidedness .== -1]); Age[Age_Sidedness .== 0]; nanmaximum(Age[Age_Sidedness .== 1])])
+            oldest += aveuncert*1.1284/2
+            youngest -= aveuncert*1.1284/2
             dt_dH = (oldest-youngest)/(top-bottom)
             offset = round((top-bottom)*bounding/resolution)*resolution
             Age = [oldest + offset*dt_dH; Age; youngest - offset*dt_dH]
