@@ -20,7 +20,7 @@ StatGeochemBase = "61e559cd-58b4-4257-8528-26bb26ff2b9a"
 [compat]
 DelimitedFiles = "1"
 Distributions = "0.15 - 0.25"
-Isoplot = "0.4"
+Isoplot = "0.5"
 KernelDensity = "0.4 - 0.6"
 LsqFit = "0.7 - 0.15"
 NaNStatistics = "0.6.40"

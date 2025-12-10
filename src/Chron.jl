@@ -39,8 +39,6 @@ module Chron
     include("Utilities.jl")
     # Functions for propagating systematic uncertainties
     include("Systematic.jl")
-    # Intcal2013 calibration curve for radiocarbion
-    include("Intcal.jl")
     # Functions for estimating extrema of a finite-range distribution
     include("DistMetropolis.jl")
     # Functions for stratigraphic modelling
@@ -60,7 +58,7 @@ module Chron
         screen_outliers, BootstrapCrystDistributionKDE
 
     # Custom distributions and related functions
-    export strat_ll, BilinearExponential, Radiocarbon
+    export strat_ll, BilinearExponential
     
     # Dealing with systematic uncertainty
     export add_systematic_uncert_UPb, add_systematic_uncert_ArAr, add_systematic_uncert_UTh, SystematicUncertainty
