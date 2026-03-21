@@ -112,6 +112,12 @@
     @time (mdl, agedist, lldist) = StratMetropolisDist(smpl, config)
     exportdataset(NamedTuple(mdl), "AgeDepthModel.csv")
 
+## ---  Plot log likelihood distribution
+
+    h = plot(lldist, xlabel="Step number", ylabel="Log likelihood", label="", framestyle=:box)
+    savefig(h, "lldist.pdf")
+    display(h)
+
 ## --- Plot stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - -
 
     # Plot results (mean and 95% confidence interval for both model and data)
@@ -146,7 +152,7 @@
 
     # Optional: interpolate full age distribution
     interpolated_distribution = Array{Float64}(undef,size(agedist,2))
-    for i=1:size(agedist,2)
+    for i in axes(agedist,2)
         interpolated_distribution[i] = linterp1s(mdl.Height,agedist[:,i],interp_height)
     end
     hdl = histogram(interpolated_distribution, nbins=50, label="", framestyle=:box)

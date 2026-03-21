@@ -148,6 +148,12 @@
     # end
     # (mdl, agedist, lldist) = StratMetropolis(smpl, config)
 
+## ---  Plot log likelihood distribution
+
+    h = plot(lldist, xlabel="Step number", ylabel="Log likelihood", label="", framestyle=:box)
+    savefig(h, "lldist.pdf")
+    display(h)
+    
 ## --- Plot stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - -
 
     # Plot results (mean and 95% confidence interval for both model and data)
@@ -182,7 +188,7 @@
 
     # Optional: interpolate full age distribution
     interpolated_distribution = Array{Float64}(undef,size(agedist,2))
-    for i=1:size(agedist,2)
+    for i in axes(agedist,2)
         interpolated_distribution[i] = linterp1s(mdl.Height,agedist[:,i],interp_height)
     end
     hdl = histogram(interpolated_distribution, nbins=50, label="", framestyle=:box)
@@ -245,7 +251,7 @@
     test_ages = (testAge-5*testAge_sigma):testAge_sigma/50:(testAge+5*testAge_sigma)
     test_prob_older = Array{Float64}(undef,size(test_ages))
     # Evaluate the probability that model age is older than each test_age at the given strat level
-    for i=1:length(test_ages)
+    for i in eachindex(test_ages)
         test_prob_older[i] = sum(agedist[nearest,:] .> test_ages[i]) ./ size(agedist,2)
     end
 

@@ -86,15 +86,30 @@
     @time (mdl, agedist, lldist) = StratMetropolis14C(smpl, config)
     exportdataset(NamedTuple(mdl), "AgeDepthModel.csv")
 
+## ---  Plot log likelihood distribution
+
+    h = plot(lldist, xlabel="Step number", ylabel="Log likelihood", label="", framestyle=:box)
+    savefig(h, "lldist.pdf")
+    display(h)
+
+## --- Plot stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - -
+
     # Plot results (mean and 95% confidence interval for both model and data)
     hdl = plot(framestyle=:box,
         xlabel="Age ($(smpl.Age_Unit))",
         ylabel="Height ($(smpl.Height_Unit))",
     )
-    plot!(hdl, [mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(minimum(mdl.Height),0.5,:blue), label="model")
-    plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="")
-    plot!(hdl, smpl.Age, smpl.Height, xerror=(smpl.Age-smpl.Age_025CI,smpl.Age_975CI-smpl.Age),label="data",seriestype=:scatter,color=:black)
-    savefig(hdl,"AgeDepthModel.pdf");
+    plot!(hdl, [mdl.Age_025CI; reverse(mdl.Age_975CI)],[mdl.Height; reverse(mdl.Height)], fill=(round(Int,minimum(mdl.Height)),0.5,:blue), label="model") # Age-depth model CI
+    plot!(hdl, mdl.Age, mdl.Height, linecolor=:blue, label="") # Center line
+    t = smpl.Age_Sidedness .== 0 # Two-sided constraints (plot in black)
+    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(smpl.Age[t]-smpl.Age_025CI[t],smpl.Age_975CI[t]-smpl.Age[t]),label="data",seriestype=:scatter,color=:black)
+    t = smpl.Age_Sidedness .== 1 # Minimum ages (plot in cyan)
+    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(smpl.Age[t]-smpl.Age_025CI[t],zeros(count(t))),label="",seriestype=:scatter,color=:cyan,msc=:cyan)
+    any(t) && zip(smpl.Age[t], smpl.Age[t].+nanmean(smpl.Age_sigma[t])*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:cyan)
+    t = smpl.Age_Sidedness .== -1 # Maximum ages (plot in orange)
+    any(t) && plot!(hdl, smpl.Age[t], smpl.Height[t], xerror=(zeros(count(t)),smpl.Age_975CI[t]-smpl.Age[t]),label="",seriestype=:scatter,color=:orange,msc=:orange)
+    any(t) && zip(smpl.Age[t], smpl.Age[t].-nanmean(smpl.Age_sigma[t])*4, smpl.Height[t]) .|> x-> plot!([x[1],x[2]],[x[3],x[3]], arrow=true, label="", color=:orange)
+    savefig(hdl,"AgeDepthModel.pdf")
     display(hdl)
 
 ## --- Interpolate results at a specific height - - - - - - - - - - - - - - - -
@@ -183,4 +198,4 @@
     savefig(hdl, "Interpolated age distribution.pdf")
     display(hdl)
 
-## --- End of File - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+## --- End of File

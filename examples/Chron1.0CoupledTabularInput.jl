@@ -106,6 +106,12 @@
     @time (mdl, agedist, lldist) = StratMetropolisDist(smpl, config)
     exportdataset(NamedTuple(mdl), "AgeDepthModel.csv")
 
+## ---  Plot log likelihood distribution
+
+    h = plot(lldist, xlabel="Step number", ylabel="Log likelihood", label="", framestyle=:box)
+    savefig(h, "lldist.pdf")
+    display(h)
+
 ## --- Plot stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - -
 
     # Plot results (mean and 95% confidence interval for both model and data)
@@ -185,7 +191,6 @@
 ## --- Make heatmap - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     rateplotmax = 3*maximum(dhdt) # May want to adjust this -- this is just a guess
-    using StatsBase: fit, Histogram
     ratebinedges = range(0, rateplotmax, length=length(agebincenters)+1)
     dhdt_im = zeros(length(agebincenters),length(agebincenters))
     for i=1:length(agebincenters)
@@ -226,62 +231,4 @@
     savefig(hdl,"AgeDepthModel.pdf")
     display(hdl)
 
-## --- (Optional) Add systematic uncertainties for U-Pb data
-
-    # # Tracer (ET2535) uncertainty converted from per cent to relative
-    # unc_tracer = 0.03/2/100
-    #
-    # # U-238 Decay constant and uncertainty, Myr^-1
-    # lambda238 = 1.55125e-10 * 1e6
-    # unc_lambda238 = 0.107/2/100 # converted from per cent to relative
-    #
-    # # Consider only the distribution of ages at model nodes where we have an ash bed
-    # age_dist_X = Array{Float64}(undef,length(smpl.Height),size(agedist,2))
-    # for i = 1:length(smpl.Height)
-    #    closest_model_node = argmin(abs.(mdl.Height-smpl.Height[i]))
-    #    age_dist_X[i,:] = agedist[closest_model_node,:]
-    # end
-    #
-    # # Convert ages to 206Pb/238U ratios of the distribution
-    # ratio_dist = exp.(age_dist_X.*lambda238)-1
-    #
-    # # Add tracer uncertainty
-    # ratio_dist_tracerunc = Array{Float64}(undef,size(ratio_dist))
-    # for i=1:size(ratio_dist,2)
-    #     ratio_dist_tracerunc[:,i] = ratio_dist[:,i].*(1 + unc_tracer*randn())
-    # end
-    #
-    # # Convert 206/238 ratios back to ages, in Ma
-    # age_dist_XY = log.(ratio_dist_tracerunc+1)./lambda238
-    #
-    # # Add decay constant uncertainty
-    # age_dist_XYZ = Array{Float64}(undef,size(ratio_dist))
-    # for i=1:size(ratio_dist,2)
-    #     age_dist_XYZ[:,i] = log.(ratio_dist_tracerunc[:,i]+1)./(lambda238.*(1 + unc_lambda238.*randn()))
-    # end
-    #
-    # # Calculate the means and 95% confidence intervals for different levels of systematic uncertainties
-    #
-    # age_dist_X_mean = nanmean(age_dist_X,2) # Mean age
-    # age_dist_X_std =  nanstd(age_dist_X,2) # Standard deviation
-    # age_dist_X_median = nanmedian(age_dist_X,2) # Median age
-    # age_dist_X_025p = nanpctile(age_dist_X,2.5,dim=2) # 2.5th percentile
-    # age_dist_X_975p = nanpctile(age_dist_X,97.5,dim=2) # 97.5th percentile
-    #
-    # age_dist_XY_mean = nanmean(age_dist_XY,2) # Mean age
-    # age_dist_XY_std =  nanstd(age_dist_XY,2) # Standard deviation
-    # age_dist_XY_median = nanmedian(age_dist_XY,2) # Median age
-    # age_dist_XY_025p = nanpctile(age_dist_XY,2.5,dim=2) # 2.5th percentile
-    # age_dist_XY_975p = nanpctile(age_dist_XY,97.5,dim=2) # 97.5th percentile
-    #
-    # age_dist_XYZ_mean = nanmean(age_dist_XYZ,2) # Mean age
-    # age_dist_XYZ_std =  nanstd(age_dist_XYZ,2) # Standard deviation
-    # age_dist_XYZ_median = nanmedian(age_dist_XYZ,2) # Median age
-    # age_dist_XYZ_025p = nanpctile(age_dist_XYZ,2.5,dim=2) # 2.5th percentile
-    # age_dist_XYZ_975p = nanpctile(age_dist_XYZ,97.5,dim=2) # 97.5th percentile
-    #
-    # age_X_95p = [age_dist_X_mean age_dist_X_975p-age_dist_X_mean age_dist_X_mean-age_dist_X_025p]
-    # age_XY_95p = [age_dist_XY_mean age_dist_XY_975p-age_dist_XY_mean age_dist_XY_mean-age_dist_XY_025p]
-    # age_XYZ_95p = [age_dist_XYZ_mean age_dist_XYZ_975p-age_dist_XYZ_mean age_dist_XYZ_mean-age_dist_XYZ_025p]
-
-## ---
+## --- End of File

@@ -54,6 +54,14 @@
     @time (mdl, agedist, lldist) = StratMetropolis(smpl, config)
     exportdataset(NamedTuple(mdl), "AgeDepthModel.csv")
 
+## ---  Plot log likelihood distribution
+
+    h = plot(lldist, xlabel="Step number", ylabel="Log likelihood", label="", framestyle=:box)
+    savefig(h, "lldist.pdf")
+    display(h)
+
+## --- Plot stratigraphic model - - - - - - - - - - - - - - - - - - - - - - - -
+
     # Plot results (mean and 95% CI for model / 2-sigma for data)
     hdl = plot(framestyle=:box,
         fg_color_legend=:white,
@@ -150,4 +158,4 @@
     savefig(hdl,"AgeDepthModel.pdf")
     display(hdl)
 
-## --- End of File - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+## --- End of File
