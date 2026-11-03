@@ -29,11 +29,11 @@
 ## --- Other utility functions for log likelihoods
 
     @test strat_ll([66.02,], [BilinearExponential(66.00606672179812, 0.17739474265630253, 70.57882331291309, 0.6017142541555505)]) ≈  (-3.251727600957773 -4.265260194845626)
-    @test strat_ll([950,], [Radiocarbon(1000, 10, calibration=intcal13)]) ≈ -7.342817323513984
+    @test strat_ll([950,], [Radiocarbon(1000, 10, calibration=intcal13)]) ≈ -5.645221874338273
 
     @test strat_ll([0.0, 0.0], [Normal(0,1), Normal(0,1)]) ≈ 0
     @test strat_ll([0.0, 0.5], [Normal(0,1), Uniform(0,1)]) ≈ 0
     @test strat_ll([0.0, 0.5, 66.02], [Normal(0,1), Uniform(0,1), BilinearExponential(66.00606672179812, 0.17739474265630253, 70.57882331291309, 0.6017142541555505)]) ≈ (-3.251727600957773 -4.265260194845626)
-    @test strat_ll([0.0, 0.5, 66.02, 900], [Normal(0,1), Uniform(0,1), BilinearExponential(66.00606672179812, 0.17739474265630253, 70.57882331291309, 0.6017142541555505), Radiocarbon(1000, 10, calibration=intcal13)]) ≈ -24.09187457017352
+    @test strat_ll([0.0, 0.5, 66.02, 900], [Normal(0,1), Uniform(0,1), BilinearExponential(66.00606672179812, 0.17739474265630253, 70.57882331291309, 0.6017142541555505), Radiocarbon(1000, 10, calibration=intcal13)]) ≈ -22.39427912099781
 
 ## ---

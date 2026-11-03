@@ -1,8 +1,8 @@
 ## --- Test construction of curves
-@test intcal13.Age_14C[1:10] == [196.8, 194.6, 192.4, 190.2, 188.0, 184.8, 181.6, 178.4, 175.2, 172.0]
-@test intcal20.Age_14C[1:10] == [197.0, 195.0, 193.0, 190.0, 188.0, 185.0, 181.0, 178.0, 174.0, 170.0]
-@test shcal20.Age_14C[1:10] == [171.0, 168.0, 164.0, 161.0, 159.0, 157.0, 155.0, 154.0, 154.0, 154.0]
-@test marine20.Age_14C[1:10] == [603.0, 603.0, 603.0, 603.0, 603.0, 603.0, 603.0, 603.0, 603.0, 603.0]
+@test intcal13.age_14C[1:10] == [196.8, 194.6, 192.4, 190.2, 188.0, 184.8, 181.6, 178.4, 175.2, 172.0]
+@test intcal20.age_14C[1:10] == [197.0, 195.0, 193.0, 190.0, 188.0, 185.0, 181.0, 178.0, 174.0, 170.0]
+@test shcal20.age_14C[1:10] == [171.0, 168.0, 164.0, 161.0, 159.0, 157.0, 155.0, 154.0, 154.0, 154.0]
+@test marine20.age_14C[1:10] == [603.0, 603.0, 603.0, 603.0, 603.0, 603.0, 603.0, 603.0, 603.0, 603.0]
 
 ## --- Test age-depth model
 
@@ -24,20 +24,20 @@ smpl.Height_Unit = "m" # Unit of measurement for Height and Height_sigma
 calibration = intcal13
 
 # Calculate calendar age PDFs for each sample
-smpl.Params = fill(NaN, length(calibration.Age_Calendar), nsamples)
+smpl.Params = fill(NaN, length(calibration.age_calendar), nsamples)
 for i = 1:nsamples
     # The likelihood that a measured 14C age could result from a sample of
     # a given calendar age is proportional to the intergral of the product
     # of the two respective distributions
-    likelihood = normproduct.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], calibration.Age_14C, calibration.Age_sigma)
+    likelihood = normproduct.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], calibration.age_14C, calibration.age_sigma)
     likelihood ./= sum(likelihood) * calibration.dt # Normalize
 
-    samples = draw_from_distribution(likelihood, 10^4) .* maximum(calibration.Age_Calendar)
+    samples = draw_from_distribution(likelihood, 10^4) .* maximum(calibration.age_calendar)
     smpl.Age[i] = mean(samples)
     smpl.Age_sigma[i] = std(samples)
 
     # Populate smpl.Params with log likelihood for each sample
-    smpl.Params[:,i] = normlogproduct.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], calibration.Age_14C, calibration.Age_sigma)
+    smpl.Params[:,i] = normlogproduct.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], calibration.age_14C, calibration.age_sigma)
 end
 
 # Run stratigraphic model
@@ -98,20 +98,20 @@ hiatus.Duration_sigma = [  30.5,   20.0 ]
 calibration = intcal20
 
 # Calculate calendar age PDFs for each sample
-smpl.Params = fill(NaN, length(calibration.Age_Calendar), nsamples)
+smpl.Params = fill(NaN, length(calibration.age_calendar), nsamples)
 for i = 1:nsamples
     # The likelihood that a measured 14C age could result from a sample of
     # a given calendar age is proportional to the intergral of the product
     # of the two respective distributions
-    likelihood = normproduct.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], calibration.Age_14C, calibration.Age_sigma)
+    likelihood = normproduct.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], calibration.age_14C, calibration.age_sigma)
     likelihood ./= sum(likelihood) * calibration.dt # Normalize
 
-    samples = draw_from_distribution(likelihood, 10^4) .* maximum(calibration.Age_Calendar)
+    samples = draw_from_distribution(likelihood, 10^4) .* maximum(calibration.age_calendar)
     smpl.Age[i] = mean(samples)
     smpl.Age_sigma[i] = std(samples)
 
     # Populate smpl.Params with log likelihood for each sample
-    smpl.Params[:,i] = normlogproduct.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], calibration.Age_14C, calibration.Age_sigma)
+    smpl.Params[:,i] = normlogproduct.(smpl.Age_14C[i], smpl.Age_14C_sigma[i], calibration.age_14C, calibration.age_sigma)
 end
 
 # Run stratigraphic model
